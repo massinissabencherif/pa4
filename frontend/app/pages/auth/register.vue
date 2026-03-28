@@ -1,0 +1,134 @@
+<template>
+  <div class="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-16">
+    <div class="absolute inset-0 pointer-events-none overflow-hidden">
+      <div class="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[300px] bg-red-800/8 rounded-full blur-3xl"></div>
+    </div>
+
+    <div class="relative w-full max-w-sm">
+      <!-- Header -->
+      <div class="text-center mb-8">
+        <NuxtLink to="/" class="inline-flex items-center gap-2 mb-6">
+          <div class="w-9 h-9 bg-red-600 rounded-xl flex items-center justify-center shadow-lg shadow-red-900/40">
+            <span class="text-white font-black">C</span>
+          </div>
+        </NuxtLink>
+        <h1 class="text-2xl font-bold mb-1">Créer un compte</h1>
+        <p class="text-gray-500 text-sm">Gratuit et sans carte bancaire</p>
+      </div>
+
+      <div class="card p-7">
+        <form @submit.prevent="submit" class="space-y-4">
+          <div>
+            <label class="block text-xs font-medium text-gray-400 mb-2">Email</label>
+            <input
+              v-model="form.email"
+              type="email"
+              required
+              placeholder="toi@example.com"
+              class="input"
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-gray-400 mb-2">Nom d'utilisateur</label>
+            <input
+              v-model="form.username"
+              type="text"
+              required
+              minlength="3"
+              placeholder="spider_reader"
+              class="input"
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-gray-400 mb-2">Mot de passe</label>
+            <input
+              v-model="form.password"
+              type="password"
+              required
+              minlength="8"
+              placeholder="Au moins 8 caractères"
+              class="input"
+            />
+          </div>
+
+          <!-- Strength bar -->
+          <div v-if="form.password.length > 0" class="flex gap-1 mt-1">
+            <div
+              v-for="i in 4"
+              :key="i"
+              class="h-1 flex-1 rounded-full transition-all duration-300"
+              :class="i <= passwordStrength ? strengthColor : 'bg-white/10'"
+            ></div>
+          </div>
+
+          <div v-if="error" class="flex items-center gap-2 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-sm text-red-400">
+            <span>⚠</span>
+            {{ error }}
+          </div>
+
+          <button
+            type="submit"
+            :disabled="loading"
+            class="btn-primary w-full justify-center !py-3 text-base mt-2"
+          >
+            <span v-if="loading" class="flex items-center justify-center gap-2">
+              <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+              </svg>
+              Création…
+            </span>
+            <span v-else>Créer mon compte</span>
+          </button>
+        </form>
+      </div>
+
+      <p class="text-center text-sm text-gray-600 mt-5">
+        Déjà un compte ?
+        <NuxtLink to="/auth/login" class="text-red-400 hover:text-red-300 font-medium transition">
+          Se connecter
+        </NuxtLink>
+      </p>
+    </div>
+  </div>
+</template>
+
+<script setup>
+const { register } = useAuth()
+const form = reactive({ email: '', username: '', password: '' })
+const error = ref('')
+const loading = ref(false)
+
+const passwordStrength = computed(() => {
+  const p = form.password
+  if (p.length === 0) return 0
+  let score = 0
+  if (p.length >= 8) score++
+  if (/[A-Z]/.test(p)) score++
+  if (/[0-9]/.test(p)) score++
+  if (/[^A-Za-z0-9]/.test(p)) score++
+  return score
+})
+
+const strengthColor = computed(() => {
+  if (passwordStrength.value <= 1) return 'bg-red-500'
+  if (passwordStrength.value === 2) return 'bg-orange-400'
+  if (passwordStrength.value === 3) return 'bg-yellow-400'
+  return 'bg-green-500'
+})
+
+async function submit() {
+  error.value = ''
+  loading.value = true
+  try {
+    await register(form.email, form.username, form.password)
+    navigateTo('/')
+  } catch (e) {
+    error.value = e.data?.error || 'Erreur lors de la création du compte'
+  } finally {
+    loading.value = false
+  }
+}
+</script>
