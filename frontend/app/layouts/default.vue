@@ -110,6 +110,18 @@
 
 <script setup>
 const { isLoggedIn, user, logout, token } = useAuth()
+const config = useRuntimeConfig()
+
+if (config.public.umamiId && config.public.umamiUrl) {
+  useHead({
+    script: [{
+      src: config.public.umamiUrl,
+      'data-website-id': config.public.umamiId,
+      defer: true,
+      async: true,
+    }],
+  })
+}
 
 const isAdmin = computed(() => {
   if (!token.value) return false
