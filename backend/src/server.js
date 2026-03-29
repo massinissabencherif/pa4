@@ -49,6 +49,11 @@ app.use("/", adminRouter);
 app.use("/", usersRouter);
 
 const port = process.env.PORT || 3001;
-app.listen(port, () => {
-  console.log(`API running on http://localhost:${port}`);
-});
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  app.listen(port, () => {
+    console.log(`API running on http://localhost:${port}`);
+  });
+}
+
+export { app };
