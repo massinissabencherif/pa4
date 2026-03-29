@@ -56,6 +56,7 @@ model Follow {
   following User @relation("following", fields: [followingId], references: [id])
 
   @@id([followerId, followingId])
+  @@index([followingId])
 }
 
 // ─── Comics ──────────────────────────────────────────────────────────────────
@@ -93,6 +94,8 @@ model ReadingEntry {
   comic Comic @relation(fields: [comicId], references: [id])
 
   @@unique([userId, comicId])
+  @@index([userId])
+  @@index([userId, status])
 }
 
 enum ReadingStatus {
@@ -117,6 +120,7 @@ model Review {
   comments Comment[]
 
   @@unique([userId, comicId])
+  @@index([comicId])
 }
 
 model Comment {
@@ -128,6 +132,8 @@ model Comment {
 
   user   User   @relation(fields: [userId],   references: [id])
   review Review @relation(fields: [reviewId], references: [id])
+
+  @@index([reviewId])
 }
 
 // ─── Listes personnalisées ───────────────────────────────────────────────────
@@ -143,6 +149,8 @@ model List {
 
   user  User       @relation(fields: [userId], references: [id])
   items ListItem[]
+
+  @@index([userId])
 }
 
 model ListItem {
