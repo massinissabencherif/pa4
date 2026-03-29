@@ -34,6 +34,12 @@ services:
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
       MARVEL_PUBLIC_KEY: ${MARVEL_PUBLIC_KEY:-}
       MARVEL_PRIVATE_KEY: ${MARVEL_PRIVATE_KEY:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+      API_BASE_URL: ${API_BASE_URL:-}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
     volumes:
       - uploads_data:/app/uploads
     ports:
