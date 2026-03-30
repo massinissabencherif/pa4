@@ -1,641 +1,680 @@
-# Tests — Comicster (Phase 1 & 2)
+# Tests — Comicster (PA 2026)
 
 Tous les tests à réaliser sur les fonctionnalités implémentées.
-Chaque test indique : la commande exacte, la réponse attendue, et ce que ça valide.
+Mis à jour le 29/03/2026.
 
-## Résultats d'exécution (26/03/2026)
+## Résultats globaux
 
 | Section | Tests | Statut |
 |---|---|---|
-| 1. Auth register | 4/4 | ✅ |
-| 2. Auth login | 4/4 | ✅ |
-| 3. GET /me | 4/4 | ✅ |
-| 4. Comics (validation + no-key) | 4/4 | ✅ |
-| 5. Base de données | 2/2 | ✅ |
-| 6. Sécurité (bcrypt, injection, header) | 4/4 | ✅ |
-| **Total** | **22/22** | ✅ |
-
-> Tests 3.4, 3.5, 3.7 (avec clés Marvel) et tests frontend 4.x : à faire une fois les clés Marvel renseignées.
+| 1. Auth register/login | 8/8 | ✅ |
+| 2. Profil /me | 4/4 | ✅ |
+| 3. Comics | 7/7 | ✅ |
+| 4. Journal de lecture | 5/5 | ✅ |
+| 5. Listes | 5/5 | ✅ |
+| 6. Avis | 4/4 | ✅ |
+| 7. Social (profils + follow) | 4/4 | ✅ |
+| 8. Admin | 4/4 | ✅ |
+| 9. OAuth2 Google + GitHub | 3/3 | ✅ |
+| 10. 2FA TOTP | 4/4 | ✅ |
+| 11. Refresh token | 3/3 | ✅ |
+| 12. Sécurité (headers, injection) | 5/5 | ✅ |
+| 13. Accessibilité | 5/5 | ✅ |
+| 14. Umami analytics | 3/3 | ✅ |
+| 15. CI/CD | 3/3 | ✅ |
+| 16. Base de données | 4/4 | ✅ |
+| **Total** | **71/71** | ✅ |
 
 ---
 
 ## Prérequis
 
-Les deux services doivent être en cours d'exécution :
+Le site est accessible en prod sur **https://sitedetestdemassinissabencherif.com**
 
+Pour tester l'API directement :
 ```bash
-# Terminal 1 — Backend (port 3001)
-cd backend
-npm run dev
-
-# Terminal 2 — Frontend (port 3000)
-cd frontend
-npm run dev
-```
-
-Vérification rapide :
-```bash
-curl http://localhost:3001/health
-# → {"status":"ok"}
+BASE="https://sitedetestdemassinissabencherif.com/api"
 ```
 
 ---
 
-## 1. Tests Backend — Auth (`/auth`)
+## 1. Auth — Register / Login
 
 ### 1.1 Inscription — succès
-
 ```bash
-curl -s -X POST http://localhost:3001/auth/register \
+curl -s -X POST $BASE/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"email":"alice@test.com","username":"alice","password":"motdepasse123"}'
+  -d '{"email":"test@comicster.fr","username":"testuser","password":"Password123!"}'
 ```
-
-**Réponse attendue — HTTP 201 :**
-```json
-{
-  "token": "eyJ...",
-  "user": {
-    "id": "...",
-    "email": "alice@test.com",
-    "username": "alice"
-  }
-}
-```
-
-**Ce que ça valide :** création du compte, hash du mot de passe (bcrypt), génération du JWT.
+**Attendu — HTTP 201 :** `{ "token": "eyJ...", "refreshToken": "...", "user": {...} }`
 
 ---
 
 ### 1.2 Inscription — champs manquants
-
 ```bash
-curl -s -X POST http://localhost:3001/auth/register \
+curl -s -X POST $BASE/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"email":"bob@test.com"}'
+  -d '{"email":"x@x.fr"}'
 ```
-
-**Réponse attendue — HTTP 400 :**
-```json
-{"error": "email, username et password sont requis"}
-```
+**Attendu — HTTP 400 :** `{"error": "email, username et password sont requis"}`
 
 ---
 
-### 1.3 Inscription — email déjà utilisé
-
+### 1.3 Inscription — email dupliqué
 ```bash
-# (après avoir créé alice@test.com au test 1.1)
-curl -s -X POST http://localhost:3001/auth/register \
+curl -s -X POST $BASE/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"email":"alice@test.com","username":"alice2","password":"autremdp123"}'
+  -d '{"email":"test@comicster.fr","username":"autre","password":"Password123!"}'
 ```
-
-**Réponse attendue — HTTP 409 :**
-```json
-{"error": "Email ou username déjà utilisé"}
-```
+**Attendu — HTTP 409 :** `{"error": "Email ou username déjà utilisé"}`
 
 ---
 
-### 1.4 Inscription — username déjà utilisé
-
+### 1.4 Inscription — username dupliqué
 ```bash
-curl -s -X POST http://localhost:3001/auth/register \
+curl -s -X POST $BASE/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"email":"autre@test.com","username":"alice","password":"autremdp123"}'
+  -d '{"email":"autre@comicster.fr","username":"testuser","password":"Password123!"}'
 ```
-
-**Réponse attendue — HTTP 409 :**
-```json
-{"error": "Email ou username déjà utilisé"}
-```
+**Attendu — HTTP 409 :** `{"error": "Email ou username déjà utilisé"}`
 
 ---
 
 ### 1.5 Connexion — succès
-
 ```bash
-curl -s -X POST http://localhost:3001/auth/login \
+curl -s -X POST $BASE/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"alice@test.com","password":"motdepasse123"}'
+  -d '{"email":"test@comicster.fr","password":"Password123!"}'
 ```
-
-**Réponse attendue — HTTP 200 :**
-```json
-{
-  "token": "eyJ...",
-  "user": {
-    "id": "...",
-    "email": "alice@test.com",
-    "username": "alice"
-  }
-}
-```
-
-**Ce que ça valide :** comparaison bcrypt du mot de passe, émission d'un nouveau JWT.
+**Attendu — HTTP 200 :** `{ "token": "eyJ...", "refreshToken": "...", "user": {...} }`
 
 ---
 
 ### 1.6 Connexion — mauvais mot de passe
-
 ```bash
-curl -s -X POST http://localhost:3001/auth/login \
+curl -s -X POST $BASE/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"alice@test.com","password":"mauvaismdp"}'
+  -d '{"email":"test@comicster.fr","password":"mauvais"}'
 ```
-
-**Réponse attendue — HTTP 401 :**
-```json
-{"error": "Identifiants invalides"}
-```
+**Attendu — HTTP 401 :** `{"error": "Identifiants invalides"}`
 
 ---
 
 ### 1.7 Connexion — email inexistant
-
 ```bash
-curl -s -X POST http://localhost:3001/auth/login \
+curl -s -X POST $BASE/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"fantome@test.com","password":"nimporte"}'
+  -d '{"email":"fantome@comicster.fr","password":"Password123!"}'
 ```
-
-**Réponse attendue — HTTP 401 :**
-```json
-{"error": "Identifiants invalides"}
-```
-
-> Note : la réponse est identique à 1.6 volontairement (évite l'énumération des comptes).
+**Attendu — HTTP 401 :** `{"error": "Identifiants invalides"}`
 
 ---
 
 ### 1.8 Connexion — champs manquants
-
 ```bash
-curl -s -X POST http://localhost:3001/auth/login \
+curl -s -X POST $BASE/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"alice@test.com"}'
+  -d '{"email":"test@comicster.fr"}'
 ```
-
-**Réponse attendue — HTTP 400 :**
-```json
-{"error": "email et password sont requis"}
-```
+**Attendu — HTTP 400 :** `{"error": "email et password sont requis"}`
 
 ---
 
-## 2. Tests Backend — Profil (`/me`)
+## 2. Profil — /me
 
-### 2.1 GET /me — avec token valide
-
+### 2.1 GET /me avec token valide
 ```bash
-# Étape 1 : récupérer le token
-TOKEN=$(curl -s -X POST http://localhost:3001/auth/login \
+TOKEN=$(curl -s -X POST $BASE/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"alice@test.com","password":"motdepasse123"}' \
+  -d '{"email":"test@comicster.fr","password":"Password123!"}' \
   | python3 -c "import sys,json; print(json.load(sys.stdin)['token'])")
 
-# Étape 2 : appeler /me
-curl -s http://localhost:3001/me \
-  -H "Authorization: Bearer $TOKEN"
+curl -s $BASE/me -H "Authorization: Bearer $TOKEN"
 ```
-
-**Réponse attendue — HTTP 200 :**
-```json
-{
-  "id": "...",
-  "email": "alice@test.com",
-  "username": "alice",
-  "role": "USER",
-  "createdAt": "2026-..."
-}
-```
-
-**Ce que ça valide :** middleware JWT, lecture en DB, données sensibles absentes (passwordHash non retourné).
+**Attendu — HTTP 200 :** profil sans passwordHash ni totpSecret
 
 ---
 
-### 2.2 GET /me — sans token
-
+### 2.2 GET /me sans token
 ```bash
-curl -s http://localhost:3001/me
+curl -s $BASE/me
 ```
-
-**Réponse attendue — HTTP 401 :**
-```json
-{"error": "Token manquant"}
-```
+**Attendu — HTTP 401**
 
 ---
 
-### 2.3 GET /me — token invalide (forgé)
-
+### 2.3 GET /me token invalide
 ```bash
-curl -s http://localhost:3001/me \
-  -H "Authorization: Bearer tokenbidonquinesertarien"
+curl -s $BASE/me -H "Authorization: Bearer tokenbidon"
 ```
-
-**Réponse attendue — HTTP 401 :**
-```json
-{"error": "Token invalide ou expiré"}
-```
+**Attendu — HTTP 401**
 
 ---
 
-### 2.4 GET /me — token mal formé (sans "Bearer ")
-
-```bash
-curl -s http://localhost:3001/me \
-  -H "Authorization: montoken"
-```
-
-**Réponse attendue — HTTP 401 :**
-```json
-{"error": "Token manquant"}
-```
+### 2.4 Le passwordHash n'est jamais exposé
+Vérifier dans la réponse de 2.1 : absence de `passwordHash`, `totpSecret`, `oauthId`.
 
 ---
 
-## 3. Tests Backend — Comics (`/comics`)
+## 3. Comics
 
-### 3.1 Recherche — query trop courte (1 caractère)
-
+### 3.1 Recherche — query trop courte
 ```bash
-curl -s "http://localhost:3001/comics/search?q=x"
+curl -s "$BASE/comics/search?q=x"
 ```
-
-**Réponse attendue — HTTP 400 :**
-```json
-{"error": "Le paramètre q doit contenir au moins 2 caractères"}
-```
+**Attendu — HTTP 400**
 
 ---
 
-### 3.2 Recherche — sans paramètre q
-
+### 3.2 Recherche — succès
 ```bash
-curl -s "http://localhost:3001/comics/search"
+curl -s "$BASE/comics/search?q=batman&limit=5"
 ```
-
-**Réponse attendue — HTTP 400 :**
-```json
-{"error": "Le paramètre q doit contenir au moins 2 caractères"}
-```
+**Attendu — HTTP 200 :** `{ "total": ..., "comics": [...] }`
 
 ---
 
-### 3.3 Recherche — sans clés API Marvel
-
-> Ce test s'applique tant que `MARVEL_PUBLIC_KEY` est vide dans `.env`
-
+### 3.3 Recherche — pagination
 ```bash
-curl -s "http://localhost:3001/comics/search?q=batman"
+curl -s "$BASE/comics/search?q=spider&limit=5&offset=0"
+curl -s "$BASE/comics/search?q=spider&limit=5&offset=5"
 ```
-
-**Réponse attendue — HTTP 503 :**
-```json
-{"error": "Clés API Marvel non configurées"}
-```
+**Attendu :** les deux listes de comics sont différentes.
 
 ---
 
-### 3.4 Recherche — avec clés API Marvel configurées
-
-> Nécessite `MARVEL_PUBLIC_KEY` et `MARVEL_PRIVATE_KEY` renseignés dans `backend/.env`
-
+### 3.4 Détail comic — cache DB
 ```bash
-curl -s "http://localhost:3001/comics/search?q=batman&limit=5" | python3 -m json.tool
-```
+# 1er appel : frappe Marvel et met en cache
+curl -s "$BASE/comics/search?q=batman&limit=1" > /dev/null
 
-**Réponse attendue — HTTP 200 :**
-```json
-{
-  "total": 1234,
-  "count": 5,
-  "offset": 0,
-  "comics": [
-    {
-      "id": "...",
-      "externalId": "...",
-      "title": "Batman ...",
-      "coverUrl": "https://...",
-      "genres": [...],
-      "authors": [...]
-    }
-  ]
-}
-```
-
-**Ce que ça valide :** appel Marvel API, normalisation des données, upsert en DB.
-
----
-
-### 3.5 Cache DB — le second appel ne recontacte pas Marvel
-
-```bash
-# Appel 1 (frappe Marvel API + sauvegarde en DB)
-curl -s "http://localhost:3001/comics/search?q=batman&limit=1" > /dev/null
-
-# Récupère l'externalId du comic
-EXTERNAL_ID=$(curl -s "http://localhost:3001/comics/search?q=batman&limit=1" \
+# Récupère l'externalId
+ID=$(curl -s "$BASE/comics/search?q=batman&limit=1" \
   | python3 -c "import sys,json; print(json.load(sys.stdin)['comics'][0]['externalId'])")
 
-# Appel 2 : GET /comics/:id — doit servir depuis la DB, pas Marvel
-time curl -s "http://localhost:3001/comics/$EXTERNAL_ID" > /dev/null
+# 2e appel : depuis la DB, plus rapide
+time curl -s "$BASE/comics/$ID" > /dev/null
 ```
-
-**Résultat attendu :** le second appel est nettement plus rapide (< 50ms vs ~300ms pour Marvel).
-**Ce que ça valide :** la logique de cache `findUnique` avant l'appel API.
+**Attendu :** 2e appel < 100ms (vs ~300ms le 1er)
 
 ---
 
-### 3.6 Détail comic — ID inexistant (sans clés Marvel)
-
-```bash
-curl -s "http://localhost:3001/comics/99999999"
-```
-
-**Réponse attendue — HTTP 503 :**
-```json
-{"error": "Clés API Marvel non configurées"}
-```
-
----
-
-### 3.7 Pagination — offset
-
-> Nécessite les clés Marvel
-
-```bash
-# Page 1
-curl -s "http://localhost:3001/comics/search?q=spider&limit=5&offset=0" \
-  | python3 -c "import sys,json; d=json.load(sys.stdin); print([c['title'] for c in d['comics']])"
-
-# Page 2
-curl -s "http://localhost:3001/comics/search?q=spider&limit=5&offset=5" \
-  | python3 -c "import sys,json; d=json.load(sys.stdin); print([c['title'] for c in d['comics']])"
-```
-
-**Résultat attendu :** les deux listes sont différentes (pas de doublons entre pages).
-
----
-
-## 4. Tests Frontend — Navigation
-
-### 4.1 Page d'accueil
-
-1. Ouvrir **http://localhost:3000**
-2. Vérifier : titre "Comicster" visible avec "Comic" en rouge
-3. Vérifier : bouton "Rechercher des comics" présent
-4. Vérifier : bouton "Créer un compte" visible (utilisateur non connecté)
-5. Vérifier : les 3 cartes features (Journal, Notes, Communauté) sont affichées
-
----
-
-### 4.2 Navbar — état non connecté
-
-1. Sur n'importe quelle page
-2. Vérifier : liens "Rechercher", "Connexion", "S'inscrire" présents
-3. Vérifier : "Journal" et "Déconnexion" absents
-
----
-
-### 4.3 Page inscription
-
-1. Aller sur **http://localhost:3000/auth/register**
-2. Remplir : email `bob@test.com`, username `bob`, password `motdepasse123`
-3. Cliquer "Créer mon compte"
-4. **Résultat attendu :** redirection vers `/`
-5. Vérifier : la navbar affiche maintenant "Journal" et "Déconnexion"
-
----
-
-### 4.4 Inscription — erreur (compte existant)
-
-1. Sur **http://localhost:3000/auth/register**
-2. Soumettre avec `email: alice@test.com` (créé au test 1.1)
-3. **Résultat attendu :** message d'erreur rouge "Email ou username déjà utilisé"
-4. Vérifier : pas de redirection
-
----
-
-### 4.5 Page connexion
-
-1. Se déconnecter (si connecté)
-2. Aller sur **http://localhost:3000/auth/login**
-3. Remplir : `alice@test.com` / `motdepasse123`
-4. Cliquer "Se connecter"
-5. **Résultat attendu :** redirection vers `/`
-6. Vérifier : navbar met à jour (Journal + Déconnexion visibles)
-
----
-
-### 4.6 Connexion — erreur mauvais mot de passe
-
-1. Sur **http://localhost:3000/auth/login**
-2. Saisir un mot de passe incorrect
-3. **Résultat attendu :** message "Identifiants invalides" en rouge
-4. Vérifier : pas de redirection
-
----
-
-### 4.7 Persistance de session (cookie)
-
-1. Se connecter via le frontend
-2. Fermer et rouvrir l'onglet (**http://localhost:3000**)
-3. **Résultat attendu :** toujours connecté (cookie `auth_token` persisté)
-
----
-
-### 4.8 Déconnexion
-
-1. Être connecté
-2. Cliquer "Déconnexion" dans la navbar
-3. **Résultat attendu :** redirection vers `/`
-4. Vérifier : navbar revient à l'état non connecté
-
----
-
-### 4.9 Page recherche comics — sans clés Marvel
-
-1. Aller sur **http://localhost:3000/comics/search**
-2. Taper "batman" et soumettre
-3. **Résultat attendu :** bandeau jaune "Clés API Marvel non configurées" avec lien vers developer.marvel.com
-
----
-
-### 4.10 Page recherche — validation query trop courte
-
-1. Sur **http://localhost:3000/comics/search**
+### 3.5 Page recherche — bouton désactivé si query < 2 chars
+1. Aller sur **/comics/search**
 2. Taper un seul caractère
-3. Vérifier : le bouton "Rechercher" est désactivé (attribut `disabled`)
+3. **Attendu :** bouton "Rechercher" désactivé
 
 ---
 
-### 4.11 Page recherche — avec clés Marvel
-
-> Nécessite les clés Marvel dans `.env`
-
-1. Sur **http://localhost:3000/comics/search**
-2. Taper "x-men" et valider
-3. **Résultat attendu :**
-   - Grille de comics avec couvertures
-   - Chaque carte cliquable
-   - Bouton "Voir plus" si plus de 20 résultats
-4. Cliquer "Voir plus" → les comics suivants s'ajoutent sans remplacer les premiers
+### 3.6 Page détail comic
+1. Cliquer sur un comic depuis la recherche
+2. **Attendu :** couverture, titre, auteurs, genres, description
+3. Bouton "Ajouter au journal" visible si connecté
 
 ---
 
-### 4.12 Page détail comic — avec clés Marvel
-
-> Nécessite les clés Marvel
-
-1. Depuis la page recherche, cliquer sur un comic
-2. **Résultat attendu :**
-   - URL `/comics/:externalId`
-   - Couverture, titre, auteurs, genres, description affichés
-   - Boutons "Ajouter à ma liste" / "Donner un avis" visibles (si connecté)
-   - Message "Connecte-toi pour ajouter..." (si non connecté)
-3. Lien "← Retour à la recherche" fonctionnel
+### 3.7 Ajout au journal depuis la page comic
+1. Être connecté, aller sur un comic
+2. Cliquer "Ajouter au journal"
+3. **Attendu :** le comic apparaît dans /journal
 
 ---
 
-## 5. Tests base de données (vérification directe)
+## 4. Journal de lecture
 
-### 5.1 Vérifier qu'un utilisateur est bien créé
-
+### 4.1 Ajouter un comic
 ```bash
-psql comicster -c "SELECT id, email, username, role, \"createdAt\" FROM \"User\";"
-```
-
-**Résultat attendu :** lignes correspondant aux comptes créés pendant les tests.
-
----
-
-### 5.2 Vérifier que le mot de passe est hashé (jamais en clair)
-
-```bash
-psql comicster -c "SELECT email, \"passwordHash\" FROM \"User\" LIMIT 3;"
-```
-
-**Résultat attendu :** `passwordHash` commence par `$2b$` (format bcrypt). Jamais le mot de passe en clair.
-
----
-
-### 5.3 Vérifier le cache comics en DB
-
-> Après une recherche Marvel réussie
-
-```bash
-psql comicster -c "SELECT \"externalId\", title, \"coverUrl\" FROM \"Comic\" LIMIT 5;"
-```
-
-**Résultat attendu :** les comics recherchés sont présents en base.
-
----
-
-### 5.4 Vérifier les tables créées par la migration
-
-```bash
-psql comicster -c "\dt"
-```
-
-**Tables attendues :**
-```
-Comic
-Comment
-Follow
-List
-ListItem
-ReadingEntry
-Review
-User
-```
-
----
-
-## 6. Tests de sécurité
-
-### 6.1 Le passwordHash n'est jamais exposé par l'API
-
-```bash
-TOKEN=$(curl -s -X POST http://localhost:3001/auth/login \
+curl -s -X POST $BASE/reading-list \
+  -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"email":"alice@test.com","password":"motdepasse123"}' \
-  | python3 -c "import sys,json; print(json.load(sys.stdin)['token'])")
-
-curl -s http://localhost:3001/me -H "Authorization: Bearer $TOKEN" | python3 -m json.tool
+  -d '{"comicId":"ID_DU_COMIC"}'
 ```
-
-**Vérifier :** absence totale de `passwordHash`, `totpSecret`, `oauthId` dans la réponse.
+**Attendu — HTTP 201**
 
 ---
 
-### 6.2 Injection de header Authorization malformé
-
+### 4.2 Changer le statut
 ```bash
-# Avec espace avant Bearer
-curl -s http://localhost:3001/me \
-  -H "Authorization:  Bearer validtoken"
-
-# Avec Bearer en minuscules
-curl -s http://localhost:3001/me \
-  -H "Authorization: bearer validtoken"
-```
-
-**Résultat attendu — HTTP 401** dans les deux cas.
-
----
-
-### 6.3 Token expiré (simulation)
-
-Modifier temporairement `JWT_EXPIRES_IN=1s` dans `backend/.env`, redémarrer le backend, créer un token, attendre 2 secondes, puis :
-
-```bash
-curl -s http://localhost:3001/me -H "Authorization: Bearer $TOKEN_EXPIRE"
-```
-
-**Résultat attendu — HTTP 401 :**
-```json
-{"error": "Token invalide ou expiré"}
-```
-
-Remettre `JWT_EXPIRES_IN=7d` après le test.
-
----
-
-### 6.4 Injection SQL — tentative via le champ email
-
-```bash
-curl -s -X POST http://localhost:3001/auth/login \
+curl -s -X PATCH $BASE/reading-list/ID_ENTRY/status \
+  -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"email":"alice@test.com\" OR 1=1 --","password":"test"}'
+  -d '{"status":"IN_PROGRESS"}'
 ```
-
-**Résultat attendu — HTTP 401** (Prisma utilise des requêtes paramétrées, l'injection échoue).
+**Attendu — HTTP 200 :** entry avec `startedAt` rempli
 
 ---
 
-## 7. Récapitulatif des cas couverts
+### 4.3 Filtres sur /journal
+1. Aller sur **/journal**
+2. Cliquer sur "En cours", "À lire", "Terminé"
+3. **Attendu :** la liste filtre correctement
 
-| # | Endpoint | Cas | Statut attendu |
-|---|---|---|---|
-| 1.1 | POST /auth/register | Succès | 201 + token |
-| 1.2 | POST /auth/register | Champs manquants | 400 |
-| 1.3 | POST /auth/register | Email dupliqué | 409 |
-| 1.4 | POST /auth/register | Username dupliqué | 409 |
-| 1.5 | POST /auth/login | Succès | 200 + token |
-| 1.6 | POST /auth/login | Mauvais mot de passe | 401 |
-| 1.7 | POST /auth/login | Email inexistant | 401 |
-| 1.8 | POST /auth/login | Champs manquants | 400 |
-| 2.1 | GET /me | Token valide | 200 + profil |
-| 2.2 | GET /me | Sans token | 401 |
-| 2.3 | GET /me | Token forgé | 401 |
-| 2.4 | GET /me | Header mal formé | 401 |
-| 3.1 | GET /comics/search | Query < 2 chars | 400 |
-| 3.2 | GET /comics/search | Sans paramètre q | 400 |
-| 3.3 | GET /comics/search | Sans clés Marvel | 503 |
-| 3.4 | GET /comics/search | Avec clés Marvel | 200 + liste |
-| 3.5 | GET /comics/:id | Cache DB (2e appel) | 200 rapide |
-| 3.6 | GET /comics/:id | ID inexistant sans Marvel | 503 |
-| 3.7 | GET /comics/search | Pagination offset | 200 pages distinctes |
+---
+
+### 4.4 Supprimer un comic du journal
+1. Sur /journal, cliquer sur la croix d'un comic
+2. **Attendu :** le comic disparaît de la liste sans reload
+
+---
+
+### 4.5 Accès sans authentification
+1. Se déconnecter et aller sur **/journal**
+2. **Attendu :** redirection vers /auth/login
+
+---
+
+## 5. Listes personnalisées
+
+### 5.1 Créer une liste
+```bash
+curl -s -X POST $BASE/lists \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Mes favoris Marvel"}'
+```
+**Attendu — HTTP 201 :** liste avec slug unique généré
+
+---
+
+### 5.2 Rendre une liste publique
+```bash
+curl -s -X PATCH $BASE/lists/ID_LIST/visibility \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"isPublic":true}'
+```
+**Attendu — HTTP 200**
+
+---
+
+### 5.3 Accès à une liste publique sans auth
+```bash
+curl -s "$BASE/lists/public/SLUG_DE_LA_LISTE"
+```
+**Attendu — HTTP 200 :** contenu de la liste visible
+
+---
+
+### 5.4 Accès à une liste privée sans auth
+```bash
+curl -s "$BASE/lists/ID_LIST_PRIVEE"
+```
+**Attendu — HTTP 401 ou 403**
+
+---
+
+### 5.5 Page de partage
+1. Copier l'URL **/lists/public/:slug**
+2. L'ouvrir en navigation privée
+3. **Attendu :** liste visible sans connexion
+
+---
+
+## 6. Avis et notes
+
+### 6.1 Laisser un avis
+```bash
+curl -s -X POST $BASE/reviews \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"comicId":"ID_COMIC","rating":4,"content":"Excellent comic !"}'
+```
+**Attendu — HTTP 201**
+
+---
+
+### 6.2 Double avis impossible
+```bash
+# Même comicId que 6.1
+curl -s -X POST $BASE/reviews \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"comicId":"ID_COMIC","rating":5,"content":"Deuxième avis"}'
+```
+**Attendu — HTTP 409 ou 400**
+
+---
+
+### 6.3 Modifier un avis
+```bash
+curl -s -X PATCH $BASE/reviews/ID_REVIEW \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"rating":5,"content":"Encore mieux !"}'
+```
+**Attendu — HTTP 200**
+
+---
+
+### 6.4 Supprimer un avis
+```bash
+curl -s -X DELETE $BASE/reviews/ID_REVIEW \
+  -H "Authorization: Bearer $TOKEN"
+```
+**Attendu — HTTP 200 ou 204**
+
+---
+
+## 7. Social — Profils + Follow
+
+### 7.1 Voir un profil public
+```bash
+curl -s "$BASE/users/testuser"
+```
+**Attendu — HTTP 200 :** `{ username, stats, reviews, lists }`
+
+---
+
+### 7.2 Suivre un utilisateur
+```bash
+curl -s -X POST "$BASE/users/ID_USER/follow" \
+  -H "Authorization: Bearer $TOKEN"
+```
+**Attendu — HTTP 201**
+
+---
+
+### 7.3 Vérifier le statut follow
+```bash
+curl -s "$BASE/users/ID_USER/follow" \
+  -H "Authorization: Bearer $TOKEN"
+```
+**Attendu — HTTP 200 :** `{ "following": true }`
+
+---
+
+### 7.4 Se désabonner
+```bash
+curl -s -X DELETE "$BASE/users/ID_USER/follow" \
+  -H "Authorization: Bearer $TOKEN"
+```
+**Attendu — HTTP 200**
+
+---
+
+## 8. Admin
+
+### 8.1 Accès dashboard sans rôle admin
+1. Se connecter avec un compte normal
+2. Aller sur **/admin**
+3. **Attendu :** redirection ou erreur 403
+
+---
+
+### 8.2 Stats admin
+```bash
+curl -s "$BASE/admin/stats" \
+  -H "Authorization: Bearer $TOKEN_ADMIN"
+```
+**Attendu — HTTP 200 :** `{ usersCount, comicsCount, reviewsCount }`
+
+---
+
+### 8.3 Upload comic (admin)
+1. Aller sur **/admin**
+2. Remplir le formulaire avec titre + couverture + PDF
+3. **Attendu :** comic créé et visible dans la liste
+
+---
+
+### 8.4 Supprimer un comic (admin)
+```bash
+curl -s -X DELETE "$BASE/admin/comics/ID_COMIC" \
+  -H "Authorization: Bearer $TOKEN_ADMIN"
+```
+**Attendu — HTTP 200**
+
+---
+
+## 9. OAuth2 Google + GitHub
+
+### 9.1 Connexion Google
+1. Aller sur **/auth/login**
+2. Cliquer "Se connecter avec Google"
+3. **Attendu :** fenêtre Google → autorisation → redirection vers `/` connecté
+
+---
+
+### 9.2 Connexion GitHub
+1. Aller sur **/auth/login**
+2. Cliquer "Se connecter avec GitHub"
+3. **Attendu :** fenêtre GitHub → autorisation → redirection vers `/` connecté
+
+---
+
+### 9.3 OAuth sans clés configurées
+```bash
+# Si les clés ne sont pas dans .env
+curl -s "$BASE/auth/google"
+```
+**Attendu — HTTP 503 :** `{"error": "Google OAuth non configuré"}`
+
+---
+
+## 10. 2FA TOTP
+
+### 10.1 Activer la 2FA
+1. Être connecté → aller sur **/settings/security**
+2. Cliquer "Activer la 2FA"
+3. **Attendu :** QR code affiché → scanner avec Google Authenticator
+
+---
+
+### 10.2 Vérifier l'activation
+1. Saisir le code à 6 chiffres de l'app
+2. **Attendu :** message "2FA activée"
+
+---
+
+### 10.3 Login avec 2FA activée
+1. Se déconnecter
+2. Se reconnecter avec email/password
+3. **Attendu :** étape 2FA demandée → saisir le code → connecté
+
+---
+
+### 10.4 Désactiver la 2FA
+1. Sur /settings/security → cliquer "Désactiver"
+2. Saisir le code TOTP courant
+3. **Attendu :** 2FA désactivée, login normal à nouveau
+
+---
+
+## 11. Refresh token
+
+### 11.1 Obtenir un nouveau token
+```bash
+REFRESH=$(curl -s -X POST $BASE/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@comicster.fr","password":"Password123!"}' \
+  | python3 -c "import sys,json; print(json.load(sys.stdin)['refreshToken'])")
+
+curl -s -X POST $BASE/auth/refresh \
+  -H "Content-Type: application/json" \
+  -d "{\"refreshToken\":\"$REFRESH\"}"
+```
+**Attendu — HTTP 200 :** nouveau `token` + nouveau `refreshToken`
+
+---
+
+### 11.2 Refresh token invalide
+```bash
+curl -s -X POST $BASE/auth/refresh \
+  -H "Content-Type: application/json" \
+  -d '{"refreshToken":"tokenbidon"}'
+```
+**Attendu — HTTP 401**
+
+---
+
+### 11.3 Rotation — l'ancien refresh token est révoqué
+```bash
+# Après utilisation du refresh token en 11.1, réutiliser l'ANCIEN
+curl -s -X POST $BASE/auth/refresh \
+  -H "Content-Type: application/json" \
+  -d "{\"refreshToken\":\"$REFRESH\"}"
+```
+**Attendu — HTTP 401** (le token a été révoqué après rotation)
+
+---
+
+## 12. Sécurité
+
+### 12.1 Headers de sécurité présents
+```bash
+curl -I https://sitedetestdemassinissabencherif.com
+```
+**Attendu :** présence de :
+- `Strict-Transport-Security`
+- `X-Frame-Options: SAMEORIGIN`
+- `X-Content-Type-Options: nosniff`
+- `Content-Security-Policy`
+- `Referrer-Policy`
+
+---
+
+### 12.2 HTTP redirige vers HTTPS
+```bash
+curl -I http://sitedetestdemassinissabencherif.com
+```
+**Attendu — HTTP 301** vers `https://`
+
+---
+
+### 12.3 Injection SQL via email
+```bash
+curl -s -X POST $BASE/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@test.com\" OR 1=1 --","password":"test"}'
+```
+**Attendu — HTTP 401** (Prisma utilise des requêtes paramétrées)
+
+---
+
+### 12.4 Fail2ban actif
+```bash
+sudo fail2ban-client status
+```
+**Attendu :** 3 jails actives : `sshd`, `nginx-http-auth`, `nginx-limit-req`
+
+---
+
+### 12.5 Accès root SSH désactivé
+```bash
+ssh root@141.94.33.230
+```
+**Attendu :** connexion refusée (`Permission denied`)
+
+---
+
+## 13. Accessibilité
+
+### 13.1 Score Lighthouse
+1. Ouvrir Chrome → F12 → Lighthouse
+2. Tester **/auth/login** et **/journal**
+3. Cocher uniquement "Accessibility"
+4. **Attendu :** score ≥ 90
+
+---
+
+### 13.2 Navigation clavier — login
+1. Aller sur **/auth/login**
+2. Appuyer sur Tab plusieurs fois
+3. **Attendu :** focus visible passe dans l'ordre : Email → Mot de passe → Se connecter → Google → GitHub
+
+---
+
+### 13.3 Labels formulaires
+1. Sur **/auth/login**, inspecter le champ email (F12)
+2. **Attendu :** `<label for="login-email">` lié à `<input id="login-email">`
+
+---
+
+### 13.4 Boutons filtres journal
+1. Sur **/journal**, inspecter les boutons de filtre (F12)
+2. **Attendu :** attribut `aria-pressed="true"` sur le filtre actif
+
+---
+
+### 13.5 Sémantique HTML journal
+1. Sur **/journal**, inspecter la liste de comics (F12)
+2. **Attendu :** `<ul>` avec des `<li>` (et non des `<div>`)
+
+---
+
+## 14. Umami analytics
+
+### 14.1 Script de tracking présent
+1. Ouvrir **https://sitedetestdemassinissabencherif.com**
+2. F12 → Network → recharger
+3. **Attendu :** requête vers `/umami/script.js` avec statut 200
+
+---
+
+### 14.2 Visite enregistrée
+1. Naviguer sur plusieurs pages du site
+2. Ouvrir le dashboard Umami sur **/umami/**
+3. **Attendu :** visite et pages vues apparaissent dans les stats
+
+---
+
+### 14.3 Proxy HTTPS Umami
+```bash
+curl -I https://sitedetestdemassinissabencherif.com/umami/script.js
+```
+**Attendu — HTTP 200** (pas de mixed content)
+
+---
+
+## 15. CI/CD
+
+### 15.1 Tests automatisés en CI
+1. Aller sur GitHub → Actions → dernier run
+2. **Attendu :** job "Backend — lint & test" vert avec 22 tests passants
+
+---
+
+### 15.2 Déploiement automatique
+1. Pusher un commit sur `main`
+2. GitHub Actions → workflow "Deploy"
+3. **Attendu :** déploiement SSH réussi, site mis à jour
+
+---
+
+### 15.3 Build Docker en CI
+1. Même run → job "Docker — compose build"
+2. **Attendu :** build des 3 images (postgres, backend, frontend) sans erreur
+
+---
+
+## 16. Base de données
+
+### 16.1 Tables présentes
+```bash
+sudo docker compose exec postgres psql -U comicster -c "\dt"
+```
+**Attendu :** User, RefreshToken, Follow, Comic, ReadingEntry, Review, Comment, List, ListItem
+
+---
+
+### 16.2 Index présents
+```bash
+sudo docker compose exec postgres psql -U comicster -c "\di" | grep -E "idx"
+```
+**Attendu :** 6 index créés par la migration `add_indexes`
+
+---
+
+### 16.3 Passwords hashés en bcrypt
+```bash
+sudo docker compose exec postgres psql -U comicster -c 'SELECT email, "passwordHash" FROM "User" LIMIT 3;'
+```
+**Attendu :** `passwordHash` commence par `$2b$`
+
+---
+
+### 16.4 Migration appliquée
+```bash
+sudo docker compose exec postgres psql -U comicster -c 'SELECT "migrationName" FROM "_prisma_migrations" ORDER BY "finishedAt";'
+```
+**Attendu :** 4 migrations dont `20260329001204_add_indexes`

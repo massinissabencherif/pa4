@@ -7,7 +7,7 @@
     >
       <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         <!-- Logo -->
-        <NuxtLink to="/" class="flex items-center gap-2 group">
+        <NuxtLink to="/" class="flex items-center gap-2 group" aria-label="Comicster — Accueil">
           <div class="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center shadow-lg shadow-red-900/40 group-hover:scale-105 transition-transform">
             <span class="text-white font-black text-sm">C</span>
           </div>
@@ -17,7 +17,7 @@
         </NuxtLink>
 
         <!-- Nav links -->
-        <nav class="hidden sm:flex items-center gap-1">
+        <nav class="hidden sm:flex items-center gap-1" aria-label="Navigation principale">
           <NuxtLink
             to="/comics/search"
             class="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-all"
@@ -134,9 +134,7 @@ const isAdmin = computed(() => {
 })
 
 const scrolled = ref(false)
-onMounted(() => {
-  window.addEventListener('scroll', () => {
-    scrolled.value = window.scrollY > 10
-  })
-})
+const onScroll = () => { scrolled.value = window.scrollY > 10 }
+onMounted(() => window.addEventListener('scroll', onScroll))
+onBeforeUnmount(() => window.removeEventListener('scroll', onScroll))
 </script>

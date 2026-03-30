@@ -2,27 +2,40 @@ name: Deploy
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
 
 jobs:
   deploy:
     name: Deploy to VPS
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Deploy via SSH
+      - name: Deploy PROD (main)
+        if: github.ref == 'refs/heads/main'
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            cd /opt/comicster
+            cd /home/ubuntu/pa4
             git pull origin main
-            docker compose pull
-            docker compose up -d --build
-            docker compose exec -T backend npx prisma migrate deploy
+            docker compose -f docker-compose.yml up -d --build
+            docker compose -f docker-compose.yml exec -T backend npx prisma migrate deploy
+            docker image prune -f
+
+      - name: Deploy STAGING (dev)
+        if: github.ref == 'refs/heads/dev'
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/pa4
+            git pull origin dev
+            docker compose -f docker-compose.staging.yml -p pa4-staging up -d --build
+            docker compose -f docker-compose.staging.yml -p pa4-staging exec -T backend-staging npx prisma migrate deploy
             docker image prune -f

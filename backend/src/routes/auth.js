@@ -2,7 +2,7 @@ import { Router } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import { authenticator } from "otplib";
+import { generateSecret, generateURI, verifySync } from "otplib";
 import QRCode from "qrcode";
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
@@ -177,7 +177,7 @@ router.post("/login", async (req, res) => {
     if (!totpCode) {
       return res.status(200).json({ requires2FA: true });
     }
-    const ok = authenticator.verify({ token: totpCode, secret: user.totpSecret });
+    const ok = verifySync({ token: totpCode, secret: user.totpSecret, type: "totp" }).valid;
     if (!ok) {
       return res.status(401).json({ error: "Code 2FA invalide" });
     }
@@ -185,6 +185,18 @@ router.post("/login", async (req, res) => {
 
   const accessToken = signAccessToken(user);
   const refreshToken = await createRefreshToken(user.id);
+
+  // Les admins doivent configurer la 2FA s'ils ne l'ont pas encore fait
+  const isAdmin = ["ADMIN", "SUPER_ADMIN"].includes(user.role);
+  if (isAdmin && !user.totpEnabled) {
+    return res.json({
+      token: accessToken,
+      refreshToken,
+      user: sanitizeUser(user),
+      requires2FASetup: true,
+    });
+  }
+
   res.json({ token: accessToken, refreshToken, user: sanitizeUser(user) });
 });
 
@@ -229,8 +241,8 @@ router.post("/2fa/enable", requireAuth, async (req, res) => {
     return res.status(400).json({ error: "2FA déjà activé" });
   }
 
-  const secret = authenticator.generateSecret();
-  const otpauth = authenticator.keyuri(user.email, "Comicster", secret);
+  const secret = generateSecret();
+  const otpauth = generateURI({ secret, label: user.email, issuer: "Comicster", type: "totp" });
   const qrDataUrl = await QRCode.toDataURL(otpauth);
 
   // Store secret temporarily (not yet enabled)
@@ -252,7 +264,7 @@ router.post("/2fa/verify", requireAuth, async (req, res) => {
     return res.status(400).json({ error: "Lance d'abord /auth/2fa/enable" });
   }
 
-  const ok = authenticator.verify({ token: code, secret: user.totpSecret });
+  const ok = verifySync({ token: code, secret: user.totpSecret, type: "totp" }).valid;
   if (!ok) return res.status(401).json({ error: "Code invalide" });
 
   await prisma.user.update({
@@ -273,7 +285,7 @@ router.post("/2fa/disable", requireAuth, async (req, res) => {
     return res.status(400).json({ error: "2FA n'est pas activé" });
   }
 
-  const ok = authenticator.verify({ token: code, secret: user.totpSecret });
+  const ok = verifySync({ token: code, secret: user.totpSecret, type: "totp" }).valid;
   if (!ok) return res.status(401).json({ error: "Code invalide" });
 
   await prisma.user.update({

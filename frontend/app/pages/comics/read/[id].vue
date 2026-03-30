@@ -62,7 +62,7 @@
 </template>
 
 <script setup>
-definePageMeta({ layout: false })
+definePageMeta({ layout: false, middleware: 'auth' })
 
 const route = useRoute()
 const config = useRuntimeConfig()

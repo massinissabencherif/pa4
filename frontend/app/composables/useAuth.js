@@ -19,6 +19,9 @@ export function useAuth() {
     token.value = data.token
     refreshTokenCookie.value = data.refreshToken
     user.value = data.user
+
+    if (data.requires2FASetup) return { requires2FASetup: true }
+
     return data
   }
 

@@ -1,0 +1,61 @@
+services:
+
+  # ─── PostgreSQL (staging) ────────────────────────────────────────────────────
+  postgres-staging:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: comicster_staging
+      POSTGRES_USER: comicster
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-comicster_secret}
+    volumes:
+      - pg_data_staging:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U comicster -d comicster_staging"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ─── Backend (staging) ───────────────────────────────────────────────────────
+  backend-staging:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres-staging:
+        condition: service_healthy
+    environment:
+      PORT: 3011
+      DATABASE_URL: postgresql://comicster:${POSTGRES_PASSWORD:-comicster_secret}@postgres-staging:5432/comicster_staging
+      JWT_SECRET: ${JWT_SECRET:-change_me_staging}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+      API_BASE_URL: ${STAGING_API_BASE_URL:-}
+      FRONTEND_URL: ${STAGING_FRONTEND_URL:-https://dev.sitedetestdemassinissabencherif.com}
+    volumes:
+      - uploads_staging:/app/uploads
+    ports:
+      - "3011:3011"
+
+  # ─── Frontend (staging) ──────────────────────────────────────────────────────
+  frontend-staging:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NUXT_PUBLIC_API_BASE: ${STAGING_NUXT_PUBLIC_API_BASE:-https://dev.sitedetestdemassinissabencherif.com/api}
+        NUXT_PUBLIC_UMAMI_ID: ${NUXT_PUBLIC_UMAMI_ID:-}
+        NUXT_PUBLIC_UMAMI_URL: ${NUXT_PUBLIC_UMAMI_URL:-}
+    restart: unless-stopped
+    depends_on:
+      - backend-staging
+    ports:
+      - "3010:3000"
+
+volumes:
+  pg_data_staging:
+  uploads_staging:

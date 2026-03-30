@@ -60,6 +60,21 @@ services:
     ports:
       - "3000:3000"
 
+  # ─── pgAdmin (visualiseur PostgreSQL) ───────────────────────────────────────
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@comicster.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      SCRIPT_NAME: /pgadmin
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    ports:
+      - "5050:80"
+
   # ─── Umami (analytics) ───────────────────────────────────────────────────────
   umami-db:
     image: postgres:16-alpine
@@ -92,3 +107,4 @@ volumes:
   pg_data:
   uploads_data:
   umami_data:
+  pgadmin_data:
