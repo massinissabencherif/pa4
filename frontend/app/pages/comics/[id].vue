@@ -46,8 +46,13 @@
         <div class="flex-1 min-w-0">
           <h1 class="text-3xl font-extrabold leading-tight mb-3">{{ comic.title }}</h1>
 
-          <div v-if="comic.authors?.length" class="text-gray-400 text-sm mb-4">
-            {{ comic.authors.join(' · ') }}
+          <div class="flex items-center gap-3 mb-4">
+            <span v-if="comic.authors?.length" class="text-gray-400 text-sm">{{ comic.authors.join(' · ') }}</span>
+            <div v-if="avgRating" class="flex items-center gap-1">
+              <span class="text-yellow-400 text-sm">★</span>
+              <span class="text-sm font-semibold text-white">{{ avgRating }}</span>
+              <span class="text-xs text-gray-600">({{ communityReviews.length }})</span>
+            </div>
           </div>
 
           <!-- Genres -->
@@ -320,6 +325,12 @@ async function removeFromList() {
 }
 
 // --- Reviews ---
+const avgRating = computed(() => {
+  if (!communityReviews.value.length) return null
+  const avg = communityReviews.value.reduce((sum, r) => sum + r.rating, 0) / communityReviews.value.length
+  return avg.toFixed(1)
+})
+
 const review = ref(null)
 const reviewForm = reactive({ rating: 0, content: '' })
 const reviewLoading = ref(false)
