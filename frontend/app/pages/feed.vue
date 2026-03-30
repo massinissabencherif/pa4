@@ -7,16 +7,17 @@
       <div class="flex-1 min-w-0">
         <h1 class="text-2xl font-bold mb-6">Fil d'actualité</h1>
 
-        <!-- Pas de suivi -->
-        <div v-if="feedData?.empty" class="card p-10 text-center text-gray-500">
-          <div class="text-4xl mb-3">👥</div>
-          <p class="font-medium mb-1">Ton fil est vide</p>
-          <p class="text-sm text-gray-600 mb-5">Suis d'autres lecteurs pour voir leur activité ici.</p>
-          <NuxtLink to="/comics/search" class="btn-primary">Explorer les comics</NuxtLink>
+        <!-- Bannière suggestion -->
+        <div v-if="feedData?.suggestion" class="card p-4 mb-6 flex items-center gap-4 border-red-500/20 bg-red-500/5">
+          <span class="text-2xl shrink-0">👥</span>
+          <div>
+            <p class="text-sm font-medium text-white">Suis des fans de comics pour personnaliser ton fil d'actualité</p>
+            <p class="text-xs text-gray-500 mt-0.5">En attendant, voici quelques activités de la communauté</p>
+          </div>
         </div>
 
         <!-- Événements -->
-        <div v-else class="space-y-4">
+        <div v-if="feedData?.events?.length" class="space-y-4">
           <div v-if="feedPending" class="space-y-4">
             <div v-for="i in 5" :key="i" class="card p-5 animate-pulse">
               <div class="flex gap-3">
