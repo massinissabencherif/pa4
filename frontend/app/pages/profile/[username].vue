@@ -66,11 +66,13 @@
           </div>
         </div>
 
-        <!-- Derniers avis -->
-        <div v-if="profile.reviews.length" class="mb-10">
-          <h2 class="text-lg font-bold mb-5">Derniers avis</h2>
+        <!-- Avis -->
+        <div v-if="allReviews.length" class="mb-10">
+          <div class="flex items-center justify-between mb-5">
+            <h2 class="text-lg font-bold">Avis <span class="text-gray-600 text-sm font-normal">({{ allReviews.length }})</span></h2>
+          </div>
           <div class="space-y-3">
-            <div v-for="review in profile.reviews" :key="review.id" class="card p-4 flex gap-4">
+            <div v-for="review in displayedReviews" :key="review.id" class="card p-4 flex gap-4">
               <NuxtLink :to="`/comics/${review.comic.externalId}`" class="shrink-0">
                 <div class="w-12 aspect-[2/3] rounded-lg overflow-hidden bg-white/5">
                   <img v-if="review.comic.coverUrl" :src="review.comic.coverUrl" class="w-full h-full object-cover" loading="lazy" />
@@ -88,6 +90,13 @@
               </div>
             </div>
           </div>
+          <button
+            v-if="allReviews.length > reviewLimit"
+            @click="reviewLimit = reviewLimit === 5 ? allReviews.length : 5"
+            class="mt-4 text-sm text-gray-500 hover:text-white transition"
+          >
+            {{ reviewLimit === 5 ? `Voir tous les avis (${allReviews.length})` : 'Voir moins' }}
+          </button>
         </div>
 
         <!-- Listes publiques -->
@@ -126,12 +135,20 @@ const pending = ref(true)
 const profile = ref(null)
 const following = ref(false)
 const followLoading = ref(false)
+const allReviews = ref([])
+const reviewLimit = ref(5)
+const displayedReviews = computed(() => allReviews.value.slice(0, reviewLimit.value))
 
 const isSelf = computed(() => user.value?.username === route.params.username)
 
 onMounted(async () => {
   try {
-    profile.value = await $fetch(`${base}/users/${route.params.username}`)
+    const [profileData, reviews] = await Promise.all([
+      $fetch(`${base}/users/${route.params.username}`),
+      $fetch(`${base}/users/${route.params.username}/reviews`),
+    ])
+    profile.value = profileData
+    allReviews.value = reviews
     if (isLoggedIn.value && !isSelf.value) {
       const { following: f } = await $fetch(`${base}/users/${profile.value.id}/follow`, {
         headers: authHeaders()

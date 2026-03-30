@@ -225,7 +225,7 @@
         <div class="space-y-4">
           <div v-for="r in communityReviews" :key="r.id" class="card p-5">
             <div class="flex items-center gap-3 mb-2">
-              <span class="font-medium text-sm text-gray-300">{{ r.user.username }}</span>
+              <NuxtLink :to="`/profile/${r.user.username}`" class="font-medium text-sm text-gray-300 hover:text-red-400 transition">{{ r.user.username }}</NuxtLink>
               <span class="text-yellow-400 text-sm">{{ '★'.repeat(r.rating) }}<span class="text-gray-700">{{ '★'.repeat(5 - r.rating) }}</span></span>
             </div>
             <p v-if="r.content" class="text-sm text-gray-400 leading-relaxed">{{ r.content }}</p>
