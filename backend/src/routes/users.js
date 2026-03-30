@@ -44,6 +44,21 @@ router.get("/users/:username", async (req, res) => {
   res.json(user);
 });
 
+// GET /users/:username/reviews — tous les avis publics d'un utilisateur
+router.get("/users/:username/reviews", async (req, res) => {
+  const user = await prisma.user.findUnique({ where: { username: req.params.username } });
+  if (!user) return res.status(404).json({ error: "Utilisateur introuvable" });
+
+  const reviews = await prisma.review.findMany({
+    where: { userId: user.id },
+    orderBy: { createdAt: "desc" },
+    include: {
+      comic: { select: { id: true, externalId: true, title: true, coverUrl: true } },
+    },
+  });
+  res.json(reviews);
+});
+
 // GET /users/:id/follow — est-ce que je suis cet utilisateur ?
 router.get("/users/:id/follow", requireAuth, async (req, res) => {
   const follow = await prisma.follow.findUnique({
