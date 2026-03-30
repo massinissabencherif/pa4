@@ -50,6 +50,7 @@ services:
         NUXT_PUBLIC_API_BASE: ${STAGING_NUXT_PUBLIC_API_BASE:-https://dev.sitedetestdemassinissabencherif.com/api}
         NUXT_PUBLIC_UMAMI_ID: ${NUXT_PUBLIC_UMAMI_ID:-}
         NUXT_PUBLIC_UMAMI_URL: ${NUXT_PUBLIC_UMAMI_URL:-}
+        NUXT_PUBLIC_APP_ENV: dev
     restart: unless-stopped
     depends_on:
       - backend-staging
