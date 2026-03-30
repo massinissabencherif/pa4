@@ -2,7 +2,7 @@ import { Router } from "express";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import { requireAdmin } from "../middleware/requireAdmin.js";
+import { requireAdmin, requireSuperAdmin } from "../middleware/requireAdmin.js";
 import { requireAuth } from "../middleware/auth.js";
 import prisma from "../lib/prisma.js";
 
@@ -49,18 +49,58 @@ const uploadFields = multer({
 
 // ─── Setup premier admin ──────────────────────────────────────────────────────
 
-// POST /admin/setup — transforme un compte en admin si aucun admin n'existe encore
+// POST /admin/setup — crée le premier super admin si aucun n'existe encore
 router.post("/admin/setup", requireAuth, async (req, res) => {
-  const adminExists = await prisma.user.findFirst({ where: { role: "ADMIN" } });
+  const adminExists = await prisma.user.findFirst({
+    where: { role: { in: ["ADMIN", "SUPER_ADMIN"] } },
+  });
   if (adminExists) {
     return res.status(409).json({ error: "Un administrateur existe déjà" });
   }
   const user = await prisma.user.update({
     where: { id: req.user.id },
-    data: { role: "ADMIN" },
+    data: { role: "SUPER_ADMIN" },
     select: { id: true, email: true, username: true, role: true },
   });
-  res.json({ message: "Compte promu administrateur", user });
+  res.json({ message: "Compte promu super administrateur", user });
+});
+
+// ─── Gestion des utilisateurs (SUPER_ADMIN uniquement) ───────────────────────
+
+// GET /admin/users — liste tous les utilisateurs
+router.get("/admin/users", requireSuperAdmin, async (req, res) => {
+  const users = await prisma.user.findMany({
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true, email: true, username: true, role: true,
+      totpEnabled: true, createdAt: true,
+    },
+  });
+  res.json(users);
+});
+
+// PATCH /admin/users/:id/role — promouvoir/rétrograder un utilisateur (USER ↔ ADMIN)
+router.patch("/admin/users/:id/role", requireSuperAdmin, async (req, res) => {
+  const { role } = req.body;
+  if (!["USER", "ADMIN"].includes(role)) {
+    return res.status(400).json({ error: "Rôle invalide. Valeurs acceptées : USER, ADMIN" });
+  }
+
+  const target = await prisma.user.findUnique({ where: { id: req.params.id } });
+  if (!target) return res.status(404).json({ error: "Utilisateur introuvable" });
+  if (target.role === "SUPER_ADMIN") {
+    return res.status(403).json({ error: "Impossible de modifier le rôle d'un super administrateur" });
+  }
+  if (target.id === req.user.id) {
+    return res.status(403).json({ error: "Vous ne pouvez pas modifier votre propre rôle" });
+  }
+
+  const updated = await prisma.user.update({
+    where: { id: req.params.id },
+    data: { role },
+    select: { id: true, email: true, username: true, role: true, totpEnabled: true },
+  });
+  res.json(updated);
 });
 
 // ─── Routes admin ────────────────────────────────────────────────────────────
@@ -95,7 +135,8 @@ router.post("/admin/comics", requireAdmin, (req, res) => {
     const pdfFile = req.files.pdf[0];
     const coverFile = req.files?.cover?.[0];
 
-    const baseUrl = `${req.protocol}://${req.get("host")}`;
+    const protocol = req.get("x-forwarded-proto") || req.protocol;
+    const baseUrl = `${protocol}://${req.get("host")}`;
     const pdfUrl = `${baseUrl}/uploads/${pdfFile.filename}`;
     const coverUrl = coverFile ? `${baseUrl}/uploads/${coverFile.filename}` : null;
 

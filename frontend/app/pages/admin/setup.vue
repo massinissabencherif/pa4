@@ -6,8 +6,8 @@
         <div class="w-12 h-12 bg-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-red-900/40">
           <span class="text-white text-xl">🛡</span>
         </div>
-        <h1 class="text-2xl font-bold mb-1">Setup Admin</h1>
-        <p class="text-gray-500 text-sm">Promouvoir ton compte en administrateur.<br>Nécessite qu'aucun admin n'existe encore.</p>
+        <h1 class="text-2xl font-bold mb-1">Setup Super Admin</h1>
+        <p class="text-gray-500 text-sm">Promouvoir ton compte en super administrateur.<br>Nécessite qu'aucun admin n'existe encore.</p>
       </div>
 
       <div class="card p-7">
@@ -18,15 +18,15 @@
 
         <div v-else-if="done" class="text-center">
           <div class="text-4xl mb-3">✅</div>
-          <p class="font-semibold text-green-400 mb-1">Compte promu administrateur</p>
-          <p class="text-sm text-gray-500 mb-5">Tu peux maintenant accéder au dashboard admin.</p>
-          <NuxtLink to="/admin" class="btn-primary w-full justify-center block text-center">Aller au dashboard</NuxtLink>
+          <p class="font-semibold text-green-400 mb-1">Compte promu super administrateur</p>
+          <p class="text-sm text-gray-500 mb-5">Configure maintenant ta 2FA pour accéder au dashboard.</p>
+          <NuxtLink to="/settings/security" class="btn-primary w-full justify-center block text-center">Configurer la 2FA</NuxtLink>
         </div>
 
         <div v-else>
           <p class="text-sm text-gray-400 mb-5">
             Connecté en tant que <span class="text-white font-medium">{{ user?.username }}</span>.<br>
-            Clique pour promouvoir ce compte en administrateur.
+            Clique pour promouvoir ce compte en super administrateur.
           </p>
 
           <div v-if="error" class="flex items-center gap-2 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-sm text-red-400 mb-4">

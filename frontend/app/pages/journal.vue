@@ -9,8 +9,8 @@
       </div>
 
       <!-- Loading -->
-      <div v-if="pending" class="flex items-center gap-3 text-gray-500 py-16">
-        <svg class="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
+      <div v-if="pending" class="flex items-center gap-3 text-gray-500 py-16" role="status" aria-label="Chargement du journal">
+        <svg class="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
         </svg>
@@ -19,18 +19,19 @@
 
       <template v-else>
         <!-- Filtres -->
-        <div class="flex flex-wrap gap-2 mb-8">
+        <div class="flex flex-wrap gap-2 mb-8" role="group" aria-label="Filtrer par statut">
           <button
             v-for="f in filters"
             :key="f.value"
             @click="activeFilter = f.value"
+            :aria-pressed="activeFilter === f.value"
             class="px-4 py-1.5 rounded-full text-sm transition-all border"
             :class="activeFilter === f.value
               ? 'bg-red-600 border-red-600 text-white'
               : 'bg-transparent border-white/10 text-gray-500 hover:text-gray-300 hover:border-white/20'"
           >
             {{ f.label }}
-            <span class="ml-1.5 text-xs opacity-60">{{ countFor(f.value) }}</span>
+            <span class="ml-1.5 text-xs opacity-60" aria-label="`${countFor(f.value)} comics`">{{ countFor(f.value) }}</span>
           </button>
         </div>
 
@@ -49,8 +50,8 @@
         </div>
 
         <!-- Grille -->
-        <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div
+        <ul v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" aria-label="Comics du journal">
+          <li
             v-for="entry in filtered"
             :key="entry.id"
             class="card p-4 flex gap-4 hover:border-white/15 transition-all group"
@@ -78,7 +79,9 @@
               </NuxtLink>
 
               <!-- Statut -->
+              <label :for="`status-${entry.id}`" class="sr-only">Statut de lecture pour {{ entry.comic.title }}</label>
               <select
+                :id="`status-${entry.id}`"
                 v-model="entry.status"
                 @change="updateStatus(entry)"
                 class="text-xs px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-gray-400 focus:outline-none cursor-pointer mb-2 w-full"
@@ -105,14 +108,14 @@
             <button
               @click="removeEntry(entry)"
               class="shrink-0 self-start text-gray-700 hover:text-red-400 transition p-1"
-              title="Retirer"
+              :aria-label="`Retirer ${entry.comic.title} du journal`"
             >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
               </svg>
             </button>
-          </div>
-        </div>
+          </li>
+        </ul>
       </template>
     </div>
   </div>
