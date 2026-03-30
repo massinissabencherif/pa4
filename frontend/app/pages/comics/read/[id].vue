@@ -17,6 +17,21 @@
         <p class="text-sm font-medium text-gray-200 truncate">{{ comic?.title ?? '…' }}</p>
       </div>
 
+      <!-- Statut lecture -->
+      <div v-if="entry" class="flex items-center gap-3">
+        <span v-if="entry.status === 'FINISHED'" class="text-xs text-green-400 flex items-center gap-1">
+          ✓ Terminé
+        </span>
+        <button
+          v-else
+          @click="markFinished"
+          :disabled="finishing"
+          class="text-xs px-3 py-1.5 rounded-lg bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/20 transition disabled:opacity-50"
+        >
+          {{ finishing ? '…' : "J'ai terminé" }}
+        </button>
+      </div>
+
       <a
         v-if="comic?.pdfUrl"
         :href="comic.pdfUrl"
@@ -67,6 +82,63 @@ definePageMeta({ layout: false, middleware: 'auth' })
 const route = useRoute()
 const config = useRuntimeConfig()
 const base = config.public.apiBase
+const { token } = useAuth()
 
 const { data: comic, pending } = await useFetch(`${base}/comics/${route.params.id}`)
+
+const entry = ref(null)
+const finishing = ref(false)
+
+function authHeaders() {
+  return { Authorization: `Bearer ${token.value}` }
+}
+
+async function loadEntry() {
+  if (!comic.value) return
+  try {
+    const history = await $fetch(`${base}/history`, { headers: authHeaders() })
+    entry.value = history.find(e => e.comicId === comic.value.id) ?? null
+  } catch {}
+}
+
+async function setStatus(status) {
+  if (!entry.value) {
+    // Ajouter à la liste d'abord
+    try {
+      entry.value = await $fetch(`${base}/reading-list`, {
+        method: 'POST',
+        body: { comicId: comic.value.id },
+        headers: authHeaders(),
+      })
+    } catch (e) {
+      // Comic déjà dans la liste
+      entry.value = e.data?.entry ?? null
+    }
+  }
+  if (!entry.value?.id) return
+  if (entry.value.status === status) return
+
+  entry.value = await $fetch(`${base}/reading-list/${entry.value.id}/status`, {
+    method: 'PATCH',
+    body: { status },
+    headers: authHeaders(),
+  })
+}
+
+async function markFinished() {
+  finishing.value = true
+  try {
+    await setStatus('FINISHED')
+  } finally {
+    finishing.value = false
+  }
+}
+
+onMounted(async () => {
+  await loadEntry()
+  // Passer automatiquement en "En cours" à l'ouverture du lecteur
+  if (comic.value && entry.value?.status !== 'FINISHED') {
+    await setStatus('IN_PROGRESS')
+  }
+})
 </script>
