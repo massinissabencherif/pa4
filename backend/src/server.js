@@ -13,6 +13,7 @@ import readingRouter from "./routes/reading.js";
 import reviewsRouter from "./routes/reviews.js";
 import listsRouter from "./routes/lists.js";
 import adminRouter from "./routes/admin.js";
+import feedRouter from "./routes/feed.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -47,6 +48,7 @@ app.use("/", reviewsRouter);
 app.use("/", listsRouter);
 app.use("/", adminRouter);
 app.use("/", usersRouter);
+app.use("/", feedRouter);
 
 const port = process.env.PORT || 3001;
 

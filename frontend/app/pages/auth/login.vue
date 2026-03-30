@@ -171,7 +171,7 @@ async function submit() {
       navigateTo('/settings/security')
       return
     }
-    navigateTo('/')
+    navigateTo('/feed')
   } catch (e) {
     error.value = e.data?.error || 'Erreur de connexion'
   } finally {
@@ -184,7 +184,7 @@ async function submit2FA() {
   loading.value = true
   try {
     await login(form.email, form.password, totpCode.value)
-    navigateTo('/')
+    navigateTo('/feed')
   } catch (e) {
     error.value = e.data?.error || 'Code invalide'
   } finally {

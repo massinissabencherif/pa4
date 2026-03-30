@@ -19,6 +19,14 @@
         <!-- Nav links -->
         <nav class="hidden sm:flex items-center gap-1" aria-label="Navigation principale">
           <NuxtLink
+            v-if="isLoggedIn"
+            to="/feed"
+            class="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-all"
+            active-class="text-white bg-white/8"
+          >
+            Feed
+          </NuxtLink>
+          <NuxtLink
             to="/comics/search"
             class="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-all"
             active-class="text-white bg-white/8"

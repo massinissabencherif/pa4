@@ -94,9 +94,12 @@
 </template>
 
 <script setup>
-definePageMeta({ middleware: 'auth' })
-
 const { isLoggedIn } = useAuth()
+
+// Rediriger les utilisateurs connectés vers le feed
+if (isLoggedIn.value) {
+  await navigateTo('/feed')
+}
 
 const features = [
   {
