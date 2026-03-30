@@ -107,7 +107,6 @@
         <span><span class="text-red-600">Comic</span>ster — Ton journal de comics</span>
         <div class="flex gap-6">
           <NuxtLink to="/comics/search" class="hover:text-gray-400 transition">Explorer</NuxtLink>
-          <NuxtLink to="/auth/register" class="hover:text-gray-400 transition">S'inscrire</NuxtLink>
           <NuxtLink to="/rgpd" class="hover:text-gray-400 transition">RGPD</NuxtLink>
           <NuxtLink to="/mentions-legales" class="hover:text-gray-400 transition">Mentions légales</NuxtLink>
         </div>
