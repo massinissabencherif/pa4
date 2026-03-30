@@ -36,7 +36,7 @@
           >
             <div class="flex gap-4">
               <!-- Cover -->
-              <NuxtLink :to="`/comics/${event.comic.id}`" class="shrink-0">
+              <NuxtLink :to="`/comics/${event.comic.externalId}`" class="shrink-0">
                 <img
                   v-if="event.comic.coverUrl"
                   :src="event.comic.coverUrl"
@@ -56,7 +56,7 @@
                       {{ event.user.username }}
                     </NuxtLink>
                     <span class="text-gray-500"> {{ eventLabel(event.type) }} </span>
-                    <NuxtLink :to="`/comics/${event.comic.id}`" class="font-medium hover:text-white transition">
+                    <NuxtLink :to="`/comics/${event.comic.externalId}`" class="font-medium hover:text-white transition">
                       {{ event.comic.title }}
                     </NuxtLink>
                   </p>
@@ -98,7 +98,7 @@
           <NuxtLink
             v-for="comic in recoData?.recommendations"
             :key="comic.id"
-            :to="`/comics/${comic.id}`"
+            :to="`/comics/${comic.externalId}`"
             class="card p-3 flex gap-3 hover:border-white/15 transition group"
           >
             <img
@@ -129,7 +129,7 @@ const { token } = useAuth()
 const headers = computed(() => ({ Authorization: `Bearer ${token.value}` }))
 
 const { data: feedData, pending: feedPending } = await useFetch(`${base}/feed`, { headers })
-const { data: recoData, pending: recoPending } = await useFetch(`${base}/recommendations`, { headers })
+const { data: recoData, pending: recoPending } = await useFetch(`${base}/recommendations?limit=3`, { headers })
 
 function eventLabel(type) {
   switch (type) {

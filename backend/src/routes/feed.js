@@ -27,7 +27,7 @@ router.get("/feed", requireAuth, async (req, res) => {
     select: {
       id: true, rating: true, content: true, createdAt: true,
       user: { select: { id: true, username: true } },
-      comic: { select: { id: true, title: true, coverUrl: true } },
+      comic: { select: { id: true, externalId: true, title: true, coverUrl: true } },
     },
   });
 
@@ -39,7 +39,7 @@ router.get("/feed", requireAuth, async (req, res) => {
     select: {
       id: true, finishedAt: true, status: true,
       user: { select: { id: true, username: true } },
-      comic: { select: { id: true, title: true, coverUrl: true } },
+      comic: { select: { id: true, externalId: true, title: true, coverUrl: true } },
     },
   });
 
@@ -51,7 +51,7 @@ router.get("/feed", requireAuth, async (req, res) => {
     select: {
       id: true, startedAt: true, status: true,
       user: { select: { id: true, username: true } },
-      comic: { select: { id: true, title: true, coverUrl: true } },
+      comic: { select: { id: true, externalId: true, title: true, coverUrl: true } },
     },
   });
 
@@ -63,7 +63,7 @@ router.get("/feed", requireAuth, async (req, res) => {
     select: {
       id: true, createdAt: true,
       user: { select: { id: true, username: true } },
-      comic: { select: { id: true, title: true, coverUrl: true } },
+      comic: { select: { id: true, externalId: true, title: true, coverUrl: true } },
     },
   });
 
@@ -109,7 +109,7 @@ router.get("/recommendations", requireAuth, async (req, res) => {
       where: { id: { notIn: myComicIds } },
       take: limit,
       orderBy: { createdAt: "desc" },
-      select: { id: true, title: true, coverUrl: true, genres: true, authors: true, _count: { select: { reviews: true } } },
+      select: { id: true, externalId: true, title: true, coverUrl: true, genres: true, authors: true, _count: { select: { reviews: true } } },
     });
     return res.json({ recommendations: popular, basis: "popular" });
   }
@@ -125,7 +125,7 @@ router.get("/recommendations", requireAuth, async (req, res) => {
     },
     take: limit * 3,
     select: {
-      id: true, title: true, coverUrl: true, genres: true, authors: true,
+      id: true, externalId: true, title: true, coverUrl: true, genres: true, authors: true,
       _count: { select: { reviews: true } },
       reviews: { select: { rating: true } },
     },
