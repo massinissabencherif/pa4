@@ -7,6 +7,7 @@ const router = Router();
 // GET /feed — activités des utilisateurs suivis
 router.get("/feed", requireAuth, async (req, res) => {
   const limit = Math.min(parseInt(req.query.limit) || 30, 50);
+  const MAX_PER_USER = 3;
 
   // Récupérer les IDs des gens suivis
   const follows = await prisma.follow.findMany({
@@ -15,15 +16,34 @@ router.get("/feed", requireAuth, async (req, res) => {
   });
   const followingIds = follows.map((f) => f.followingId);
 
+  // Feed vide : retourner 3 activités aléatoires de la communauté
   if (followingIds.length === 0) {
-    return res.json({ events: [], empty: true });
+    const randomReviews = await prisma.review.findMany({
+      where: { content: { not: null } },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+      select: {
+        id: true, rating: true, content: true, createdAt: true,
+        user: { select: { id: true, username: true } },
+        comic: { select: { id: true, externalId: true, title: true, coverUrl: true } },
+      },
+    });
+
+    // Shuffle et prendre 3
+    const shuffled = randomReviews.sort(() => Math.random() - 0.5).slice(0, 3);
+    const events = shuffled.map((r) => ({
+      type: "REVIEW", date: r.createdAt, user: r.user, comic: r.comic,
+      data: { rating: r.rating, content: r.content }, id: r.id,
+    }));
+
+    return res.json({ events, empty: true, suggestion: true });
   }
 
   // Récupérer les avis récents
   const reviews = await prisma.review.findMany({
     where: { userId: { in: followingIds } },
     orderBy: { createdAt: "desc" },
-    take: limit,
+    take: limit * 2,
     select: {
       id: true, rating: true, content: true, createdAt: true,
       user: { select: { id: true, username: true } },
@@ -35,9 +55,9 @@ router.get("/feed", requireAuth, async (req, res) => {
   const finished = await prisma.readingEntry.findMany({
     where: { userId: { in: followingIds }, status: "FINISHED", finishedAt: { not: null } },
     orderBy: { finishedAt: "desc" },
-    take: limit,
+    take: limit * 2,
     select: {
-      id: true, finishedAt: true, status: true,
+      id: true, finishedAt: true,
       user: { select: { id: true, username: true } },
       comic: { select: { id: true, externalId: true, title: true, coverUrl: true } },
     },
@@ -47,9 +67,9 @@ router.get("/feed", requireAuth, async (req, res) => {
   const started = await prisma.readingEntry.findMany({
     where: { userId: { in: followingIds }, status: "IN_PROGRESS", startedAt: { not: null } },
     orderBy: { startedAt: "desc" },
-    take: limit,
+    take: limit * 2,
     select: {
-      id: true, startedAt: true, status: true,
+      id: true, startedAt: true,
       user: { select: { id: true, username: true } },
       comic: { select: { id: true, externalId: true, title: true, coverUrl: true } },
     },
@@ -59,7 +79,7 @@ router.get("/feed", requireAuth, async (req, res) => {
   const added = await prisma.readingEntry.findMany({
     where: { userId: { in: followingIds }, status: "TO_READ" },
     orderBy: { createdAt: "desc" },
-    take: limit,
+    take: limit * 2,
     select: {
       id: true, createdAt: true,
       user: { select: { id: true, username: true } },
@@ -68,16 +88,24 @@ router.get("/feed", requireAuth, async (req, res) => {
   });
 
   // Fusionner et trier par date
-  const events = [
+  const allEvents = [
     ...reviews.map((r) => ({ type: "REVIEW", date: r.createdAt, user: r.user, comic: r.comic, data: { rating: r.rating, content: r.content }, id: r.id })),
     ...finished.map((e) => ({ type: "FINISHED", date: e.finishedAt, user: e.user, comic: e.comic, data: {}, id: e.id })),
     ...started.map((e) => ({ type: "STARTED", date: e.startedAt, user: e.user, comic: e.comic, data: {}, id: e.id })),
     ...added.map((e) => ({ type: "ADDED", date: e.createdAt, user: e.user, comic: e.comic, data: {}, id: e.id })),
-  ]
-    .sort((a, b) => new Date(b.date) - new Date(a.date))
-    .slice(0, limit);
+  ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
-  res.json({ events, empty: events.length === 0 });
+  // Limiter à MAX_PER_USER événements par utilisateur
+  const userCount = {};
+  const events = [];
+  for (const event of allEvents) {
+    const uid = event.user.id;
+    userCount[uid] = (userCount[uid] || 0) + 1;
+    if (userCount[uid] <= MAX_PER_USER) events.push(event);
+    if (events.length >= limit) break;
+  }
+
+  res.json({ events, empty: events.length === 0, suggestion: false });
 });
 
 // GET /recommendations — comics recommandés basés sur les goûts
