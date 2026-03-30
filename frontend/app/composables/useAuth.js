@@ -89,7 +89,7 @@ export function useAuth() {
     token.value = null
     refreshTokenCookie.value = null
     user.value = null
-    navigateTo('/')
+    navigateTo('/auth/login')
   }
 
   const isLoggedIn = computed(() => !!token.value)
