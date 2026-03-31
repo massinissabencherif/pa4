@@ -14,6 +14,8 @@ import reviewsRouter from "./routes/reviews.js";
 import listsRouter from "./routes/lists.js";
 import adminRouter from "./routes/admin.js";
 import feedRouter from "./routes/feed.js";
+import authorsRouter from "./routes/authors.js";
+import statsRouter from "./routes/stats.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -43,6 +45,8 @@ app.get("/", (req, res) => {
 
 app.use("/auth", authRouter);
 app.use("/comics", comicsRouter);
+app.use("/authors", authorsRouter);
+app.use("/stats", statsRouter);
 app.use("/", readingRouter);
 app.use("/", reviewsRouter);
 app.use("/", listsRouter);

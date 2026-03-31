@@ -57,6 +57,21 @@
           >
             Mes avis
           </NuxtLink>
+          <NuxtLink
+            to="/authors"
+            class="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-all"
+            active-class="text-white bg-white/8"
+          >
+            Auteurs
+          </NuxtLink>
+          <NuxtLink
+            v-if="isLoggedIn"
+            to="/dashboard"
+            class="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-all"
+            active-class="text-white bg-white/8"
+          >
+            Stats
+          </NuxtLink>
         </nav>
 
         <!-- Auth actions -->

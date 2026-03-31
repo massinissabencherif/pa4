@@ -16,16 +16,33 @@ async function upsertComic(raw) {
   });
 }
 
-// GET /comics — liste tous les comics de la DB
+// GET /comics — liste tous les comics de la DB avec filtres optionnels
 router.get("/", async (req, res) => {
-  const { limit = 50, offset = 0 } = req.query;
-  const comics = await prisma.comic.findMany({
-    skip: Number(offset),
-    take: Number(limit),
-    orderBy: { createdAt: "desc" },
-  });
-  const total = await prisma.comic.count();
+  const { limit = 50, offset = 0, genre, author } = req.query;
+
+  const where = {};
+  if (genre) where.genres = { has: genre };
+  if (author) where.authors = { has: author };
+
+  const [comics, total] = await Promise.all([
+    prisma.comic.findMany({ where, skip: Number(offset), take: Number(limit), orderBy: { createdAt: "desc" } }),
+    prisma.comic.count({ where }),
+  ]);
   res.json({ total, count: comics.length, offset: Number(offset), comics });
+});
+
+// GET /comics/genres — liste tous les genres disponibles
+router.get("/genres", async (req, res) => {
+  const comics = await prisma.comic.findMany({ select: { genres: true } });
+  const genres = [...new Set(comics.flatMap((c) => c.genres))].sort();
+  res.json(genres);
+});
+
+// GET /comics/author-names — liste tous les auteurs (champ texte) disponibles
+router.get("/author-names", async (req, res) => {
+  const comics = await prisma.comic.findMany({ select: { authors: true } });
+  const authors = [...new Set(comics.flatMap((c) => c.authors))].sort();
+  res.json(authors);
 });
 
 // GET /comics/search?q=batman&limit=20&offset=0
