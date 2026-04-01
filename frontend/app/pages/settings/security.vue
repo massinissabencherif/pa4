@@ -1,8 +1,35 @@
 <template>
   <div class="max-w-2xl mx-auto px-4 py-10 space-y-8">
     <div>
-      <h1 class="text-2xl font-bold">Sécurité</h1>
-      <p class="text-gray-500 text-sm mt-1">Gérer la double authentification de ton compte.</p>
+      <h1 class="text-2xl font-bold">Paramètres du compte</h1>
+      <p class="text-gray-500 text-sm mt-1">Photo de profil et sécurité.</p>
+    </div>
+
+    <!-- Photo de profil -->
+    <div class="card p-6">
+      <h2 class="font-semibold mb-4">Photo de profil</h2>
+      <div class="flex items-center gap-5">
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-red-600 to-rose-800 flex items-center justify-center text-2xl font-black text-white overflow-hidden shrink-0">
+          <img v-if="user?.avatarUrl" :src="user.avatarUrl" :alt="user.username" class="w-full h-full object-cover" />
+          <span v-else>{{ user?.username?.[0]?.toUpperCase() }}</span>
+        </div>
+        <div class="flex-1">
+          <p class="text-sm text-gray-400 mb-3">JPG, PNG ou WebP — 5 Mo maximum</p>
+          <div class="flex items-center gap-3 flex-wrap">
+            <button
+              type="button"
+              @click="$refs.avatarInput.click()"
+              :disabled="avatarUploading"
+              class="btn-primary !py-2 !px-4 text-sm disabled:opacity-50"
+            >
+              {{ avatarUploading ? 'Envoi en cours…' : 'Choisir une photo' }}
+            </button>
+            <span v-if="avatarSuccess" class="text-sm text-green-400">Photo mise à jour ✓</span>
+            <span v-if="avatarError" class="text-sm text-red-400">{{ avatarError }}</span>
+          </div>
+          <input ref="avatarInput" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="uploadAvatar" />
+        </div>
+      </div>
     </div>
 
     <!-- 2FA Card -->
@@ -107,6 +134,37 @@ const base = config.public.apiBase
 const { token, user, fetchMe } = useAuth()
 
 const totpEnabled = computed(() => user.value?.totpEnabled ?? false)
+
+// Avatar
+const avatarUploading = ref(false)
+const avatarSuccess = ref(false)
+const avatarError = ref('')
+
+async function uploadAvatar(e) {
+  const file = e.target.files[0]
+  if (!file) return
+  avatarUploading.value = true
+  avatarSuccess.value = false
+  avatarError.value = ''
+  try {
+    const fd = new FormData()
+    fd.append('avatar', file)
+    const updated = await $fetch(`${base}/me/avatar`, {
+      method: 'PATCH',
+      body: fd,
+      headers: { Authorization: `Bearer ${token.value}` },
+    })
+    if (user.value) user.value.avatarUrl = updated.avatarUrl
+    avatarSuccess.value = true
+    setTimeout(() => { avatarSuccess.value = false }, 3000)
+  } catch (e) {
+    avatarError.value = e.data?.error || 'Erreur lors de l\'upload'
+  } finally {
+    avatarUploading.value = false
+    e.target.value = ''
+  }
+}
+
 const step = ref('idle') // idle | setup | done
 const qrCode = ref('')
 const secret = ref('')
