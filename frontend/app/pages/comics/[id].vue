@@ -46,8 +46,20 @@
         <div class="flex-1 min-w-0">
           <h1 class="text-3xl font-extrabold leading-tight mb-3">{{ comic.title }}</h1>
 
-          <div class="flex items-center gap-3 mb-4">
-            <span v-if="comic.authors?.length" class="text-gray-400 text-sm">{{ comic.authors.join(' · ') }}</span>
+          <div class="flex flex-wrap items-center gap-3 mb-4">
+            <!-- Auteurs liés (cliquables) -->
+            <template v-if="linkedAuthors.length">
+              <NuxtLink
+                v-for="author in linkedAuthors"
+                :key="author.id"
+                :to="`/authors/${author.slug}`"
+                class="text-sm text-red-400 hover:text-red-300 transition font-medium"
+              >
+                {{ author.name }}
+              </NuxtLink>
+            </template>
+            <!-- Éditeur (champ texte) -->
+            <span v-if="comic.authors?.length" class="text-gray-500 text-sm">{{ comic.authors.join(' · ') }}</span>
             <div v-if="avgRating" class="flex items-center gap-1">
               <span class="text-yellow-400 text-sm">★</span>
               <span class="text-sm font-semibold text-white">{{ avgRating }}</span>
@@ -250,6 +262,15 @@ const { isLoggedIn, token } = useAuth()
 
 const { data: comic, pending, error: _fetchError } = await useFetch(`${base}/comics/${route.params.id}`)
 const fetchError = computed(() => _fetchError.value?.data?.error || (_fetchError.value ? 'Erreur lors du chargement' : null))
+
+// Auteurs liés (modèle Author, avec slugs)
+const linkedAuthors = ref([])
+watch(comic, async (c) => {
+  if (!c) return
+  try {
+    linkedAuthors.value = await $fetch(`${base}/authors/for-comic/${c.id}`)
+  } catch {}
+}, { immediate: true })
 
 // --- Lecture ---
 const entry = ref(null)

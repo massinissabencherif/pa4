@@ -14,6 +14,15 @@ router.get("/", async (req, res) => {
   res.json(authors.map((a) => ({ ...a, comicCount: a._count.comics })))
 })
 
+// GET /authors/for-comic/:comicId — auteurs liés à un comic
+router.get("/for-comic/:comicId", async (req, res) => {
+  const links = await prisma.authorOnComic.findMany({
+    where: { comicId: req.params.comicId },
+    include: { author: true },
+  })
+  res.json(links.map((l) => l.author))
+})
+
 // GET /authors/:slug — détail auteur + ses comics
 router.get("/:slug", async (req, res) => {
   const author = await prisma.author.findUnique({
