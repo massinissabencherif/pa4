@@ -157,7 +157,16 @@
 const route = useRoute()
 const config = useRuntimeConfig()
 const base = config.public.apiBase
-const { isLoggedIn, user, token } = useAuth()
+const { isLoggedIn, user, token, fetchMe } = useAuth()
+
+// Decode username from JWT as fallback when user state isn't populated yet
+function jwtUsername() {
+  if (!token.value) return null
+  try {
+    const payload = JSON.parse(atob(token.value.split('.')[1]))
+    return payload.username || null
+  } catch { return null }
+}
 
 function authHeaders() {
   return token.value ? { Authorization: `Bearer ${token.value}` } : {}
@@ -186,7 +195,10 @@ const reviewLimit = ref(5)
 const displayedReviews = computed(() => allReviews.value.slice(0, reviewLimit.value))
 const avatarUploading = ref(false)
 
-const isSelf = computed(() => user.value?.username === route.params.username)
+const isSelf = computed(() => {
+  const name = user.value?.username || jwtUsername()
+  return !!name && name === route.params.username
+})
 
 onMounted(async () => {
   try {
