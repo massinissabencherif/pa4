@@ -30,6 +30,7 @@ model User {
   followers      Follow[]       @relation("following")
   comments       Comment[]
   refreshTokens  RefreshToken[]
+  badges         UserBadge[]
 }
 
 enum Role {
@@ -71,12 +72,14 @@ model Comic {
   pdfUrl      String?
   genres      String[]
   authors     String[]
+  publisher   String?
   publishedAt DateTime?
   createdAt   DateTime  @default(now())
 
   readingEntries ReadingEntry[]
   reviews        Review[]
   listItems      ListItem[]
+  authorLinks    AuthorOnComic[]
 }
 
 // ─── Journal de lecture ───────────────────────────────────────────────────────
@@ -135,6 +138,44 @@ model Comment {
   review Review @relation(fields: [reviewId], references: [id])
 
   @@index([reviewId])
+}
+
+// ─── Auteurs ─────────────────────────────────────────────────────────────────
+
+model Author {
+  id        String          @id @default(cuid())
+  name      String
+  slug      String          @unique
+  bio       String?
+  photoUrl  String?
+  birthDate DateTime?
+  comics    AuthorOnComic[]
+
+  @@index([slug])
+}
+
+model AuthorOnComic {
+  authorId String
+  comicId  String
+
+  author Author @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comic  Comic  @relation(fields: [comicId],  references: [id], onDelete: Cascade)
+
+  @@id([authorId, comicId])
+}
+
+// ─── Badges ──────────────────────────────────────────────────────────────────
+
+model UserBadge {
+  id       String   @id @default(cuid())
+  userId   String
+  badgeKey String
+  earnedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeKey])
+  @@index([userId])
 }
 
 // ─── Listes personnalisées ───────────────────────────────────────────────────

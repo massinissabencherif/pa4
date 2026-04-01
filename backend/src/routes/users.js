@@ -59,6 +59,17 @@ router.get("/users/:username/reviews", async (req, res) => {
   res.json(reviews);
 });
 
+// GET /users/:username/badges — badges publics d'un utilisateur
+router.get("/users/:username/badges", async (req, res) => {
+  const user = await prisma.user.findUnique({ where: { username: req.params.username } });
+  if (!user) return res.status(404).json({ error: "Utilisateur introuvable" });
+  const badges = await prisma.userBadge.findMany({
+    where: { userId: user.id },
+    orderBy: { earnedAt: "asc" },
+  });
+  res.json(badges);
+});
+
 // GET /users/:id/follow — est-ce que je suis cet utilisateur ?
 router.get("/users/:id/follow", requireAuth, async (req, res) => {
   const follow = await prisma.follow.findUnique({

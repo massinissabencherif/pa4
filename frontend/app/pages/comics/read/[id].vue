@@ -80,6 +80,7 @@
 definePageMeta({ layout: false, middleware: 'auth' })
 
 const route = useRoute()
+const router = useRouter()
 const config = useRuntimeConfig()
 const base = config.public.apiBase
 const { token } = useAuth()
@@ -129,6 +130,7 @@ async function markFinished() {
   finishing.value = true
   try {
     await setStatus('FINISHED')
+    router.push(`/comics/${route.params.id}`)
   } finally {
     finishing.value = false
   }

@@ -3,18 +3,37 @@
     <div class="max-w-6xl mx-auto">
 
       <!-- En-tête -->
-      <div class="flex items-center justify-between mb-10">
+      <div class="flex items-center justify-between mb-6">
         <div>
           <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-xs text-red-400 mb-3">
             🛡 Dashboard Admin
           </div>
-          <h1 class="text-3xl font-bold">Gestion des comics</h1>
+          <h1 class="text-3xl font-bold">Administration</h1>
         </div>
-        <button @click="showUpload = true" class="btn-primary flex items-center gap-2">
+        <button v-if="activeTab === 'comics'" @click="showUpload = true" class="btn-primary flex items-center gap-2">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
           </svg>
           Ajouter un comic
+        </button>
+        <button v-else @click="showAuthorForm = true" class="btn-primary flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          Créer un auteur
+        </button>
+      </div>
+
+      <!-- Onglets -->
+      <div class="flex gap-1 mb-8 border-b border-white/8">
+        <button
+          v-for="tab in tabs"
+          :key="tab.key"
+          @click="activeTab = tab.key"
+          class="px-5 py-2.5 text-sm font-medium transition border-b-2 -mb-px"
+          :class="activeTab === tab.key ? 'text-white border-red-500' : 'text-gray-500 border-transparent hover:text-gray-300'"
+        >
+          {{ tab.label }}
         </button>
       </div>
 
@@ -42,10 +61,52 @@
                   <input v-model="form.title" type="text" required placeholder="Ex: The Amazing Spider-Man #1" class="input" />
                 </div>
 
-                <!-- Auteurs -->
+                <!-- Auteurs (dropdown avec recherche) -->
                 <div>
-                  <label class="block text-xs font-medium text-gray-400 mb-1.5">Auteurs <span class="text-gray-600">(séparés par des virgules)</span></label>
-                  <input v-model="form.authors" type="text" placeholder="Stan Lee, Steve Ditko" class="input" />
+                  <label class="block text-xs font-medium text-gray-400 mb-1.5">Auteur(s)</label>
+                  <!-- Tags sélectionnés -->
+                  <div v-if="form.authorIds.length" class="flex flex-wrap gap-1.5 mb-2">
+                    <span
+                      v-for="id in form.authorIds"
+                      :key="id"
+                      class="flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-500/10 border border-red-500/20 text-xs text-red-400"
+                    >
+                      {{ allAuthors.find(a => a.id === id)?.name }}
+                      <button type="button" @click="form.authorIds = form.authorIds.filter(x => x !== id)" class="hover:text-white transition leading-none">×</button>
+                    </span>
+                  </div>
+                  <div class="relative" ref="authorDropdownRef">
+                    <input
+                      v-model="authorSearch"
+                      @focus="authorDropdownOpen = true"
+                      type="text"
+                      placeholder="Rechercher un auteur…"
+                      class="input text-sm"
+                      autocomplete="off"
+                    />
+                    <div
+                      v-if="authorDropdownOpen && filteredAuthors.length"
+                      class="absolute z-20 w-full mt-1 bg-[#13131a] border border-white/10 rounded-xl shadow-xl overflow-hidden"
+                    >
+                      <button
+                        v-for="author in filteredAuthors"
+                        :key="author.id"
+                        type="button"
+                        @click="toggleAuthorId(author.id); authorSearch = ''"
+                        class="w-full text-left px-4 py-2.5 text-sm hover:bg-white/5 transition flex items-center justify-between"
+                        :class="form.authorIds.includes(author.id) ? 'text-red-400' : 'text-gray-300'"
+                      >
+                        {{ author.name }}
+                        <span v-if="form.authorIds.includes(author.id)" class="text-xs">✓</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Éditeur -->
+                <div>
+                  <label class="block text-xs font-medium text-gray-400 mb-1.5">Éditeur</label>
+                  <input v-model="form.publisher" type="text" placeholder="Marvel Comics, DC Comics…" class="input" />
                 </div>
 
                 <!-- Genres -->
@@ -150,6 +211,9 @@
         </div>
       </Teleport>
 
+      <!-- ─── ONGLET COMICS ─── -->
+      <template v-if="activeTab === 'comics'">
+
       <!-- Liste des comics -->
       <div v-if="loadingComics" class="flex items-center gap-3 text-gray-500 py-16">
         <svg class="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
@@ -169,18 +233,13 @@
           <thead>
             <tr class="border-b border-white/8 text-left text-xs text-gray-500">
               <th class="px-5 py-3.5 font-medium">Comic</th>
-              <th class="px-5 py-3.5 font-medium hidden sm:table-cell">Auteurs</th>
+              <th class="px-5 py-3.5 font-medium hidden sm:table-cell">Auteur / Éditeur</th>
               <th class="px-5 py-3.5 font-medium hidden md:table-cell">Genres</th>
               <th class="px-5 py-3.5 font-medium text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
-            <tr
-              v-for="comic in comics"
-              :key="comic.id"
-              class="border-b border-white/5 last:border-0 hover:bg-white/3 transition-colors"
-            >
-              <!-- Titre + cover -->
+            <tr v-for="comic in comics" :key="comic.id" class="border-b border-white/5 last:border-0 hover:bg-white/3 transition-colors">
               <td class="px-5 py-4">
                 <div class="flex items-center gap-3">
                   <div class="w-9 h-12 rounded-lg overflow-hidden bg-white/5 shrink-0">
@@ -190,46 +249,113 @@
                   <div>
                     <p class="font-medium text-gray-100 line-clamp-1">{{ comic.title }}</p>
                     <div class="flex items-center gap-2 mt-0.5">
-                      <span class="text-xs text-gray-600">{{ comic._count.readingEntries }} lectures</span>
-                      <span class="text-xs text-gray-600">·</span>
-                      <span class="text-xs text-gray-600">{{ comic._count.reviews }} avis</span>
+                      <span class="text-xs text-gray-600">{{ comic._count.readingEntries }} lectures · {{ comic._count.reviews }} avis</span>
                       <a v-if="comic.pdfUrl" :href="comic.pdfUrl" target="_blank" class="text-xs text-blue-400 hover:text-blue-300 transition">PDF ↗</a>
                     </div>
                   </div>
                 </div>
               </td>
               <td class="px-5 py-4 hidden sm:table-cell text-gray-400 text-xs">
-                {{ comic.authors.join(', ') || '—' }}
+                <span v-if="comic.authors?.length">{{ comic.authors.join(', ') }}</span>
+                <span v-if="comic.publisher" class="text-gray-600 ml-1">{{ comic.authors?.length ? '·' : '' }} {{ comic.publisher }}</span>
+                <span v-if="!comic.authors?.length && !comic.publisher">—</span>
               </td>
               <td class="px-5 py-4 hidden md:table-cell">
                 <div class="flex flex-wrap gap-1">
-                  <span
-                    v-for="g in comic.genres.slice(0, 3)"
-                    :key="g"
-                    class="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-xs text-gray-500"
-                  >{{ g }}</span>
+                  <span v-for="g in comic.genres.slice(0, 3)" :key="g" class="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-xs text-gray-500">{{ g }}</span>
                 </div>
               </td>
               <td class="px-5 py-4 text-right">
                 <div class="flex items-center justify-end gap-3">
-                  <NuxtLink
-                    :to="`/comics/${comic.externalId}`"
-                    class="text-xs text-gray-500 hover:text-gray-300 transition"
-                  >
-                    Voir
-                  </NuxtLink>
-                  <button @click="startEdit(comic)" class="text-xs text-gray-500 hover:text-yellow-400 transition">
-                    Modifier
-                  </button>
-                  <button @click="deleteComic(comic)" class="text-xs text-gray-500 hover:text-red-400 transition">
-                    Supprimer
-                  </button>
+                  <NuxtLink :to="`/comics/${comic.externalId}`" class="text-xs text-gray-500 hover:text-gray-300 transition">Voir</NuxtLink>
+                  <button @click="startEdit(comic)" class="text-xs text-gray-500 hover:text-yellow-400 transition">Modifier</button>
+                  <button @click="deleteComic(comic)" class="text-xs text-gray-500 hover:text-red-400 transition">Supprimer</button>
                 </div>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
+
+      </template>
+
+      <!-- ─── ONGLET AUTEURS ─── -->
+      <template v-if="activeTab === 'authors'">
+
+        <!-- Modal créer/modifier auteur -->
+        <Teleport to="body">
+          <div v-if="showAuthorForm" class="fixed inset-0 z-50 flex items-start justify-center px-4 py-8 overflow-y-auto">
+            <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="closeAuthorForm" />
+            <div class="relative w-full max-w-md my-auto">
+              <div class="card p-7">
+                <h2 class="text-xl font-bold mb-6">{{ editingAuthor ? 'Modifier l\'auteur' : 'Créer un auteur' }}</h2>
+                <form @submit.prevent="submitAuthor" class="space-y-4">
+                  <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Nom complet *</label>
+                    <input v-model="authorForm.name" type="text" required placeholder="Ex: Frank Miller" class="input" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Date de naissance</label>
+                    <input v-model="authorForm.birthDate" type="date" class="input" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Biographie</label>
+                    <textarea v-model="authorForm.bio" rows="4" placeholder="Présentation de l'auteur…" class="input resize-none" />
+                  </div>
+                  <div v-if="authorError" class="text-sm text-red-400">{{ authorError }}</div>
+                  <div class="flex gap-3 pt-2">
+                    <button type="submit" :disabled="authorSaving" class="btn-primary flex-1 justify-center disabled:opacity-40">
+                      {{ authorSaving ? '…' : (editingAuthor ? 'Enregistrer' : 'Créer') }}
+                    </button>
+                    <button type="button" @click="closeAuthorForm" class="btn-ghost flex-1 justify-center">Annuler</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </Teleport>
+
+        <!-- Liste des auteurs -->
+        <div v-if="!allAuthors.length" class="text-center py-24">
+          <div class="text-5xl mb-4">✍️</div>
+          <p class="text-gray-400">Aucun auteur. Crée le premier.</p>
+        </div>
+        <div v-else class="overflow-hidden rounded-2xl border border-white/8">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-white/8 text-left text-xs text-gray-500">
+                <th class="px-5 py-3.5 font-medium">Auteur</th>
+                <th class="px-5 py-3.5 font-medium hidden sm:table-cell">Naissance</th>
+                <th class="px-5 py-3.5 font-medium hidden md:table-cell">Comics liés</th>
+                <th class="px-5 py-3.5 font-medium text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="author in allAuthors" :key="author.id" class="border-b border-white/5 last:border-0 hover:bg-white/3 transition-colors">
+                <td class="px-5 py-4">
+                  <p class="font-medium text-gray-100">{{ author.name }}</p>
+                  <p v-if="author.bio" class="text-xs text-gray-600 line-clamp-1 mt-0.5">{{ author.bio }}</p>
+                </td>
+                <td class="px-5 py-4 hidden sm:table-cell text-gray-400 text-xs">
+                  {{ author.birthDate ? new Date(author.birthDate).toLocaleDateString('fr-FR') : '—' }}
+                </td>
+                <td class="px-5 py-4 hidden md:table-cell text-gray-400 text-xs">
+                  {{ author._count?.comics ?? 0 }} comic{{ (author._count?.comics ?? 0) > 1 ? 's' : '' }}
+                </td>
+                <td class="px-5 py-4 text-right">
+                  <div class="flex items-center justify-end gap-3">
+                    <NuxtLink :to="`/authors/${author.slug}`" class="text-xs text-gray-500 hover:text-gray-300 transition">Voir</NuxtLink>
+                    <button @click="startEditAuthor(author)" class="text-xs text-gray-500 hover:text-yellow-400 transition">Modifier</button>
+                    <button @click="deleteAuthor(author)" class="text-xs text-gray-500 hover:text-red-400 transition">Supprimer</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </template>
+
     </div>
   </div>
 </template>
@@ -271,12 +397,50 @@ async function loadAll() {
   loadingComics.value = false
 }
 
-onMounted(loadAll)
+onMounted(() => {
+  loadAll()
+  loadAuthors()
+  document.addEventListener('click', (e) => {
+    if (authorDropdownRef.value && !authorDropdownRef.value.contains(e.target)) {
+      authorDropdownOpen.value = false
+    }
+  })
+})
 
 // Formulaire upload
 const showUpload = ref(false)
 const editing = ref(null) // comic en cours d'édition
-const form = reactive({ title: '', authors: '', genres: '', description: '', publishedAt: '' })
+const tabs = [{ key: 'comics', label: 'Comics' }, { key: 'authors', label: 'Auteurs' }]
+const activeTab = ref('comics')
+
+// Auteurs disponibles (pour le sélecteur dans le formulaire comic)
+const allAuthors = ref([])
+
+async function loadAuthors() {
+  try {
+    allAuthors.value = await $fetch(`${base}/admin/authors`, { headers: authHeaders() })
+  } catch {}
+}
+
+const form = reactive({ title: '', publisher: '', genres: '', description: '', publishedAt: '', authorIds: [] })
+
+// Dropdown auteurs
+const authorSearch = ref('')
+const authorDropdownOpen = ref(false)
+const authorDropdownRef = ref(null)
+
+const filteredAuthors = computed(() =>
+  allAuthors.value.filter(a => a.name.toLowerCase().includes(authorSearch.value.toLowerCase()))
+)
+
+function toggleAuthorId(id) {
+  if (form.authorIds.includes(id)) {
+    form.authorIds = form.authorIds.filter(x => x !== id)
+  } else {
+    form.authorIds = [...form.authorIds, id]
+  }
+}
+
 const pdfFile = ref(null)
 const coverFile = ref(null)
 const coverPreview = ref('')
@@ -287,7 +451,9 @@ const uploadError = ref('')
 function closeUpload() {
   showUpload.value = false
   editing.value = null
-  Object.assign(form, { title: '', authors: '', genres: '', description: '', publishedAt: '' })
+  Object.assign(form, { title: '', publisher: '', genres: '', description: '', publishedAt: '', authorIds: [] })
+  authorSearch.value = ''
+  authorDropdownOpen.value = false
   pdfFile.value = null
   coverFile.value = null
   coverPreview.value = ''
@@ -295,14 +461,23 @@ function closeUpload() {
   uploadProgress.value = 0
 }
 
-function startEdit(comic) {
+async function startEdit(comic) {
   editing.value = comic
+  // Charger les auteurs liés au comic
+  let linkedIds = []
+  try {
+    const linked = await $fetch(`${base}/authors/for-comic/${comic.id}`)
+    linkedIds = linked.map(a => a.id)
+  } catch {}
+
   Object.assign(form, {
     title: comic.title,
     authors: comic.authors.join(', '),
+    publisher: comic.publisher || '',
     genres: comic.genres.join(', '),
     description: comic.description || '',
     publishedAt: comic.publishedAt ? comic.publishedAt.split('T')[0] : '',
+    authorIds: linkedIds,
   })
   showUpload.value = true
 }
@@ -331,10 +506,11 @@ async function submitComic() {
         method: 'PATCH',
         body: {
           title: form.title,
-          authors: form.authors,
+          publisher: form.publisher,
           genres: form.genres,
           description: form.description,
           publishedAt: form.publishedAt || undefined,
+          authorIds: form.authorIds,
         },
         headers: authHeaders(),
       })
@@ -353,7 +529,7 @@ async function submitComic() {
 
   const fd = new FormData()
   fd.append('title', form.title)
-  fd.append('authors', form.authors)
+  fd.append('publisher', form.publisher)
   fd.append('genres', form.genres)
   fd.append('description', form.description)
   if (form.publishedAt) fd.append('publishedAt', form.publishedAt)
@@ -364,10 +540,20 @@ async function submitComic() {
   xhr.upload.addEventListener('progress', (e) => {
     if (e.lengthComputable) uploadProgress.value = Math.round((e.loaded / e.total) * 100)
   })
-  xhr.addEventListener('load', () => {
+  xhr.addEventListener('load', async () => {
     uploading.value = false
     if (xhr.status === 201) {
       const comic = JSON.parse(xhr.responseText)
+      // Lier les auteurs si sélectionnés
+      if (form.authorIds.length > 0) {
+        try {
+          await $fetch(`${base}/admin/comics/${comic.id}/authors`, {
+            method: 'PATCH',
+            body: { authorIds: form.authorIds },
+            headers: authHeaders(),
+          })
+        } catch {}
+      }
       comics.value.unshift({ ...comic, _count: { readingEntries: 0, reviews: 0 } })
       statsData.value = { ...statsData.value, comics: (statsData.value?.comics ?? 0) + 1 }
       closeUpload()
@@ -382,6 +568,66 @@ async function submitComic() {
   xhr.open('POST', `${base}/admin/comics`)
   xhr.setRequestHeader('Authorization', `Bearer ${token.value}`)
   xhr.send(fd)
+}
+
+// ─── Gestion des auteurs ──────────────────────────────────────────────────────
+const showAuthorForm = ref(false)
+const editingAuthor = ref(null)
+const authorForm = reactive({ name: '', birthDate: '', bio: '' })
+const authorSaving = ref(false)
+const authorError = ref('')
+
+function closeAuthorForm() {
+  showAuthorForm.value = false
+  editingAuthor.value = null
+  Object.assign(authorForm, { name: '', birthDate: '', bio: '' })
+  authorError.value = ''
+}
+
+function startEditAuthor(author) {
+  editingAuthor.value = author
+  Object.assign(authorForm, {
+    name: author.name,
+    birthDate: author.birthDate ? author.birthDate.split('T')[0] : '',
+    bio: author.bio || '',
+  })
+  showAuthorForm.value = true
+}
+
+async function submitAuthor() {
+  authorSaving.value = true
+  authorError.value = ''
+  try {
+    if (editingAuthor.value) {
+      const updated = await $fetch(`${base}/admin/authors/${editingAuthor.value.id}`, {
+        method: 'PATCH',
+        body: { name: authorForm.name, bio: authorForm.bio, birthDate: authorForm.birthDate || undefined },
+        headers: authHeaders(),
+      })
+      const idx = allAuthors.value.findIndex(a => a.id === editingAuthor.value.id)
+      if (idx !== -1) allAuthors.value[idx] = { ...allAuthors.value[idx], ...updated }
+    } else {
+      const created = await $fetch(`${base}/admin/authors`, {
+        method: 'POST',
+        body: { name: authorForm.name, bio: authorForm.bio, birthDate: authorForm.birthDate || undefined },
+        headers: authHeaders(),
+      })
+      allAuthors.value.push({ ...created, _count: { comics: 0 } })
+    }
+    closeAuthorForm()
+  } catch (e) {
+    authorError.value = e.data?.error || 'Erreur'
+  } finally {
+    authorSaving.value = false
+  }
+}
+
+async function deleteAuthor(author) {
+  if (!confirm(`Supprimer "${author.name}" ?`)) return
+  try {
+    await $fetch(`${base}/admin/authors/${author.id}`, { method: 'DELETE', headers: authHeaders() })
+    allAuthors.value = allAuthors.value.filter(a => a.id !== author.id)
+  } catch {}
 }
 
 async function deleteComic(comic) {

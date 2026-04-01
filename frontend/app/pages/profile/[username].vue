@@ -46,6 +46,22 @@
           </NuxtLink>
         </div>
 
+        <!-- Badges -->
+        <div v-if="badges.length" class="mb-8">
+          <h2 class="text-sm font-semibold text-gray-500 mb-3">Badges</h2>
+          <div class="flex flex-wrap gap-2">
+            <div
+              v-for="badge in badges"
+              :key="badge.badgeKey"
+              class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/8 text-xs"
+              :title="badge.description"
+            >
+              <span>{{ badge.icon }}</span>
+              <span class="text-gray-300">{{ badge.name }}</span>
+            </div>
+          </div>
+        </div>
+
         <!-- Stats -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-10">
           <div class="card px-4 py-4 text-center">
@@ -125,10 +141,23 @@
 const route = useRoute()
 const config = useRuntimeConfig()
 const base = config.public.apiBase
-const { isLoggedIn, user, token } = useAuth()
+const { isLoggedIn, user, fetchMe } = useAuth()
 
 function authHeaders() {
   return token.value ? { Authorization: `Bearer ${token.value}` } : {}
+}
+
+const BADGE_META = {
+  first_read: { name: 'Premier pas', icon: '📖', description: 'Terminer son premier comic' },
+  bookworm: { name: 'Rat de bibliothèque', icon: '🐛', description: 'Terminer 5 comics' },
+  librarian: { name: 'Bibliothécaire', icon: '🏛️', description: 'Terminer 20 comics' },
+  first_review: { name: 'Critique en herbe', icon: '✍️', description: 'Poster son premier avis' },
+  top_critic: { name: 'Grand critique', icon: '🏆', description: 'Poster 10 avis' },
+  social: { name: 'Connecté', icon: '🤝', description: 'Suivre 5 personnes' },
+  explorer: { name: 'Explorateur', icon: '🧭', description: 'Lire 3 genres différents' },
+  genre_master: { name: 'Maître des genres', icon: '🎭', description: 'Lire 5 genres différents' },
+  in_progress_collector: { name: 'Multitâche', icon: '⚡', description: '3 comics en cours simultanément' },
+  early_adopter: { name: 'Pionnier', icon: '🌟', description: 'Parmi les 50 premiers inscrits' },
 }
 
 const pending = ref(true)
@@ -136,19 +165,24 @@ const profile = ref(null)
 const following = ref(false)
 const followLoading = ref(false)
 const allReviews = ref([])
+const badges = ref([])
 const reviewLimit = ref(5)
 const displayedReviews = computed(() => allReviews.value.slice(0, reviewLimit.value))
 
-const isSelf = computed(() => user.value?.username === route.params.username)
+const isSelf = computed(() => !!user.value && user.value.username === route.params.username)
 
 onMounted(async () => {
+  // Ensure user.value is populated (same pattern as settings page)
+  await fetchMe()
   try {
-    const [profileData, reviews] = await Promise.all([
+    const [profileData, reviews, userBadges] = await Promise.all([
       $fetch(`${base}/users/${route.params.username}`),
       $fetch(`${base}/users/${route.params.username}/reviews`),
+      $fetch(`${base}/users/${route.params.username}/badges`).catch(() => []),
     ])
     profile.value = profileData
     allReviews.value = reviews
+    badges.value = userBadges.map(b => ({ ...b, ...(BADGE_META[b.badgeKey] || { name: b.badgeKey, icon: '🏅', description: '' }) }))
     if (isLoggedIn.value && !isSelf.value) {
       const { following: f } = await $fetch(`${base}/users/${profile.value.id}/follow`, {
         headers: authHeaders()
