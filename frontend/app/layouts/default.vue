@@ -57,6 +57,14 @@
           >
             Mes avis
           </NuxtLink>
+          <NuxtLink
+            v-if="isLoggedIn"
+            :to="`/profile/${user?.username}`"
+            class="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-all"
+            active-class="text-white bg-white/8"
+          >
+            Mon profil
+          </NuxtLink>
         </nav>
 
         <!-- Auth actions -->

@@ -46,8 +46,23 @@
         <div class="flex-1 min-w-0">
           <h1 class="text-3xl font-extrabold leading-tight mb-3">{{ comic.title }}</h1>
 
-          <div class="flex items-center gap-3 mb-4">
-            <span v-if="comic.authors?.length" class="text-gray-400 text-sm">{{ comic.authors.join(' · ') }}</span>
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mb-4">
+            <!-- Auteurs liés (modèle Author — cliquables) -->
+            <template v-if="linkedAuthors.length">
+              <NuxtLink
+                v-for="author in linkedAuthors"
+                :key="author.id"
+                :to="`/authors/${author.slug}`"
+                class="text-sm text-red-400 hover:text-red-300 transition font-medium"
+              >
+                {{ author.name }}
+              </NuxtLink>
+            </template>
+            <!-- Auteurs texte libres -->
+            <span v-else-if="comic.authors?.length" class="text-sm text-gray-300">{{ comic.authors.join(', ') }}</span>
+            <!-- Éditeur -->
+            <span v-if="comic.publisher" class="text-sm text-gray-500">{{ comic.publisher }}</span>
+            <!-- Note moyenne -->
             <div v-if="avgRating" class="flex items-center gap-1">
               <span class="text-yellow-400 text-sm">★</span>
               <span class="text-sm font-semibold text-white">{{ avgRating }}</span>
@@ -250,6 +265,9 @@ const { isLoggedIn, token } = useAuth()
 
 const { data: comic, pending, error: _fetchError } = await useFetch(`${base}/comics/${route.params.id}`)
 const fetchError = computed(() => _fetchError.value?.data?.error || (_fetchError.value ? 'Erreur lors du chargement' : null))
+
+// Auteurs liés (inclus dans la réponse du comic)
+const linkedAuthors = computed(() => comic.value?.linkedAuthors ?? [])
 
 // --- Lecture ---
 const entry = ref(null)
