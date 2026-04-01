@@ -20,24 +20,8 @@
         <!-- Header profil -->
         <div class="flex flex-col sm:flex-row sm:items-center gap-6 mb-10">
           <!-- Avatar -->
-          <div class="shrink-0 flex flex-col items-center gap-1.5">
-            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-red-600 to-rose-800 flex items-center justify-center text-2xl font-black text-white shadow-lg shadow-red-900/30 overflow-hidden">
-              <img v-if="profile.avatarUrl" :src="profile.avatarUrl" :alt="profile.username" class="w-full h-full object-cover" />
-              <span v-else>{{ profile.username[0].toUpperCase() }}</span>
-            </div>
-            <button
-              v-if="isSelf"
-              @click="$refs.avatarInput.click()"
-              :disabled="avatarUploading"
-              class="text-xs text-gray-500 hover:text-gray-300 transition flex items-center gap-1"
-            >
-              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
-              </svg>
-              {{ avatarUploading ? '…' : 'Photo' }}
-            </button>
-            <input v-if="isSelf" ref="avatarInput" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="uploadAvatar" />
+          <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-red-600 to-rose-800 flex items-center justify-center text-2xl font-black text-white shadow-lg shadow-red-900/30 shrink-0">
+            {{ profile.username[0].toUpperCase() }}
           </div>
 
           <div class="flex-1">
@@ -157,7 +141,7 @@
 const route = useRoute()
 const config = useRuntimeConfig()
 const base = config.public.apiBase
-const { isLoggedIn, user, token, fetchMe } = useAuth()
+const { isLoggedIn, user, fetchMe } = useAuth()
 
 function authHeaders() {
   return token.value ? { Authorization: `Bearer ${token.value}` } : {}
@@ -184,7 +168,6 @@ const allReviews = ref([])
 const badges = ref([])
 const reviewLimit = ref(5)
 const displayedReviews = computed(() => allReviews.value.slice(0, reviewLimit.value))
-const avatarUploading = ref(false)
 
 const isSelf = computed(() => !!user.value && user.value.username === route.params.username)
 
@@ -228,23 +211,6 @@ async function toggleFollow() {
     }
   } catch {}
   followLoading.value = false
-}
-
-async function uploadAvatar(e) {
-  const file = e.target.files[0]
-  if (!file) return
-  avatarUploading.value = true
-  try {
-    const fd = new FormData()
-    fd.append('avatar', file)
-    const updated = await $fetch(`${base}/me/avatar`, {
-      method: 'PATCH',
-      body: fd,
-      headers: authHeaders(),
-    })
-    if (profile.value) profile.value.avatarUrl = updated.avatarUrl
-  } catch {}
-  avatarUploading.value = false
 }
 
 function fmt(date) {
