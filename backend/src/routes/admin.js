@@ -167,7 +167,7 @@ router.post("/admin/comics", requireAdmin, (req, res) => {
 
 // PATCH /admin/comics/:id — modifier les métadonnées
 router.patch("/admin/comics/:id", requireAdmin, async (req, res) => {
-  const { title, description, authors, publisher, genres, publishedAt } = req.body;
+  const { title, description, authors, publisher, genres, publishedAt, authorIds } = req.body;
 
   const comic = await prisma.comic.findUnique({ where: { id: req.params.id } });
   if (!comic) return res.status(404).json({ error: "Comic introuvable" });
@@ -185,6 +185,18 @@ router.patch("/admin/comics/:id", requireAdmin, async (req, res) => {
     updates.publishedAt = publishedAt ? new Date(publishedAt) : null;
 
   const updated = await prisma.comic.update({ where: { id: req.params.id }, data: updates });
+
+  // Mettre à jour les liaisons auteurs si fourni
+  if (Array.isArray(authorIds)) {
+    await prisma.authorOnComic.deleteMany({ where: { comicId: req.params.id } });
+    if (authorIds.length > 0) {
+      await prisma.authorOnComic.createMany({
+        data: authorIds.map((authorId) => ({ authorId, comicId: req.params.id })),
+        skipDuplicates: true,
+      });
+    }
+  }
+
   res.json(updated);
 });
 
@@ -206,6 +218,90 @@ router.delete("/admin/comics/:id", requireAdmin, async (req, res) => {
 
   await prisma.comic.delete({ where: { id: req.params.id } });
   res.status(204).end();
+});
+
+// ─── Gestion des auteurs ──────────────────────────────────────────────────────
+
+function slugify(str) {
+  return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
+// GET /admin/authors
+router.get("/admin/authors", requireAdmin, async (req, res) => {
+  const authors = await prisma.author.findMany({
+    orderBy: { name: "asc" },
+    include: { _count: { select: { comics: true } } },
+  });
+  res.json(authors);
+});
+
+// POST /admin/authors
+router.post("/admin/authors", requireAdmin, async (req, res) => {
+  const { name, bio, birthDate } = req.body;
+  if (!name?.trim()) return res.status(400).json({ error: "Le nom est requis" });
+
+  const baseSlug = slugify(name.trim());
+  let slug = baseSlug;
+  let i = 1;
+  while (await prisma.author.findUnique({ where: { slug } })) {
+    slug = `${baseSlug}-${i++}`;
+  }
+
+  const author = await prisma.author.create({
+    data: {
+      name: name.trim(),
+      slug,
+      bio: bio?.trim() || null,
+      birthDate: birthDate ? new Date(birthDate) : null,
+    },
+  });
+  res.status(201).json(author);
+});
+
+// PATCH /admin/authors/:id
+router.patch("/admin/authors/:id", requireAdmin, async (req, res) => {
+  const { name, bio, birthDate } = req.body;
+  const author = await prisma.author.findUnique({ where: { id: req.params.id } });
+  if (!author) return res.status(404).json({ error: "Auteur introuvable" });
+
+  const updates = {};
+  if (name?.trim()) {
+    updates.name = name.trim();
+    updates.slug = slugify(name.trim());
+  }
+  if (bio !== undefined) updates.bio = bio?.trim() || null;
+  if (birthDate !== undefined) updates.birthDate = birthDate ? new Date(birthDate) : null;
+
+  const updated = await prisma.author.update({ where: { id: req.params.id }, data: updates });
+  res.json(updated);
+});
+
+// DELETE /admin/authors/:id
+router.delete("/admin/authors/:id", requireAdmin, async (req, res) => {
+  const author = await prisma.author.findUnique({ where: { id: req.params.id } });
+  if (!author) return res.status(404).json({ error: "Auteur introuvable" });
+  await prisma.author.delete({ where: { id: req.params.id } });
+  res.status(204).end();
+});
+
+// PATCH /admin/comics/:id/authors — lier/délier des auteurs à un comic
+router.patch("/admin/comics/:id/authors", requireAdmin, async (req, res) => {
+  const { authorIds } = req.body; // string[]
+  if (!Array.isArray(authorIds)) return res.status(400).json({ error: "authorIds doit être un tableau" });
+
+  const comic = await prisma.comic.findUnique({ where: { id: req.params.id } });
+  if (!comic) return res.status(404).json({ error: "Comic introuvable" });
+
+  // Supprimer toutes les liaisons existantes puis recréer
+  await prisma.authorOnComic.deleteMany({ where: { comicId: req.params.id } });
+  if (authorIds.length > 0) {
+    await prisma.authorOnComic.createMany({
+      data: authorIds.map((authorId) => ({ authorId, comicId: req.params.id })),
+      skipDuplicates: true,
+    });
+  }
+  res.json({ linked: authorIds.length });
 });
 
 // GET /admin/stats — statistiques globales

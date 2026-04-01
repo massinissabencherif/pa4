@@ -143,12 +143,13 @@ model Comment {
 // ─── Auteurs ─────────────────────────────────────────────────────────────────
 
 model Author {
-  id       String          @id @default(cuid())
-  name     String
-  slug     String          @unique
-  bio      String?
-  photoUrl String?
-  comics   AuthorOnComic[]
+  id        String          @id @default(cuid())
+  name      String
+  slug      String          @unique
+  bio       String?
+  photoUrl  String?
+  birthDate DateTime?
+  comics    AuthorOnComic[]
 
   @@index([slug])
 }
