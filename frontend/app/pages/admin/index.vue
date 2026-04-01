@@ -61,36 +61,52 @@
                   <input v-model="form.title" type="text" required placeholder="Ex: The Amazing Spider-Man #1" class="input" />
                 </div>
 
-                <!-- Auteurs -->
+                <!-- Auteurs (dropdown avec recherche) -->
                 <div>
-                  <label class="block text-xs font-medium text-gray-400 mb-1.5">Auteur(s) <span class="text-gray-600">(séparés par des virgules)</span></label>
-                  <input v-model="form.authors" type="text" placeholder="Stan Lee, Steve Ditko" class="input" />
+                  <label class="block text-xs font-medium text-gray-400 mb-1.5">Auteur(s)</label>
+                  <!-- Tags sélectionnés -->
+                  <div v-if="form.authorIds.length" class="flex flex-wrap gap-1.5 mb-2">
+                    <span
+                      v-for="id in form.authorIds"
+                      :key="id"
+                      class="flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-500/10 border border-red-500/20 text-xs text-red-400"
+                    >
+                      {{ allAuthors.find(a => a.id === id)?.name }}
+                      <button type="button" @click="form.authorIds = form.authorIds.filter(x => x !== id)" class="hover:text-white transition leading-none">×</button>
+                    </span>
+                  </div>
+                  <div class="relative" ref="authorDropdownRef">
+                    <input
+                      v-model="authorSearch"
+                      @focus="authorDropdownOpen = true"
+                      type="text"
+                      placeholder="Rechercher un auteur…"
+                      class="input text-sm"
+                      autocomplete="off"
+                    />
+                    <div
+                      v-if="authorDropdownOpen && filteredAuthors.length"
+                      class="absolute z-20 w-full mt-1 bg-[#13131a] border border-white/10 rounded-xl shadow-xl overflow-hidden"
+                    >
+                      <button
+                        v-for="author in filteredAuthors"
+                        :key="author.id"
+                        type="button"
+                        @click="toggleAuthorId(author.id); authorSearch = ''"
+                        class="w-full text-left px-4 py-2.5 text-sm hover:bg-white/5 transition flex items-center justify-between"
+                        :class="form.authorIds.includes(author.id) ? 'text-red-400' : 'text-gray-300'"
+                      >
+                        {{ author.name }}
+                        <span v-if="form.authorIds.includes(author.id)" class="text-xs">✓</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
                 <!-- Éditeur -->
                 <div>
                   <label class="block text-xs font-medium text-gray-400 mb-1.5">Éditeur</label>
                   <input v-model="form.publisher" type="text" placeholder="Marvel Comics, DC Comics…" class="input" />
-                </div>
-
-                <!-- Auteurs (modèle Author) -->
-                <div v-if="allAuthors.length">
-                  <label class="block text-xs font-medium text-gray-400 mb-2">Lier des auteurs</label>
-                  <div class="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-1">
-                    <label
-                      v-for="author in allAuthors"
-                      :key="author.id"
-                      class="flex items-center gap-2 cursor-pointer group"
-                    >
-                      <input
-                        type="checkbox"
-                        :value="author.id"
-                        v-model="form.authorIds"
-                        class="accent-red-500 w-4 h-4 shrink-0"
-                      />
-                      <span class="text-sm text-gray-300 group-hover:text-white transition truncate">{{ author.name }}</span>
-                    </label>
-                  </div>
                 </div>
 
                 <!-- Genres -->
@@ -381,7 +397,15 @@ async function loadAll() {
   loadingComics.value = false
 }
 
-onMounted(() => { loadAll(); loadAuthors() })
+onMounted(() => {
+  loadAll()
+  loadAuthors()
+  document.addEventListener('click', (e) => {
+    if (authorDropdownRef.value && !authorDropdownRef.value.contains(e.target)) {
+      authorDropdownOpen.value = false
+    }
+  })
+})
 
 // Formulaire upload
 const showUpload = ref(false)
@@ -398,7 +422,25 @@ async function loadAuthors() {
   } catch {}
 }
 
-const form = reactive({ title: '', authors: '', publisher: '', genres: '', description: '', publishedAt: '', authorIds: [] })
+const form = reactive({ title: '', publisher: '', genres: '', description: '', publishedAt: '', authorIds: [] })
+
+// Dropdown auteurs
+const authorSearch = ref('')
+const authorDropdownOpen = ref(false)
+const authorDropdownRef = ref(null)
+
+const filteredAuthors = computed(() =>
+  allAuthors.value.filter(a => a.name.toLowerCase().includes(authorSearch.value.toLowerCase()))
+)
+
+function toggleAuthorId(id) {
+  if (form.authorIds.includes(id)) {
+    form.authorIds = form.authorIds.filter(x => x !== id)
+  } else {
+    form.authorIds = [...form.authorIds, id]
+  }
+}
+
 const pdfFile = ref(null)
 const coverFile = ref(null)
 const coverPreview = ref('')
@@ -409,7 +451,9 @@ const uploadError = ref('')
 function closeUpload() {
   showUpload.value = false
   editing.value = null
-  Object.assign(form, { title: '', authors: '', publisher: '', genres: '', description: '', publishedAt: '', authorIds: [] })
+  Object.assign(form, { title: '', publisher: '', genres: '', description: '', publishedAt: '', authorIds: [] })
+  authorSearch.value = ''
+  authorDropdownOpen.value = false
   pdfFile.value = null
   coverFile.value = null
   coverPreview.value = ''
@@ -462,7 +506,6 @@ async function submitComic() {
         method: 'PATCH',
         body: {
           title: form.title,
-          authors: form.authors,
           publisher: form.publisher,
           genres: form.genres,
           description: form.description,
@@ -486,7 +529,6 @@ async function submitComic() {
 
   const fd = new FormData()
   fd.append('title', form.title)
-  fd.append('authors', form.authors)
   fd.append('publisher', form.publisher)
   fd.append('genres', form.genres)
   fd.append('description', form.description)
