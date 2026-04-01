@@ -29,7 +29,7 @@
             <option v-for="g in genres" :key="g" :value="g">{{ g }}</option>
           </select>
           <select v-model="selectedAuthor" @change="doSearch" class="input !w-auto text-sm">
-            <option value="">Tous les auteurs</option>
+            <option value="">Tous les éditeurs</option>
             <option v-for="a in authorNames" :key="a" :value="a">{{ a }}</option>
           </select>
           <button
