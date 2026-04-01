@@ -16,8 +16,9 @@
           :to="`/authors/${author.slug}`"
           class="card p-5 hover:border-red-500/30 transition group flex items-center gap-4"
         >
-          <div class="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-2xl shrink-0 group-hover:border-red-500/30 transition">
-            ✍️
+          <div class="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-2xl shrink-0 group-hover:border-red-500/30 transition overflow-hidden">
+            <img v-if="author.photoUrl" :src="author.photoUrl" :alt="author.name" class="w-full h-full object-cover" />
+            <span v-else>✍️</span>
           </div>
           <div class="min-w-0">
             <p class="font-semibold text-gray-100 group-hover:text-white transition truncate">{{ author.name }}</p>
