@@ -20,7 +20,6 @@ model User {
   role          Role      @default(USER)
   totpSecret    String?
   totpEnabled   Boolean   @default(false)
-  avatarUrl     String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

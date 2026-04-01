@@ -47,20 +47,6 @@ const uploadFields = multer({
   { name: "cover", maxCount: 1 },
 ]);
 
-const photoStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadDir),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `photo-${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`);
-  },
-});
-
-const uploadPhoto = multer({
-  storage: photoStorage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
-  fileFilter: fileFilter(["image/jpeg", "image/png", "image/webp"]),
-}).single("photo");
-
 // ─── Setup premier admin ──────────────────────────────────────────────────────
 
 // POST /admin/setup — crée le premier super admin si aucun n'existe encore
@@ -297,36 +283,6 @@ router.delete("/admin/authors/:id", requireAdmin, async (req, res) => {
   if (!author) return res.status(404).json({ error: "Auteur introuvable" });
   await prisma.author.delete({ where: { id: req.params.id } });
   res.status(204).end();
-});
-
-// PATCH /admin/authors/:id/photo — uploader une photo pour un auteur
-router.patch("/admin/authors/:id/photo", requireAdmin, (req, res) => {
-  uploadPhoto(req, res, async (err) => {
-    if (err) return res.status(400).json({ error: err.message });
-    if (!req.file) return res.status(400).json({ error: "Fichier image requis" });
-
-    const author = await prisma.author.findUnique({ where: { id: req.params.id } });
-    if (!author) return res.status(404).json({ error: "Auteur introuvable" });
-
-    // Supprimer l'ancienne photo si existante
-    if (author.photoUrl) {
-      const filename = author.photoUrl.split("/uploads/")[1];
-      if (filename) {
-        const filePath = path.join(uploadDir, filename);
-        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-      }
-    }
-
-    const protocol = req.get("x-forwarded-proto") || req.protocol;
-    const baseUrl = `${protocol}://${req.get("host")}`;
-    const photoUrl = `${baseUrl}/uploads/${req.file.filename}`;
-
-    const updated = await prisma.author.update({
-      where: { id: req.params.id },
-      data: { photoUrl },
-    });
-    res.json(updated);
-  });
 });
 
 // PATCH /admin/comics/:id/authors — lier/délier des auteurs à un comic

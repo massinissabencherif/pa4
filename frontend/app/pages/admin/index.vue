@@ -290,22 +290,6 @@
               <div class="card p-7">
                 <h2 class="text-xl font-bold mb-6">{{ editingAuthor ? 'Modifier l\'auteur' : 'Créer un auteur' }}</h2>
                 <form @submit.prevent="submitAuthor" class="space-y-4">
-                  <!-- Photo en tête -->
-                  <div class="flex flex-col items-center gap-3 pb-2">
-                    <div class="w-20 h-20 rounded-full bg-white/5 border-2 border-dashed border-white/20 overflow-hidden flex items-center justify-center text-3xl">
-                      <img v-if="authorPhotoPreview" :src="authorPhotoPreview" class="w-full h-full object-cover" />
-                      <img v-else-if="editingAuthor?.photoUrl" :src="editingAuthor.photoUrl" class="w-full h-full object-cover" />
-                      <span v-else>✍️</span>
-                    </div>
-                    <button type="button" @click="$refs.authorPhotoInput.click()" class="btn-ghost !py-1.5 !px-4 text-xs flex items-center gap-1.5">
-                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
-                      </svg>
-                      {{ authorPhotoFile ? authorPhotoFile.name : 'Ajouter une photo' }}
-                    </button>
-                    <input ref="authorPhotoInput" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="onAuthorPhotoChange" />
-                  </div>
                   <div>
                     <label class="block text-xs font-medium text-gray-400 mb-1.5">Nom complet *</label>
                     <input v-model="authorForm.name" type="text" required placeholder="Ex: Frank Miller" class="input" />
@@ -331,41 +315,6 @@
           </div>
         </Teleport>
 
-        <!-- Modal upload photo auteur -->
-        <Teleport to="body">
-          <div v-if="photoUploadAuthor" class="fixed inset-0 z-50 flex items-center justify-center px-4">
-            <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="closePhotoUpload" />
-            <div class="relative w-full max-w-sm">
-              <div class="card p-6 space-y-4">
-                <h2 class="font-bold">Photo de {{ photoUploadAuthor.name }}</h2>
-                <div class="flex flex-col items-center gap-4">
-                  <div class="w-24 h-24 rounded-full bg-white/5 border-2 border-dashed border-white/20 overflow-hidden flex items-center justify-center text-4xl">
-                    <img v-if="photoPreview" :src="photoPreview" class="w-full h-full object-cover" />
-                    <img v-else-if="photoUploadAuthor.photoUrl" :src="photoUploadAuthor.photoUrl" class="w-full h-full object-cover" />
-                    <span v-else>✍️</span>
-                  </div>
-                  <button type="button" @click="$refs.photoFileInput.click()" class="btn-ghost !py-2 !px-5 text-sm">
-                    Choisir une photo
-                  </button>
-                  <input ref="photoFileInput" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="onPhotoFileChange" />
-                </div>
-                <div v-if="photoUploadError" class="text-sm text-red-400">{{ photoUploadError }}</div>
-                <div class="flex gap-3">
-                  <button
-                    type="button"
-                    @click="submitAuthorPhoto"
-                    :disabled="!photoFile || photoUploading"
-                    class="btn-primary flex-1 justify-center disabled:opacity-40"
-                  >
-                    {{ photoUploading ? 'Envoi…' : 'Enregistrer' }}
-                  </button>
-                  <button type="button" @click="closePhotoUpload" class="btn-ghost flex-1 justify-center">Annuler</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </Teleport>
-
         <!-- Liste des auteurs -->
         <div v-if="!allAuthors.length" class="text-center py-24">
           <div class="text-5xl mb-4">✍️</div>
@@ -384,16 +333,8 @@
             <tbody>
               <tr v-for="author in allAuthors" :key="author.id" class="border-b border-white/5 last:border-0 hover:bg-white/3 transition-colors">
                 <td class="px-5 py-4">
-                  <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-full bg-white/5 border border-white/10 overflow-hidden flex items-center justify-center text-lg shrink-0">
-                      <img v-if="author.photoUrl" :src="author.photoUrl" class="w-full h-full object-cover" />
-                      <span v-else>✍️</span>
-                    </div>
-                    <div>
-                      <p class="font-medium text-gray-100">{{ author.name }}</p>
-                      <p v-if="author.bio" class="text-xs text-gray-600 line-clamp-1 mt-0.5">{{ author.bio }}</p>
-                    </div>
-                  </div>
+                  <p class="font-medium text-gray-100">{{ author.name }}</p>
+                  <p v-if="author.bio" class="text-xs text-gray-600 line-clamp-1 mt-0.5">{{ author.bio }}</p>
                 </td>
                 <td class="px-5 py-4 hidden sm:table-cell text-gray-400 text-xs">
                   {{ author.birthDate ? new Date(author.birthDate).toLocaleDateString('fr-FR') : '—' }}
@@ -404,7 +345,6 @@
                 <td class="px-5 py-4 text-right">
                   <div class="flex items-center justify-end gap-3">
                     <NuxtLink :to="`/authors/${author.slug}`" class="text-xs text-gray-500 hover:text-gray-300 transition">Voir</NuxtLink>
-                    <button @click="openPhotoUpload(author)" class="text-xs text-gray-500 hover:text-blue-400 transition">Photo</button>
                     <button @click="startEditAuthor(author)" class="text-xs text-gray-500 hover:text-yellow-400 transition">Modifier</button>
                     <button @click="deleteAuthor(author)" class="text-xs text-gray-500 hover:text-red-400 transition">Supprimer</button>
                   </div>
@@ -636,23 +576,12 @@ const editingAuthor = ref(null)
 const authorForm = reactive({ name: '', birthDate: '', bio: '' })
 const authorSaving = ref(false)
 const authorError = ref('')
-const authorPhotoFile = ref(null)
-const authorPhotoPreview = ref('')
-
-function onAuthorPhotoChange(e) {
-  const f = e.target.files[0]
-  if (!f) return
-  authorPhotoFile.value = f
-  authorPhotoPreview.value = URL.createObjectURL(f)
-}
 
 function closeAuthorForm() {
   showAuthorForm.value = false
   editingAuthor.value = null
   Object.assign(authorForm, { name: '', birthDate: '', bio: '' })
   authorError.value = ''
-  authorPhotoFile.value = null
-  authorPhotoPreview.value = ''
 }
 
 function startEditAuthor(author) {
@@ -662,8 +591,6 @@ function startEditAuthor(author) {
     birthDate: author.birthDate ? author.birthDate.split('T')[0] : '',
     bio: author.bio || '',
   })
-  authorPhotoFile.value = null
-  authorPhotoPreview.value = ''
   showAuthorForm.value = true
 }
 
@@ -671,90 +598,27 @@ async function submitAuthor() {
   authorSaving.value = true
   authorError.value = ''
   try {
-    let result
     if (editingAuthor.value) {
-      result = await $fetch(`${base}/admin/authors/${editingAuthor.value.id}`, {
+      const updated = await $fetch(`${base}/admin/authors/${editingAuthor.value.id}`, {
         method: 'PATCH',
         body: { name: authorForm.name, bio: authorForm.bio, birthDate: authorForm.birthDate || undefined },
         headers: authHeaders(),
       })
       const idx = allAuthors.value.findIndex(a => a.id === editingAuthor.value.id)
-      if (idx !== -1) allAuthors.value[idx] = { ...allAuthors.value[idx], ...result }
+      if (idx !== -1) allAuthors.value[idx] = { ...allAuthors.value[idx], ...updated }
     } else {
-      result = await $fetch(`${base}/admin/authors`, {
+      const created = await $fetch(`${base}/admin/authors`, {
         method: 'POST',
         body: { name: authorForm.name, bio: authorForm.bio, birthDate: authorForm.birthDate || undefined },
         headers: authHeaders(),
       })
-      allAuthors.value.push({ ...result, _count: { comics: 0 } })
-    }
-    // Upload photo si présente
-    if (authorPhotoFile.value) {
-      const fd = new FormData()
-      fd.append('photo', authorPhotoFile.value)
-      const withPhoto = await $fetch(`${base}/admin/authors/${result.id}/photo`, {
-        method: 'PATCH',
-        body: fd,
-        headers: authHeaders(),
-      })
-      const idx = allAuthors.value.findIndex(a => a.id === result.id)
-      if (idx !== -1) allAuthors.value[idx] = { ...allAuthors.value[idx], photoUrl: withPhoto.photoUrl }
+      allAuthors.value.push({ ...created, _count: { comics: 0 } })
     }
     closeAuthorForm()
   } catch (e) {
     authorError.value = e.data?.error || 'Erreur'
   } finally {
     authorSaving.value = false
-  }
-}
-
-// ─── Photo upload auteur ──────────────────────────────────────────────────────
-const photoUploadAuthor = ref(null)
-const photoFile = ref(null)
-const photoPreview = ref('')
-const photoUploading = ref(false)
-const photoUploadError = ref('')
-
-function openPhotoUpload(author) {
-  photoUploadAuthor.value = author
-  photoFile.value = null
-  photoPreview.value = ''
-  photoUploadError.value = ''
-}
-
-function closePhotoUpload() {
-  photoUploadAuthor.value = null
-  photoFile.value = null
-  photoPreview.value = ''
-  photoUploadError.value = ''
-}
-
-function onPhotoFileChange(e) {
-  const f = e.target.files[0]
-  if (!f) return
-  photoFile.value = f
-  photoPreview.value = URL.createObjectURL(f)
-}
-
-async function submitAuthorPhoto() {
-  if (!photoFile.value || !photoUploadAuthor.value) return
-  photoUploading.value = true
-  photoUploadError.value = ''
-  try {
-    const fd = new FormData()
-    fd.append('photo', photoFile.value)
-    const updated = await $fetch(`${base}/admin/authors/${photoUploadAuthor.value.id}/photo`, {
-      method: 'PATCH',
-      body: fd,
-      headers: authHeaders(),
-    })
-    const idx = allAuthors.value.findIndex(a => a.id === photoUploadAuthor.value.id)
-    if (idx !== -1) allAuthors.value[idx] = { ...allAuthors.value[idx], photoUrl: updated.photoUrl }
-    closePhotoUpload()
-  } catch (e) {
-    photoUploadError.value = e.data?.error || 'Erreur upload'
-  } finally {
-    photoUploading.value = false
   }
 }
 
