@@ -263,14 +263,8 @@ const { isLoggedIn, token } = useAuth()
 const { data: comic, pending, error: _fetchError } = await useFetch(`${base}/comics/${route.params.id}`)
 const fetchError = computed(() => _fetchError.value?.data?.error || (_fetchError.value ? 'Erreur lors du chargement' : null))
 
-// Auteurs liés (modèle Author, avec slugs)
-const linkedAuthors = ref([])
-watch(comic, async (c) => {
-  if (!c) return
-  try {
-    linkedAuthors.value = await $fetch(`${base}/authors/for-comic/${c.id}`)
-  } catch {}
-}, { immediate: true })
+// Auteurs liés (inclus dans la réponse du comic)
+const linkedAuthors = computed(() => comic.value?.linkedAuthors ?? [])
 
 // --- Lecture ---
 const entry = ref(null)

@@ -94,8 +94,14 @@ router.get("/search", async (req, res) => {
 router.get("/:externalId", async (req, res) => {
   const { externalId } = req.params;
 
-  const cached = await prisma.comic.findUnique({ where: { externalId } });
-  if (cached) return res.json(cached);
+  const cached = await prisma.comic.findUnique({
+    where: { externalId },
+    include: { authorLinks: { include: { author: true } } },
+  });
+  if (cached) {
+    const { authorLinks, ...comic } = cached;
+    return res.json({ ...comic, linkedAuthors: authorLinks.map((l) => l.author) });
+  }
 
   if (!hasMarvelKeys()) {
     return res.status(404).json({ error: "Comic introuvable" });
