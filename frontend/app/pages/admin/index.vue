@@ -44,8 +44,14 @@
 
                 <!-- Auteurs -->
                 <div>
-                  <label class="block text-xs font-medium text-gray-400 mb-1.5">Auteurs <span class="text-gray-600">(séparés par des virgules)</span></label>
+                  <label class="block text-xs font-medium text-gray-400 mb-1.5">Auteur(s) <span class="text-gray-600">(séparés par des virgules)</span></label>
                   <input v-model="form.authors" type="text" placeholder="Stan Lee, Steve Ditko" class="input" />
+                </div>
+
+                <!-- Éditeur -->
+                <div>
+                  <label class="block text-xs font-medium text-gray-400 mb-1.5">Éditeur</label>
+                  <input v-model="form.publisher" type="text" placeholder="Marvel Comics, DC Comics…" class="input" />
                 </div>
 
                 <!-- Genres -->
@@ -276,7 +282,7 @@ onMounted(loadAll)
 // Formulaire upload
 const showUpload = ref(false)
 const editing = ref(null) // comic en cours d'édition
-const form = reactive({ title: '', authors: '', genres: '', description: '', publishedAt: '' })
+const form = reactive({ title: '', authors: '', publisher: '', genres: '', description: '', publishedAt: '' })
 const pdfFile = ref(null)
 const coverFile = ref(null)
 const coverPreview = ref('')
@@ -287,7 +293,7 @@ const uploadError = ref('')
 function closeUpload() {
   showUpload.value = false
   editing.value = null
-  Object.assign(form, { title: '', authors: '', genres: '', description: '', publishedAt: '' })
+  Object.assign(form, { title: '', authors: '', publisher: '', genres: '', description: '', publishedAt: '' })
   pdfFile.value = null
   coverFile.value = null
   coverPreview.value = ''
@@ -300,6 +306,7 @@ function startEdit(comic) {
   Object.assign(form, {
     title: comic.title,
     authors: comic.authors.join(', '),
+    publisher: comic.publisher || '',
     genres: comic.genres.join(', '),
     description: comic.description || '',
     publishedAt: comic.publishedAt ? comic.publishedAt.split('T')[0] : '',
@@ -332,6 +339,7 @@ async function submitComic() {
         body: {
           title: form.title,
           authors: form.authors,
+          publisher: form.publisher,
           genres: form.genres,
           description: form.description,
           publishedAt: form.publishedAt || undefined,
