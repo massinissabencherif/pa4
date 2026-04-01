@@ -290,6 +290,22 @@
               <div class="card p-7">
                 <h2 class="text-xl font-bold mb-6">{{ editingAuthor ? 'Modifier l\'auteur' : 'Créer un auteur' }}</h2>
                 <form @submit.prevent="submitAuthor" class="space-y-4">
+                  <!-- Photo en tête -->
+                  <div class="flex flex-col items-center gap-3 pb-2">
+                    <div class="w-20 h-20 rounded-full bg-white/5 border-2 border-dashed border-white/20 overflow-hidden flex items-center justify-center text-3xl">
+                      <img v-if="authorPhotoPreview" :src="authorPhotoPreview" class="w-full h-full object-cover" />
+                      <img v-else-if="editingAuthor?.photoUrl" :src="editingAuthor.photoUrl" class="w-full h-full object-cover" />
+                      <span v-else>✍️</span>
+                    </div>
+                    <button type="button" @click="$refs.authorPhotoInput.click()" class="btn-ghost !py-1.5 !px-4 text-xs flex items-center gap-1.5">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                      </svg>
+                      {{ authorPhotoFile ? authorPhotoFile.name : 'Ajouter une photo' }}
+                    </button>
+                    <input ref="authorPhotoInput" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="onAuthorPhotoChange" />
+                  </div>
                   <div>
                     <label class="block text-xs font-medium text-gray-400 mb-1.5">Nom complet *</label>
                     <input v-model="authorForm.name" type="text" required placeholder="Ex: Frank Miller" class="input" />
@@ -301,21 +317,6 @@
                   <div>
                     <label class="block text-xs font-medium text-gray-400 mb-1.5">Biographie</label>
                     <textarea v-model="authorForm.bio" rows="4" placeholder="Présentation de l'auteur…" class="input resize-none" />
-                  </div>
-                  <!-- Photo -->
-                  <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Photo <span class="text-gray-600">(JPG / PNG — optionnel)</span></label>
-                    <div class="flex items-center gap-4">
-                      <div class="w-14 h-14 rounded-full bg-white/5 border border-white/10 overflow-hidden flex items-center justify-center text-2xl shrink-0">
-                        <img v-if="authorPhotoPreview" :src="authorPhotoPreview" class="w-full h-full object-cover" />
-                        <img v-else-if="editingAuthor?.photoUrl" :src="editingAuthor.photoUrl" class="w-full h-full object-cover" />
-                        <span v-else>✍️</span>
-                      </div>
-                      <button type="button" @click="$refs.authorPhotoInput.click()" class="btn-ghost !py-1.5 !px-4 text-xs">
-                        {{ authorPhotoFile ? authorPhotoFile.name : 'Choisir une photo' }}
-                      </button>
-                      <input ref="authorPhotoInput" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="onAuthorPhotoChange" />
-                    </div>
                   </div>
                   <div v-if="authorError" class="text-sm text-red-400">{{ authorError }}</div>
                   <div class="flex gap-3 pt-2">
