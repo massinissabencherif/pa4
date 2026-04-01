@@ -20,8 +20,9 @@
       <template v-else>
         <!-- En-tête auteur -->
         <div class="flex items-start gap-6 mb-12">
-          <div class="w-20 h-20 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-4xl shrink-0">
-            ✍️
+          <div class="w-20 h-20 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-4xl shrink-0 overflow-hidden">
+            <img v-if="author.photoUrl" :src="author.photoUrl" :alt="author.name" class="w-full h-full object-cover" />
+            <span v-else>✍️</span>
           </div>
           <div>
             <h1 class="text-3xl font-bold mb-2">{{ author.name }}</h1>

@@ -302,6 +302,21 @@
                     <label class="block text-xs font-medium text-gray-400 mb-1.5">Biographie</label>
                     <textarea v-model="authorForm.bio" rows="4" placeholder="Présentation de l'auteur…" class="input resize-none" />
                   </div>
+                  <!-- Photo -->
+                  <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Photo <span class="text-gray-600">(JPG / PNG — optionnel)</span></label>
+                    <div class="flex items-center gap-4">
+                      <div class="w-14 h-14 rounded-full bg-white/5 border border-white/10 overflow-hidden flex items-center justify-center text-2xl shrink-0">
+                        <img v-if="authorPhotoPreview" :src="authorPhotoPreview" class="w-full h-full object-cover" />
+                        <img v-else-if="editingAuthor?.photoUrl" :src="editingAuthor.photoUrl" class="w-full h-full object-cover" />
+                        <span v-else>✍️</span>
+                      </div>
+                      <button type="button" @click="$refs.authorPhotoInput.click()" class="btn-ghost !py-1.5 !px-4 text-xs">
+                        {{ authorPhotoFile ? authorPhotoFile.name : 'Choisir une photo' }}
+                      </button>
+                      <input ref="authorPhotoInput" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="onAuthorPhotoChange" />
+                    </div>
+                  </div>
                   <div v-if="authorError" class="text-sm text-red-400">{{ authorError }}</div>
                   <div class="flex gap-3 pt-2">
                     <button type="submit" :disabled="authorSaving" class="btn-primary flex-1 justify-center disabled:opacity-40">
@@ -333,8 +348,16 @@
             <tbody>
               <tr v-for="author in allAuthors" :key="author.id" class="border-b border-white/5 last:border-0 hover:bg-white/3 transition-colors">
                 <td class="px-5 py-4">
-                  <p class="font-medium text-gray-100">{{ author.name }}</p>
-                  <p v-if="author.bio" class="text-xs text-gray-600 line-clamp-1 mt-0.5">{{ author.bio }}</p>
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-full bg-white/5 border border-white/10 overflow-hidden flex items-center justify-center text-lg shrink-0">
+                      <img v-if="author.photoUrl" :src="author.photoUrl" class="w-full h-full object-cover" />
+                      <span v-else>✍️</span>
+                    </div>
+                    <div>
+                      <p class="font-medium text-gray-100">{{ author.name }}</p>
+                      <p v-if="author.bio" class="text-xs text-gray-600 line-clamp-1 mt-0.5">{{ author.bio }}</p>
+                    </div>
+                  </div>
                 </td>
                 <td class="px-5 py-4 hidden sm:table-cell text-gray-400 text-xs">
                   {{ author.birthDate ? new Date(author.birthDate).toLocaleDateString('fr-FR') : '—' }}
@@ -576,12 +599,23 @@ const editingAuthor = ref(null)
 const authorForm = reactive({ name: '', birthDate: '', bio: '' })
 const authorSaving = ref(false)
 const authorError = ref('')
+const authorPhotoFile = ref(null)
+const authorPhotoPreview = ref('')
+
+function onAuthorPhotoChange(e) {
+  const f = e.target.files[0]
+  if (!f) return
+  authorPhotoFile.value = f
+  authorPhotoPreview.value = URL.createObjectURL(f)
+}
 
 function closeAuthorForm() {
   showAuthorForm.value = false
   editingAuthor.value = null
   Object.assign(authorForm, { name: '', birthDate: '', bio: '' })
   authorError.value = ''
+  authorPhotoFile.value = null
+  authorPhotoPreview.value = ''
 }
 
 function startEditAuthor(author) {
@@ -591,6 +625,8 @@ function startEditAuthor(author) {
     birthDate: author.birthDate ? author.birthDate.split('T')[0] : '',
     bio: author.bio || '',
   })
+  authorPhotoFile.value = null
+  authorPhotoPreview.value = ''
   showAuthorForm.value = true
 }
 
@@ -598,21 +634,34 @@ async function submitAuthor() {
   authorSaving.value = true
   authorError.value = ''
   try {
+    let result
     if (editingAuthor.value) {
-      const updated = await $fetch(`${base}/admin/authors/${editingAuthor.value.id}`, {
+      result = await $fetch(`${base}/admin/authors/${editingAuthor.value.id}`, {
         method: 'PATCH',
         body: { name: authorForm.name, bio: authorForm.bio, birthDate: authorForm.birthDate || undefined },
         headers: authHeaders(),
       })
       const idx = allAuthors.value.findIndex(a => a.id === editingAuthor.value.id)
-      if (idx !== -1) allAuthors.value[idx] = { ...allAuthors.value[idx], ...updated }
+      if (idx !== -1) allAuthors.value[idx] = { ...allAuthors.value[idx], ...result }
     } else {
-      const created = await $fetch(`${base}/admin/authors`, {
+      result = await $fetch(`${base}/admin/authors`, {
         method: 'POST',
         body: { name: authorForm.name, bio: authorForm.bio, birthDate: authorForm.birthDate || undefined },
         headers: authHeaders(),
       })
-      allAuthors.value.push({ ...created, _count: { comics: 0 } })
+      allAuthors.value.push({ ...result, _count: { comics: 0 } })
+    }
+    // Upload photo si présente
+    if (authorPhotoFile.value) {
+      const fd = new FormData()
+      fd.append('photo', authorPhotoFile.value)
+      const withPhoto = await $fetch(`${base}/admin/authors/${result.id}/photo`, {
+        method: 'PATCH',
+        body: fd,
+        headers: authHeaders(),
+      })
+      const idx = allAuthors.value.findIndex(a => a.id === result.id)
+      if (idx !== -1) allAuthors.value[idx] = { ...allAuthors.value[idx], photoUrl: withPhoto.photoUrl }
     }
     closeAuthorForm()
   } catch (e) {

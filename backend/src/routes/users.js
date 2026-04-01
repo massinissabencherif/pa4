@@ -1,6 +1,32 @@
 import { Router } from "express";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 import { requireAuth } from "../middleware/auth.js";
 import prisma from "../lib/prisma.js";
+
+const uploadDir = path.resolve("uploads");
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+
+const avatarStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadDir),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `avatar-${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`);
+  },
+});
+
+const uploadAvatar = multer({
+  storage: avatarStorage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (["image/jpeg", "image/png", "image/webp"].includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error(`Type non autorisé : ${file.mimetype}`), false);
+    }
+  },
+}).single("avatar");
 
 const router = Router();
 
@@ -9,7 +35,7 @@ router.get("/me", requireAuth, async (req, res) => {
   const user = await prisma.user.findUnique({
     where: { id: req.user.id },
     select: {
-      id: true, email: true, username: true, role: true, totpEnabled: true, createdAt: true,
+      id: true, email: true, username: true, role: true, totpEnabled: true, avatarUrl: true, createdAt: true,
       _count: {
         select: { readingEntries: true, reviews: true, lists: true, following: true, followers: true },
       },
@@ -19,12 +45,43 @@ router.get("/me", requireAuth, async (req, res) => {
   res.json(user);
 });
 
+// PATCH /me/avatar — uploader un avatar
+router.patch("/me/avatar", requireAuth, (req, res) => {
+  uploadAvatar(req, res, async (err) => {
+    if (err) return res.status(400).json({ error: err.message });
+    if (!req.file) return res.status(400).json({ error: "Fichier image requis" });
+
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    if (!user) return res.status(404).json({ error: "Utilisateur introuvable" });
+
+    // Supprimer l'ancien avatar si existant
+    if (user.avatarUrl) {
+      const filename = user.avatarUrl.split("/uploads/")[1];
+      if (filename) {
+        const filePath = path.join(uploadDir, filename);
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+      }
+    }
+
+    const protocol = req.get("x-forwarded-proto") || req.protocol;
+    const baseUrl = `${protocol}://${req.get("host")}`;
+    const avatarUrl = `${baseUrl}/uploads/${req.file.filename}`;
+
+    const updated = await prisma.user.update({
+      where: { id: req.user.id },
+      data: { avatarUrl },
+      select: { id: true, username: true, avatarUrl: true },
+    });
+    res.json(updated);
+  });
+});
+
 // GET /users/:username — profil public
 router.get("/users/:username", async (req, res) => {
   const user = await prisma.user.findUnique({
     where: { username: req.params.username },
     select: {
-      id: true, username: true, createdAt: true,
+      id: true, username: true, avatarUrl: true, createdAt: true,
       _count: {
         select: { readingEntries: true, reviews: true, following: true, followers: true },
       },
