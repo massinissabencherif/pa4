@@ -46,8 +46,8 @@
         <div class="flex-1 min-w-0">
           <h1 class="text-3xl font-extrabold leading-tight mb-3">{{ comic.title }}</h1>
 
-          <div class="flex flex-wrap items-center gap-3 mb-4">
-            <!-- Auteurs liés (cliquables) -->
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mb-4">
+            <!-- Auteurs liés (modèle Author — cliquables) -->
             <template v-if="linkedAuthors.length">
               <NuxtLink
                 v-for="author in linkedAuthors"
@@ -58,8 +58,11 @@
                 {{ author.name }}
               </NuxtLink>
             </template>
-            <!-- Éditeur (champ texte) -->
-            <span v-if="comic.authors?.length" class="text-gray-500 text-sm">{{ comic.authors.join(' · ') }}</span>
+            <!-- Auteurs texte libres -->
+            <span v-else-if="comic.authors?.length" class="text-sm text-gray-300">{{ comic.authors.join(', ') }}</span>
+            <!-- Éditeur -->
+            <span v-if="comic.publisher" class="text-sm text-gray-500">{{ comic.publisher }}</span>
+            <!-- Note moyenne -->
             <div v-if="avgRating" class="flex items-center gap-1">
               <span class="text-yellow-400 text-sm">★</span>
               <span class="text-sm font-semibold text-white">{{ avgRating }}</span>

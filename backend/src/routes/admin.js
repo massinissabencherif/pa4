@@ -111,7 +111,7 @@ router.get("/admin/comics", requireAdmin, async (req, res) => {
     orderBy: { createdAt: "desc" },
     select: {
       id: true, externalId: true, title: true, coverUrl: true,
-      pdfUrl: true, authors: true, genres: true, publishedAt: true, createdAt: true,
+      pdfUrl: true, authors: true, publisher: true, genres: true, publishedAt: true, createdAt: true,
       _count: { select: { readingEntries: true, reviews: true } },
     },
   });
@@ -123,7 +123,7 @@ router.post("/admin/comics", requireAdmin, (req, res) => {
   uploadFields(req, res, async (err) => {
     if (err) return res.status(400).json({ error: err.message });
 
-    const { title, description, authors, genres, publishedAt } = req.body;
+    const { title, description, authors, publisher, genres, publishedAt } = req.body;
 
     if (!title || title.trim().length === 0) {
       return res.status(400).json({ error: "Le titre est requis" });
@@ -155,6 +155,7 @@ router.post("/admin/comics", requireAdmin, (req, res) => {
         coverUrl,
         pdfUrl,
         authors: authorsArr,
+        publisher: publisher?.trim() || null,
         genres: genresArr,
         publishedAt: publishedAt ? new Date(publishedAt) : null,
       },
@@ -166,7 +167,7 @@ router.post("/admin/comics", requireAdmin, (req, res) => {
 
 // PATCH /admin/comics/:id — modifier les métadonnées
 router.patch("/admin/comics/:id", requireAdmin, async (req, res) => {
-  const { title, description, authors, genres, publishedAt } = req.body;
+  const { title, description, authors, publisher, genres, publishedAt } = req.body;
 
   const comic = await prisma.comic.findUnique({ where: { id: req.params.id } });
   if (!comic) return res.status(404).json({ error: "Comic introuvable" });
@@ -176,6 +177,8 @@ router.patch("/admin/comics/:id", requireAdmin, async (req, res) => {
   if (description !== undefined) updates.description = description?.trim() || null;
   if (authors !== undefined)
     updates.authors = authors.split(",").map((a) => a.trim()).filter(Boolean);
+  if (publisher !== undefined)
+    updates.publisher = publisher?.trim() || null;
   if (genres !== undefined)
     updates.genres = genres.split(",").map((g) => g.trim()).filter(Boolean);
   if (publishedAt !== undefined)
