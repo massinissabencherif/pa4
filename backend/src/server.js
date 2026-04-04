@@ -1,5 +1,7 @@
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
+import { rateLimit } from "express-rate-limit";
 import path from "path";
 import { fileURLToPath } from "url";
 import "dotenv/config";
@@ -20,6 +22,19 @@ import statsRouter from "./routes/stats.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const app = express();
+
+// ─── Sécurité ────────────────────────────────────────────────────────────────
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }, // autorise les uploads servis à d'autres origines
+}));
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20,
+  message: { error: "Trop de tentatives, réessaie dans 15 minutes." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 app.use(cors({ origin: process.env.FRONTEND_URL || "http://localhost:3000", credentials: true }));
 app.use(express.json());
@@ -43,7 +58,7 @@ app.get("/", (req, res) => {
   res.json({ name: "Comicster API", version: "1.0.0", status: "ok" });
 });
 
-app.use("/auth", authRouter);
+app.use("/auth", authLimiter, authRouter);
 app.use("/comics", comicsRouter);
 app.use("/authors", authorsRouter);
 app.use("/stats", statsRouter);
