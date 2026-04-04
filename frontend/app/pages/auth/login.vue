@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-16">
+  <div class="min-h-screen flex items-center justify-center px-4 py-16 bg-[#0a0a0f]">
     <!-- Glow bg -->
     <div class="absolute inset-0 pointer-events-none overflow-hidden">
       <div class="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[300px] bg-red-800/8 rounded-full blur-3xl"></div>
@@ -140,6 +140,8 @@
 </template>
 
 <script setup>
+definePageMeta({ layout: false })
+
 const config = useRuntimeConfig()
 const apiBase = config.public.apiBase
 const { login } = useAuth()
