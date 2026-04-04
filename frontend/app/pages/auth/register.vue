@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-16">
+  <div class="min-h-screen flex items-center justify-center px-4 py-16 bg-[#0a0a0f]">
     <div class="absolute inset-0 pointer-events-none overflow-hidden">
       <div class="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[300px] bg-red-800/8 rounded-full blur-3xl"></div>
     </div>
@@ -68,12 +68,18 @@
               <input v-model="form.password" type="password" required minlength="8" placeholder="Au moins 8 caractères" class="input" />
             </div>
 
-            <div v-if="form.password.length > 0" class="flex gap-1 mt-1">
+            <div v-if="form.password.length > 0" class="flex gap-1 mt-1 mb-1">
               <div
                 v-for="i in 4" :key="i"
                 class="h-1 flex-1 rounded-full transition-all duration-300"
                 :class="i <= passwordStrength ? strengthColor : 'bg-white/10'"
               ></div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-gray-400 mb-2">Confirmer le mot de passe</label>
+              <input v-model="form.passwordConfirm" type="password" required placeholder="Répète ton mot de passe" class="input" :class="passwordMismatch ? 'border-red-500/60' : ''" />
+              <p v-if="passwordMismatch" class="text-xs text-red-400 mt-1">Les mots de passe ne correspondent pas.</p>
             </div>
 
             <div v-if="error" class="flex items-center gap-2 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-sm text-red-400">
@@ -103,8 +109,9 @@
 </template>
 
 <script setup>
+definePageMeta({ layout: false })
 const { register } = useAuth()
-const form = reactive({ email: '', username: '', password: '' })
+const form = reactive({ email: '', username: '', password: '', passwordConfirm: '' })
 const error = ref('')
 const loading = ref(false)
 
@@ -114,6 +121,10 @@ const features = [
   { icon: '🗂️', title: 'Listes personnalisées', desc: 'Crée des sélections thématiques et partage-les.' },
   { icon: '💡', title: 'Recommandations', desc: 'Découvre de nouveaux comics basés sur tes goûts.' },
 ]
+
+const passwordMismatch = computed(() =>
+  form.passwordConfirm.length > 0 && form.password !== form.passwordConfirm
+)
 
 const passwordStrength = computed(() => {
   const p = form.password
@@ -134,6 +145,10 @@ const strengthColor = computed(() => {
 })
 
 async function submit() {
+  if (form.password !== form.passwordConfirm) {
+    error.value = 'Les mots de passe ne correspondent pas.'
+    return
+  }
   error.value = ''
   loading.value = true
   try {
