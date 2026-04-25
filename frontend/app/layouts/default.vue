@@ -60,11 +60,11 @@
           </NuxtLink>
           <NuxtLink
             v-if="isLoggedIn"
-            :to="`/profile/${user?.username}`"
+            to="/dashboard"
             class="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-all"
             active-class="text-white bg-white/8"
           >
-            Mon profil
+            Mes stats
           </NuxtLink>
         </nav>
 
@@ -143,7 +143,7 @@ const isAdmin = computed(() => {
   if (!token.value) return false
   try {
     const payload = JSON.parse(atob(token.value.split('.')[1]))
-    return payload.role === 'ADMIN'
+    return ['ADMIN', 'SUPER_ADMIN'].includes(payload.role)
   } catch {
     return false
   }

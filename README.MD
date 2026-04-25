@@ -37,4 +37,3 @@ Application web dédiée aux lecteurs de comics : suivi de lectures, avis/notes,
 ### 1) Copier les variables d’environnement
 ```bash
 cp .env.example .env
-Cloclo

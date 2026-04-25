@@ -1,8 +1,9 @@
 export function useAuth() {
   const config = useRuntimeConfig()
   const base = config.public.apiBase
-  const token = useCookie('auth_token', { maxAge: 60 * 60 * 24 * 15 })
-  const refreshTokenCookie = useCookie('refresh_token', { maxAge: 60 * 60 * 24 * 30 })
+  const secure = config.public.appEnv === 'production'
+  const token = useCookie('auth_token', { maxAge: 60 * 15, sameSite: 'lax', secure })
+  const refreshTokenCookie = useCookie('refresh_token', { maxAge: 60 * 60 * 24 * 7, sameSite: 'lax', secure })
   const user = useState('user', () => null)
 
   async function login(email, password, totpCode = null) {
@@ -36,10 +37,16 @@ export function useAuth() {
     return data
   }
 
-  async function setOAuthTokens(accessToken, refreshToken) {
-    token.value = accessToken
-    refreshTokenCookie.value = refreshToken
-    await fetchMe()
+  // Échange un one-time code OAuth contre des tokens (ne lit pas l'URL)
+  async function exchangeOAuthCode(code) {
+    const data = await $fetch(`${base}/auth/oauth/exchange`, {
+      method: 'POST',
+      body: { code },
+    })
+    token.value = data.token
+    refreshTokenCookie.value = data.refreshToken
+    user.value = data.user
+    return data
   }
 
   async function refreshAccessToken() {
@@ -94,5 +101,5 @@ export function useAuth() {
 
   const isLoggedIn = computed(() => !!token.value)
 
-  return { token, user, login, register, setOAuthTokens, refreshAccessToken, fetchMe, logout, isLoggedIn }
+  return { token, user, login, register, exchangeOAuthCode, refreshAccessToken, fetchMe, logout, isLoggedIn }
 }

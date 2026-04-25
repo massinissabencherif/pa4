@@ -14,3 +14,15 @@ export function requireAuth(req, res, next) {
     res.status(401).json({ error: "Token invalide ou expiré" });
   }
 }
+
+export function optionalAuth(req, _res, next) {
+  const header = req.headers.authorization;
+  if (header?.startsWith("Bearer ")) {
+    try {
+      req.user = jwt.verify(header.slice(7), process.env.JWT_SECRET);
+    } catch {
+      // token invalide ignoré silencieusement
+    }
+  }
+  next();
+}
