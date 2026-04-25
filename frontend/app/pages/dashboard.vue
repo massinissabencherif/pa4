@@ -9,7 +9,11 @@
 
       <div v-if="pending" class="flex justify-center py-20 text-gray-500">Chargement…</div>
 
-      <template v-else-if="stats">
+      <div v-else-if="!stats" class="flex justify-center py-20 text-gray-600 text-sm">
+        Impossible de charger les statistiques.
+      </div>
+
+      <template v-else>
 
         <!-- Compteurs principaux -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">

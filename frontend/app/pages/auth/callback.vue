@@ -10,23 +10,24 @@
 
 <script setup>
 const route = useRoute()
-const { setOAuthTokens } = useAuth()
+const { exchangeOAuthCode } = useAuth()
 const error = ref('')
 
 onMounted(async () => {
-  const { token, refreshToken, error: oauthError } = route.query
+  const { code, error: oauthError } = route.query
 
-  if (oauthError || !token) {
+  if (oauthError || !code) {
     error.value = 'Authentification OAuth échouée. Veuillez réessayer.'
     setTimeout(() => navigateTo('/auth/login'), 3000)
     return
   }
 
   try {
-    await setOAuthTokens(token, refreshToken || '')
+    // Échange le code one-time contre des tokens — pas de token dans l'URL
+    await exchangeOAuthCode(code)
     navigateTo('/')
   } catch {
-    error.value = 'Erreur lors de la connexion.'
+    error.value = 'Erreur lors de la connexion OAuth.'
     setTimeout(() => navigateTo('/auth/login'), 3000)
   }
 })
