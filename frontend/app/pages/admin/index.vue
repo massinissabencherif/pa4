@@ -16,7 +16,7 @@
           </svg>
           Ajouter un comic
         </button>
-        <button v-else @click="showAuthorForm = true" class="btn-primary flex items-center gap-2">
+        <button v-else-if="activeTab === 'authors'" @click="showAuthorForm = true" class="btn-primary flex items-center gap-2">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
           </svg>
@@ -356,6 +356,77 @@
 
       </template>
 
+      <!-- ─── ONGLET UTILISATEURS ─── -->
+      <template v-if="activeTab === 'users'">
+
+        <div v-if="usersError" class="flex items-center gap-2 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-sm text-red-400 mb-6">
+          ⚠ {{ usersError }}
+        </div>
+
+        <div v-if="loadingUsers && !users.length" class="flex items-center gap-3 text-gray-500 py-16">
+          <svg class="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+          </svg>
+          Chargement…
+        </div>
+
+        <div v-else-if="!loadingUsers && !users.length && !usersError" class="text-center py-24">
+          <div class="text-5xl mb-4">👤</div>
+          <p class="text-gray-400">Aucun utilisateur trouvé.</p>
+        </div>
+
+        <div v-else-if="users.length" class="overflow-hidden rounded-2xl border border-white/8">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-white/8 text-left text-xs text-gray-500">
+                <th class="px-5 py-3.5 font-medium">Utilisateur</th>
+                <th class="px-5 py-3.5 font-medium hidden sm:table-cell">Email</th>
+                <th class="px-5 py-3.5 font-medium">Rôle</th>
+                <th class="px-5 py-3.5 font-medium hidden md:table-cell">2FA</th>
+                <th class="px-5 py-3.5 font-medium text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="u in users" :key="u.id" class="border-b border-white/5 last:border-0 hover:bg-white/3 transition-colors">
+                <td class="px-5 py-4 font-medium text-gray-100">{{ u.username }}</td>
+                <td class="px-5 py-4 hidden sm:table-cell text-gray-400 text-xs">{{ u.email }}</td>
+                <td class="px-5 py-4">
+                  <span class="text-xs font-medium px-2 py-0.5 rounded-full border"
+                    :class="{
+                      'bg-red-500/15 text-red-400 border-red-500/20': u.role === 'SUPER_ADMIN',
+                      'bg-amber-500/15 text-amber-400 border-amber-500/20': u.role === 'ADMIN',
+                      'bg-gray-500/15 text-gray-400 border-gray-500/20': u.role === 'USER',
+                    }"
+                  >{{ u.role }}</span>
+                </td>
+                <td class="px-5 py-4 hidden md:table-cell">
+                  <span class="text-xs" :class="u.totpEnabled ? 'text-green-400' : 'text-gray-600'">
+                    {{ u.totpEnabled ? '✓ Activée' : '✗ Désactivée' }}
+                  </span>
+                </td>
+                <td class="px-5 py-4 text-right">
+                  <button
+                    v-if="u.role === 'USER'"
+                    @click="setUserRole(u, 'ADMIN')"
+                    :disabled="userRoleLoadingId === u.id"
+                    class="text-xs px-3 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 transition disabled:opacity-50"
+                  >Promouvoir admin</button>
+                  <button
+                    v-else-if="u.role === 'ADMIN'"
+                    @click="setUserRole(u, 'USER')"
+                    :disabled="userRoleLoadingId === u.id"
+                    class="text-xs px-3 py-1.5 rounded-lg bg-gray-500/10 hover:bg-gray-500/20 text-gray-400 border border-gray-500/20 transition disabled:opacity-50"
+                  >Rétrograder</button>
+                  <span v-else class="text-xs text-gray-600">—</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </template>
+
     </div>
   </div>
 </template>
@@ -410,7 +481,19 @@ onMounted(() => {
 // Formulaire upload
 const showUpload = ref(false)
 const editing = ref(null) // comic en cours d'édition
-const tabs = [{ key: 'comics', label: 'Comics' }, { key: 'authors', label: 'Auteurs' }]
+const isSuperAdmin = computed(() => {
+  if (!token.value) return false
+  try {
+    const payload = JSON.parse(atob(token.value.split('.')[1]))
+    return payload.role === 'SUPER_ADMIN'
+  } catch { return false }
+})
+
+const tabs = computed(() => {
+  const t = [{ key: 'comics', label: 'Comics' }, { key: 'authors', label: 'Auteurs' }]
+  if (isSuperAdmin.value) t.push({ key: 'users', label: 'Utilisateurs' })
+  return t
+})
 const activeTab = ref('comics')
 
 // Auteurs disponibles (pour le sélecteur dans le formulaire comic)
@@ -638,4 +721,44 @@ async function deleteComic(comic) {
     if (statsData.value) statsData.value.comics = Math.max(0, statsData.value.comics - 1)
   } catch {}
 }
+
+// ─── Gestion des utilisateurs (SUPER_ADMIN) ───────────────────────────────────
+const users = ref([])
+const loadingUsers = ref(false)
+const userRoleLoadingId = ref(null)
+const usersError = ref('')
+
+async function fetchUsers() {
+  loadingUsers.value = true
+  usersError.value = ''
+  try {
+    users.value = await $fetch(`${base}/admin/users`, { headers: authHeaders() })
+  } catch (e) {
+    usersError.value = e.data?.error || 'Erreur lors du chargement des utilisateurs'
+  } finally {
+    loadingUsers.value = false
+  }
+}
+
+async function setUserRole(u, role) {
+  userRoleLoadingId.value = u.id
+  usersError.value = ''
+  try {
+    const updated = await $fetch(`${base}/admin/users/${u.id}/role`, {
+      method: 'PATCH',
+      headers: authHeaders(),
+      body: { role },
+    })
+    const idx = users.value.findIndex(x => x.id === u.id)
+    if (idx !== -1) users.value[idx] = { ...users.value[idx], ...updated }
+  } catch (e) {
+    usersError.value = e.data?.error || 'Erreur lors de la mise à jour du rôle'
+  } finally {
+    userRoleLoadingId.value = null
+  }
+}
+
+watch(activeTab, (tab) => {
+  if (tab === 'users' && !users.value.length) fetchUsers()
+})
 </script>
