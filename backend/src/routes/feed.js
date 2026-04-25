@@ -4,9 +4,17 @@ import prisma from "../lib/prisma.js";
 
 const router = Router();
 
+function parsePagination(query, defaults = { limit: 20, max: 100 }) {
+  const limitRaw = Number.parseInt(query.limit, 10)
+  const offsetRaw = Number.parseInt(query.offset, 10)
+  const limit = Number.isFinite(limitRaw) ? Math.min(Math.max(limitRaw, 1), defaults.max) : defaults.limit
+  const offset = Number.isFinite(offsetRaw) ? Math.max(offsetRaw, 0) : 0
+  return { limit, offset }
+}
+
 // GET /feed — activités des utilisateurs suivis
 router.get("/feed", requireAuth, async (req, res) => {
-  const limit = Math.min(parseInt(req.query.limit) || 30, 50);
+  const { limit } = parsePagination(req.query, { limit: 30, max: 50 });
   const MAX_PER_USER = 3;
 
   // Récupérer les IDs des gens suivis
@@ -110,7 +118,7 @@ router.get("/feed", requireAuth, async (req, res) => {
 
 // GET /recommendations — comics recommandés basés sur les goûts
 router.get("/recommendations", requireAuth, async (req, res) => {
-  const limit = Math.min(parseInt(req.query.limit) || 12, 24);
+  const { limit } = parsePagination(req.query, { limit: 12, max: 24 });
 
   // Comics déjà dans la liste de l'utilisateur
   const myEntries = await prisma.readingEntry.findMany({
