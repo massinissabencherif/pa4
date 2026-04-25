@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { requireAuth } from "../middleware/auth.js";
+import { requireAuth, optionalAuth } from "../middleware/auth.js";
 import prisma from "../lib/prisma.js";
 
 const router = Router();
@@ -74,14 +74,68 @@ router.get("/reviews/me", requireAuth, async (req, res) => {
   res.json(reviews);
 });
 
-// GET /reviews/comic/:comicId — avis sur un comic (public)
-router.get("/reviews/comic/:comicId", async (req, res) => {
+// GET /reviews/comic/:comicId — avis sur un comic (public, auth optionnelle pour likedByMe)
+router.get("/reviews/comic/:comicId", optionalAuth, async (req, res) => {
   const reviews = await prisma.review.findMany({
     where: { comicId: req.params.comicId },
-    include: { user: { select: { username: true } } },
+    include: {
+      user: { select: { id: true, username: true } },
+      comments: {
+        include: {
+          user: { select: { id: true, username: true } },
+          likes: { select: { userId: true } },
+        },
+        orderBy: { createdAt: "asc" },
+      },
+    },
     orderBy: { createdAt: "desc" },
   });
-  res.json(reviews);
+
+  const userId = req.user?.id ?? null;
+  const result = reviews.map((r) => ({
+    ...r,
+    comments: r.comments.map((c) => ({
+      id: c.id,
+      content: c.content,
+      createdAt: c.createdAt,
+      user: c.user,
+      likeCount: c.likes.length,
+      likedByMe: userId ? c.likes.some((l) => l.userId === userId) : false,
+    })),
+  }));
+
+  res.json(result);
+});
+
+// POST /reviews/:id/comments — ajouter un commentaire sur un avis
+router.post("/reviews/:id/comments", requireAuth, async (req, res) => {
+  const { content } = req.body;
+  if (!content || String(content).trim() === "") {
+    return res.status(400).json({ error: "Le contenu est requis" });
+  }
+  if (String(content).trim().length > 1000) {
+    return res.status(400).json({ error: "Le commentaire dépasse 1000 caractères" });
+  }
+
+  const review = await prisma.review.findUnique({ where: { id: req.params.id } });
+  if (!review) return res.status(404).json({ error: "Avis introuvable" });
+
+  const comment = await prisma.comment.create({
+    data: { userId: req.user.id, reviewId: req.params.id, content: String(content).trim() },
+    include: { user: { select: { id: true, username: true } } },
+  });
+
+  res.status(201).json({ ...comment, likeCount: 0, likedByMe: false });
+});
+
+// DELETE /reviews/comments/:id — supprimer un commentaire
+router.delete("/reviews/comments/:id", requireAuth, async (req, res) => {
+  const comment = await prisma.comment.findUnique({ where: { id: req.params.id } });
+  if (!comment) return res.status(404).json({ error: "Commentaire introuvable" });
+  if (comment.userId !== req.user.id) return res.status(403).json({ error: "Interdit" });
+
+  await prisma.comment.delete({ where: { id: req.params.id } });
+  res.status(204).end();
 });
 
 export default router;

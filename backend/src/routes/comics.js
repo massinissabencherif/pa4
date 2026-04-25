@@ -40,6 +40,55 @@ router.get("/", async (req, res) => {
   res.json({ total, count: comics.length, offset, comics });
 });
 
+// GET /comics/latest?limit=6
+router.get("/latest", async (req, res) => {
+  const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 6, 1), 20);
+  const comics = await prisma.comic.findMany({
+    orderBy: { createdAt: "desc" },
+    take: limit,
+    select: { id: true, externalId: true, title: true, coverUrl: true, publisher: true, createdAt: true },
+  });
+  res.json({ comics });
+});
+
+// GET /comics/trending?period=today&limit=6
+router.get("/trending", async (req, res) => {
+  const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 6, 1), 20);
+  const period = req.query.period || "today";
+
+  let since;
+  if (period === "today") {
+    const d = new Date();
+    since = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  } else if (period === "7d") {
+    since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  } else {
+    since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  }
+
+  const entries = await prisma.readingEntry.groupBy({
+    by: ["comicId"],
+    where: { updatedAt: { gte: since } },
+    _count: { comicId: true },
+    orderBy: { _count: { comicId: "desc" } },
+    take: limit,
+  });
+
+  const comicIds = entries.map((e) => e.comicId);
+  if (comicIds.length === 0) return res.json({ comics: [] });
+
+  const comics = await prisma.comic.findMany({
+    where: { id: { in: comicIds } },
+    select: { id: true, externalId: true, title: true, coverUrl: true, publisher: true },
+  });
+
+  const countMap = Object.fromEntries(entries.map((e) => [e.comicId, e._count.comicId]));
+  const sorted = comicIds.map((id) => comics.find((c) => c.id === id)).filter(Boolean)
+    .map((c) => ({ ...c, readCount: countMap[c.id] }));
+
+  res.json({ comics: sorted });
+});
+
 // GET /comics/genres — liste tous les genres disponibles
 router.get("/genres", async (req, res) => {
   const comics = await prisma.comic.findMany({ select: { genres: true } });

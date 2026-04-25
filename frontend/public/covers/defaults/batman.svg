@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 450" width="300" height="450">
+  <rect width="300" height="450" fill="#1a1a2e"/>
+  <rect width="300" height="450" fill="url(#bg)"/>
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#2d2d4e"/>
+      <stop offset="100%" stop-color="#0d0d1a"/>
+    </radialGradient>
+  </defs>
+  <!-- Batman symbol -->
+  <ellipse cx="150" cy="200" rx="90" ry="45" fill="#f5c518"/>
+  <ellipse cx="150" cy="200" rx="70" ry="35" fill="#1a1a2e"/>
+  <path d="M60 200 Q80 160 100 180 Q120 155 150 165 Q180 155 200 180 Q220 160 240 200 Q220 195 200 195 Q180 180 150 185 Q120 180 100 195 Z" fill="#f5c518"/>
+  <text x="150" y="300" text-anchor="middle" font-family="serif" font-size="28" font-weight="bold" fill="#f5c518">BATMAN</text>
+  <text x="150" y="330" text-anchor="middle" font-family="serif" font-size="13" fill="#888">DC Comics</text>
+</svg>

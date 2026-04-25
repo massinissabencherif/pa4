@@ -18,6 +18,7 @@ import adminRouter from "./routes/admin.js";
 import feedRouter from "./routes/feed.js";
 import authorsRouter from "./routes/authors.js";
 import statsRouter from "./routes/stats.js";
+import commentsRouter from "./routes/comments.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -95,6 +96,7 @@ app.use("/auth", authLimiter, authRouter);
 app.use("/comics", comicsRouter);
 app.use("/authors", authorsRouter);
 app.use("/stats", statsRouter);
+app.use("/comments", commentsRouter);
 app.use("/", readingRouter);
 app.use("/", reviewsRouter);
 app.use("/", listsRouter);
