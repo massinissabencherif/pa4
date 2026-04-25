@@ -1,17 +1,9 @@
 import { Router } from "express";
 import { requireAuth } from "../middleware/auth.js";
 import prisma from "../lib/prisma.js";
+import { slugify } from "../lib/slug.js";
 
 const router = Router();
-
-function slugify(text) {
-  return text
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-");
-}
 
 async function uniqueSlug(base) {
   let slug = slugify(base);
@@ -91,7 +83,7 @@ router.patch("/lists/:id", requireAuth, async (req, res) => {
   const updates = {};
   if (name && name.trim().length > 0) {
     updates.name = name.trim();
-    updates.slug = await uniqueSlug(name.trim());
+    // Le slug reste stable après création pour préserver les liens publics
   }
 
   const updated = await prisma.list.update({ where: { id: req.params.id }, data: updates });

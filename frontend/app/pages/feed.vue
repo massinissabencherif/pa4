@@ -39,14 +39,10 @@
               <!-- Cover -->
               <NuxtLink :to="`/comics/${event.comic.externalId}`" class="shrink-0">
                 <img
-                  v-if="event.comic.coverUrl"
-                  :src="event.comic.coverUrl"
+                  :src="getComicCover(event.comic)"
                   :alt="event.comic.title"
                   class="w-12 h-16 object-cover rounded-lg"
                 />
-                <div v-else class="w-12 h-16 bg-white/5 rounded-lg flex items-center justify-center text-gray-600 text-xs">
-                  📄
-                </div>
               </NuxtLink>
 
               <!-- Contenu -->
@@ -77,50 +73,117 @@
         </div>
       </div>
 
-      <!-- ── Recommandations ───────────────────────────────────────────── -->
+      <!-- ── Sidebar droite (recommandations) ────────── -->
       <aside class="hidden lg:block w-72 shrink-0">
-        <h2 class="text-lg font-bold mb-4">Recommandations</h2>
 
-        <div v-if="recoData?.basis === 'popular' || recoData?.basis === 'taste'" class="mb-3">
-          <p class="text-xs text-gray-600">
-            {{ recoData.basis === 'taste' ? `Basé sur : ${recoData.topGenres?.slice(0,3).join(', ')}` : 'Comics populaires' }}
-          </p>
-        </div>
-
-        <div class="space-y-3">
-          <div v-if="recoPending" v-for="i in 4" :key="i" class="card p-3 animate-pulse flex gap-3">
-            <div class="w-10 h-14 bg-white/5 rounded"></div>
-            <div class="flex-1 space-y-2 py-1">
-              <div class="h-3 bg-white/5 rounded w-3/4"></div>
-              <div class="h-3 bg-white/5 rounded w-1/2"></div>
-            </div>
+        <!-- Recommandations -->
+        <div>
+          <h2 class="text-base font-bold mb-3">Recommandations</h2>
+          <div v-if="recoData?.basis === 'popular' || recoData?.basis === 'taste'" class="mb-2">
+            <p class="text-xs text-gray-600">
+              {{ recoData.basis === 'taste' ? `Basé sur : ${recoData.topGenres?.slice(0,3).join(', ')}` : 'Comics populaires' }}
+            </p>
           </div>
-
-          <NuxtLink
-            v-for="comic in recoData?.recommendations"
-            :key="comic.id"
-            :to="`/comics/${comic.externalId}`"
-            class="card p-3 flex gap-3 hover:border-white/15 transition group"
-          >
-            <img
-              v-if="comic.coverUrl"
-              :src="comic.coverUrl"
-              :alt="comic.title"
-              class="w-10 h-14 object-cover rounded"
-            />
-            <div v-else class="w-10 h-14 bg-white/5 rounded flex items-center justify-center text-gray-600 text-xs shrink-0">📄</div>
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium group-hover:text-white transition line-clamp-2">{{ comic.title }}</p>
-              <p class="text-xs text-gray-600 mt-1">{{ comic.genres.slice(0,2).join(', ') }}</p>
-            </div>
-          </NuxtLink>
+          <div class="space-y-2">
+            <NuxtLink
+              v-for="comic in recoData?.recommendations"
+              :key="comic.id"
+              :to="`/comics/${comic.externalId}`"
+              class="card p-3 flex gap-3 hover:border-white/15 transition group"
+            >
+              <img :src="getComicCover(comic)" :alt="comic.title" class="w-10 h-14 object-cover rounded shrink-0" />
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium group-hover:text-white transition line-clamp-2">{{ comic.title }}</p>
+                <p class="text-xs text-gray-600 mt-1">{{ comic.genres?.slice(0,2).join(', ') }}</p>
+              </div>
+            </NuxtLink>
+          </div>
         </div>
+
       </aside>
     </div>
+
+    <!-- Tendances du jour (pleine largeur, même style que commentaires) -->
+    <div v-if="trendingData?.comics?.length" class="mt-10">
+      <h2 class="text-xl font-bold mb-4">Tendances du jour</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <NuxtLink
+          v-for="comic in trendingData.comics"
+          :key="comic.id"
+          :to="`/comics/${comic.externalId}`"
+          class="card p-4 hover:border-white/15 transition group"
+        >
+          <div class="flex gap-3 mb-3">
+            <img :src="getComicCover(comic)" :alt="comic.title" class="w-10 h-14 object-cover rounded shrink-0" />
+            <div class="flex-1 min-w-0">
+              <p class="text-xs text-gray-500 line-clamp-1">{{ comic.publisher || '' }}</p>
+              <p class="text-sm font-medium group-hover:text-white transition line-clamp-2 mt-0.5">{{ comic.title }}</p>
+            </div>
+          </div>
+          <p class="text-xs text-gray-600">{{ comic.readCount }} lecture{{ comic.readCount > 1 ? 's' : '' }} aujourd'hui</p>
+        </NuxtLink>
+      </div>
+    </div>
+
+    <!-- Derniers ajouts (pleine largeur) -->
+    <div v-if="latestData?.comics?.length" class="mt-10">
+      <h2 class="text-xl font-bold mb-4">Derniers ajouts</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <NuxtLink
+          v-for="comic in latestData.comics"
+          :key="comic.id"
+          :to="`/comics/${comic.externalId}`"
+          class="card p-4 hover:border-white/15 transition group"
+        >
+          <div class="flex gap-3">
+            <img :src="getComicCover(comic)" :alt="comic.title" class="w-10 h-14 object-cover rounded shrink-0" />
+            <div class="flex-1 min-w-0">
+              <p class="text-xs text-gray-500 line-clamp-1">{{ comic.publisher || '' }}</p>
+              <p class="text-sm font-medium group-hover:text-white transition line-clamp-2 mt-0.5">{{ comic.title }}</p>
+            </div>
+          </div>
+        </NuxtLink>
+      </div>
+    </div>
+
+    <!-- Commentaires les plus aimés (pleine largeur, même style) -->
+    <div v-if="topLikedData?.comments?.length" class="mt-10">
+      <h2 class="text-xl font-bold mb-4">Commentaires les plus aimés</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <NuxtLink
+          v-for="c in topLikedData.comments"
+          :key="c.id"
+          :to="`/comics/${c.review?.comic?.externalId}`"
+          class="card p-4 hover:border-white/15 transition group"
+        >
+          <div class="flex gap-3 mb-3">
+            <img
+              v-if="c.review?.comic"
+              :src="getComicCover(c.review.comic)"
+              :alt="c.review.comic.title"
+              class="w-10 h-14 object-cover rounded shrink-0"
+            />
+            <div class="flex-1 min-w-0">
+              <p class="text-xs text-gray-500 line-clamp-1">{{ c.review?.comic?.title }}</p>
+              <p class="text-xs font-medium text-gray-400 mt-0.5">{{ c.user?.username }}</p>
+            </div>
+          </div>
+          <p class="text-sm text-gray-400 leading-relaxed line-clamp-3">{{ c.content }}</p>
+          <div class="flex items-center gap-1 mt-3 text-xs text-red-400">
+            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+            {{ c.likeCount }}
+          </div>
+        </NuxtLink>
+      </div>
+    </div>
+
   </div>
 </template>
 
 <script setup>
+import { getComicCover } from '~/utils/comicCover.js'
 definePageMeta({ middleware: 'auth' })
 
 const config = useRuntimeConfig()
@@ -130,7 +193,10 @@ const { token } = useAuth()
 const headers = computed(() => ({ Authorization: `Bearer ${token.value}` }))
 
 const { data: feedData, pending: feedPending } = await useFetch(`${base}/feed`, { headers })
-const { data: recoData, pending: recoPending } = await useFetch(`${base}/recommendations?limit=3`, { headers })
+const { data: recoData } = await useFetch(`${base}/recommendations?limit=3`, { headers })
+const { data: latestData } = await useFetch(`${base}/comics/latest?limit=5`)
+const { data: trendingData } = await useFetch(`${base}/comics/trending?period=today&limit=5`)
+const { data: topLikedData } = await useFetch(`${base}/comments/top-liked?period=7d&limit=6`)
 
 function eventLabel(type) {
   switch (type) {

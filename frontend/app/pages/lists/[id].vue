@@ -2,16 +2,7 @@
   <div class="min-h-screen px-4 sm:px-6 py-12">
     <div class="max-w-5xl mx-auto">
 
-      <!-- Back -->
-      <NuxtLink
-        to="/lists"
-        class="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-300 transition mb-10 group"
-      >
-        <svg class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-        </svg>
-        Mes listes
-      </NuxtLink>
+      <BackButton to="/lists" label="Mes listes" />
 
       <!-- Loading -->
       <div v-if="pending" class="flex items-center gap-3 text-gray-500">
@@ -96,13 +87,11 @@
             <NuxtLink :to="`/comics/${item.comic.externalId}`" class="flex flex-col flex-1">
               <div class="relative aspect-[2/3] rounded-xl overflow-hidden bg-white/5 mb-3 ring-1 ring-white/8 group-hover:ring-red-500/50 transition-all duration-200">
                 <img
-                  v-if="item.comic.coverUrl"
-                  :src="item.comic.coverUrl"
+                  :src="getComicCover(item.comic)"
                   :alt="item.comic.title"
                   class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   loading="lazy"
                 />
-                <div v-else class="w-full h-full flex items-center justify-center text-3xl text-gray-700">📚</div>
               </div>
               <p class="text-sm font-medium text-gray-200 line-clamp-2 leading-snug group-hover:text-white transition-colors">
                 {{ item.comic.title }}
@@ -124,6 +113,7 @@
 </template>
 
 <script setup>
+import { getComicCover } from '~/utils/comicCover.js'
 definePageMeta({ middleware: 'auth' })
 
 const route = useRoute()

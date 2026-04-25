@@ -2,9 +2,11 @@ import { Router } from "express";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import crypto from "crypto";
 import { requireAdmin, requireSuperAdmin } from "../middleware/requireAdmin.js";
 import { requireAuth } from "../middleware/auth.js";
 import prisma from "../lib/prisma.js";
+import { slugify } from "../lib/slug.js";
 
 const router = Router();
 
@@ -13,43 +15,70 @@ const router = Router();
 const uploadDir = path.resolve("uploads");
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
-function fileFilter(allowedTypes) {
-  return (req, file, cb) => {
-    if (allowedTypes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error(`Type de fichier non autorisé : ${file.mimetype}`), false);
+const ALLOWED_PDF_MIME = ["application/pdf"];
+const ALLOWED_IMAGE_MIME = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const ALLOWED_PDF_EXT = [".pdf"];
+const ALLOWED_IMAGE_EXT = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
+
+// fileFilter effectivement appliqué — vérifie mimetype ET extension par champ
+function comicFileFilter(req, file, cb) {
+  const ext = path.extname(file.originalname).toLowerCase();
+
+  if (file.fieldname === "pdf") {
+    if (!ALLOWED_PDF_MIME.includes(file.mimetype)) {
+      return cb(new Error(`Type MIME invalide pour le PDF : ${file.mimetype}. Attendu : application/pdf`), false);
     }
-  };
+    if (!ALLOWED_PDF_EXT.includes(ext)) {
+      return cb(new Error(`Extension invalide pour le PDF : ${ext}. Attendue : .pdf`), false);
+    }
+  } else if (file.fieldname === "cover") {
+    if (!ALLOWED_IMAGE_MIME.includes(file.mimetype)) {
+      return cb(new Error(`Type MIME invalide pour la couverture : ${file.mimetype}. Attendus : jpeg, png, webp, gif`), false);
+    }
+    if (!ALLOWED_IMAGE_EXT.includes(ext)) {
+      return cb(new Error(`Extension invalide pour la couverture : ${ext}`), false);
+    }
+  } else {
+    return cb(new Error(`Champ de fichier non autorisé : ${file.fieldname}`), false);
+  }
+
+  cb(null, true);
 }
 
-const pdfStorage = multer.diskStorage({
+const comicStorage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadDir),
   filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `comic-${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`);
-  },
-});
-
-const coverStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadDir),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `cover-${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`);
+    const ext = path.extname(file.originalname).toLowerCase();
+    const prefix = file.fieldname === "pdf" ? "comic" : "cover";
+    cb(null, `${prefix}-${Date.now()}-${crypto.randomBytes(8).toString("hex")}${ext}`);
   },
 });
 
 const uploadFields = multer({
-  storage: pdfStorage,
-  limits: { fileSize: 100 * 1024 * 1024 }, // 100 MB
+  storage: comicStorage,
+  fileFilter: comicFileFilter,          // ← fileFilter maintenant réellement appliqué
+  limits: { fileSize: 100 * 1024 * 1024 }, // 100 MB global
 }).fields([
-  { name: "pdf", maxCount: 1 },
+  { name: "pdf",   maxCount: 1 },
   { name: "cover", maxCount: 1 },
 ]);
 
+const MAX_COVER_SIZE = 10 * 1024 * 1024; // 10 MB pour les couvertures
+
+// ─── Validation simple ────────────────────────────────────────────────────────
+
+function requireField(value, name) {
+  if (!value || String(value).trim() === "") return `Le champ "${name}" est requis`;
+  return null;
+}
+
+function maxLen(value, name, max) {
+  if (value && String(value).length > max) return `"${name}" dépasse ${max} caractères`;
+  return null;
+}
+
 // ─── Setup premier admin ──────────────────────────────────────────────────────
 
-// POST /admin/setup — crée le premier super admin si aucun n'existe encore
 router.post("/admin/setup", requireAuth, async (req, res) => {
   const adminExists = await prisma.user.findFirst({
     where: { role: { in: ["ADMIN", "SUPER_ADMIN"] } },
@@ -67,7 +96,6 @@ router.post("/admin/setup", requireAuth, async (req, res) => {
 
 // ─── Gestion des utilisateurs (SUPER_ADMIN uniquement) ───────────────────────
 
-// GET /admin/users — liste tous les utilisateurs
 router.get("/admin/users", requireSuperAdmin, async (req, res) => {
   const users = await prisma.user.findMany({
     orderBy: { createdAt: "desc" },
@@ -79,10 +107,9 @@ router.get("/admin/users", requireSuperAdmin, async (req, res) => {
   res.json(users);
 });
 
-// PATCH /admin/users/:id/role — promouvoir/rétrograder un utilisateur (USER ↔ ADMIN)
 router.patch("/admin/users/:id/role", requireSuperAdmin, async (req, res) => {
   const { role } = req.body;
-  if (!["USER", "ADMIN"].includes(role)) {
+  if (!role || !["USER", "ADMIN"].includes(role)) {
     return res.status(400).json({ error: "Rôle invalide. Valeurs acceptées : USER, ADMIN" });
   }
 
@@ -103,9 +130,8 @@ router.patch("/admin/users/:id/role", requireSuperAdmin, async (req, res) => {
   res.json(updated);
 });
 
-// ─── Routes admin ────────────────────────────────────────────────────────────
+// ─── Comics ───────────────────────────────────────────────────────────────────
 
-// GET /admin/comics — liste tous les comics
 router.get("/admin/comics", requireAdmin, async (req, res) => {
   const comics = await prisma.comic.findMany({
     orderBy: { createdAt: "desc" },
@@ -118,22 +144,27 @@ router.get("/admin/comics", requireAdmin, async (req, res) => {
   res.json(comics);
 });
 
-// POST /admin/comics — uploader un comic (PDF + métadonnées)
 router.post("/admin/comics", requireAdmin, (req, res) => {
   uploadFields(req, res, async (err) => {
     if (err) return res.status(400).json({ error: err.message });
 
     const { title, description, authors, publisher, genres, publishedAt } = req.body;
 
-    if (!title || title.trim().length === 0) {
-      return res.status(400).json({ error: "Le titre est requis" });
-    }
+    const titleErr = requireField(title, "title") || maxLen(title, "title", 500);
+    if (titleErr) return res.status(400).json({ error: titleErr });
+
     if (!req.files?.pdf?.[0]) {
       return res.status(400).json({ error: "Le fichier PDF est requis" });
     }
 
-    const pdfFile = req.files.pdf[0];
+    // Vérification taille couverture (limit différente du PDF)
     const coverFile = req.files?.cover?.[0];
+    if (coverFile && coverFile.size > MAX_COVER_SIZE) {
+      fs.unlinkSync(coverFile.path);
+      return res.status(400).json({ error: `La couverture dépasse la taille maximale de 10 Mo` });
+    }
+
+    const pdfFile = req.files.pdf[0];
 
     const protocol = req.get("x-forwarded-proto") || req.protocol;
     const baseUrl = `${protocol}://${req.get("host")}`;
@@ -165,9 +196,13 @@ router.post("/admin/comics", requireAdmin, (req, res) => {
   });
 });
 
-// PATCH /admin/comics/:id — modifier les métadonnées
 router.patch("/admin/comics/:id", requireAdmin, async (req, res) => {
   const { title, description, authors, publisher, genres, publishedAt, authorIds } = req.body;
+
+  if (title !== undefined) {
+    const err = requireField(title, "title") || maxLen(title, "title", 500);
+    if (err) return res.status(400).json({ error: err });
+  }
 
   const comic = await prisma.comic.findUnique({ where: { id: req.params.id } });
   if (!comic) return res.status(404).json({ error: "Comic introuvable" });
@@ -186,7 +221,6 @@ router.patch("/admin/comics/:id", requireAdmin, async (req, res) => {
 
   const updated = await prisma.comic.update({ where: { id: req.params.id }, data: updates });
 
-  // Mettre à jour les liaisons auteurs si fourni
   if (Array.isArray(authorIds)) {
     await prisma.authorOnComic.deleteMany({ where: { comicId: req.params.id } });
     if (authorIds.length > 0) {
@@ -200,34 +234,49 @@ router.patch("/admin/comics/:id", requireAdmin, async (req, res) => {
   res.json(updated);
 });
 
-// DELETE /admin/comics/:id — supprimer un comic et ses fichiers
 router.delete("/admin/comics/:id", requireAdmin, async (req, res) => {
   const comic = await prisma.comic.findUnique({ where: { id: req.params.id } });
   if (!comic) return res.status(404).json({ error: "Comic introuvable" });
 
-  // Supprimer les fichiers physiques
+  await prisma.$transaction(async (tx) => {
+    await tx.comment.deleteMany({ where: { review: { comicId: comic.id } } });
+    await tx.review.deleteMany({ where: { comicId: comic.id } });
+    await tx.readingEntry.deleteMany({ where: { comicId: comic.id } });
+    await tx.listItem.deleteMany({ where: { comicId: comic.id } });
+    await tx.authorOnComic.deleteMany({ where: { comicId: comic.id } });
+    await tx.comic.delete({ where: { id: comic.id } });
+  });
+
   for (const url of [comic.pdfUrl, comic.coverUrl]) {
     if (url) {
       const filename = url.split("/uploads/")[1];
       if (filename) {
         const filePath = path.join(uploadDir, filename);
-        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        try {
+          await fs.promises.unlink(filePath);
+        } catch {
+          console.warn(`[WARN] Fichier introuvable lors de la suppression : ${filePath}`);
+        }
       }
     }
   }
 
-  await prisma.comic.delete({ where: { id: req.params.id } });
   res.status(204).end();
 });
 
-// ─── Gestion des auteurs ──────────────────────────────────────────────────────
+// ─── Auteurs ─────────────────────────────────────────────────────────────────
 
-function slugify(str) {
-  return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+async function uniqueAuthorSlug(name, excludeId = null) {
+  const baseSlug = slugify(name)
+  let slug = baseSlug
+  let i = 1
+  while (true) {
+    const existing = await prisma.author.findUnique({ where: { slug } })
+    if (!existing || existing.id === excludeId) return slug
+    slug = `${baseSlug}-${i++}`
+  }
 }
 
-// GET /admin/authors
 router.get("/admin/authors", requireAdmin, async (req, res) => {
   const authors = await prisma.author.findMany({
     orderBy: { name: "asc" },
@@ -236,17 +285,12 @@ router.get("/admin/authors", requireAdmin, async (req, res) => {
   res.json(authors);
 });
 
-// POST /admin/authors
 router.post("/admin/authors", requireAdmin, async (req, res) => {
   const { name, bio, birthDate } = req.body;
-  if (!name?.trim()) return res.status(400).json({ error: "Le nom est requis" });
+  const err = requireField(name, "name") || maxLen(name, "name", 200);
+  if (err) return res.status(400).json({ error: err });
 
-  const baseSlug = slugify(name.trim());
-  let slug = baseSlug;
-  let i = 1;
-  while (await prisma.author.findUnique({ where: { slug } })) {
-    slug = `${baseSlug}-${i++}`;
-  }
+  const slug = await uniqueAuthorSlug(name.trim());
 
   const author = await prisma.author.create({
     data: {
@@ -259,16 +303,20 @@ router.post("/admin/authors", requireAdmin, async (req, res) => {
   res.status(201).json(author);
 });
 
-// PATCH /admin/authors/:id
 router.patch("/admin/authors/:id", requireAdmin, async (req, res) => {
   const { name, bio, birthDate } = req.body;
   const author = await prisma.author.findUnique({ where: { id: req.params.id } });
   if (!author) return res.status(404).json({ error: "Auteur introuvable" });
 
+  if (name !== undefined) {
+    const err = requireField(name, "name") || maxLen(name, "name", 200);
+    if (err) return res.status(400).json({ error: err });
+  }
+
   const updates = {};
   if (name?.trim()) {
     updates.name = name.trim();
-    updates.slug = slugify(name.trim());
+    updates.slug = await uniqueAuthorSlug(name.trim(), req.params.id);
   }
   if (bio !== undefined) updates.bio = bio?.trim() || null;
   if (birthDate !== undefined) updates.birthDate = birthDate ? new Date(birthDate) : null;
@@ -277,7 +325,6 @@ router.patch("/admin/authors/:id", requireAdmin, async (req, res) => {
   res.json(updated);
 });
 
-// DELETE /admin/authors/:id
 router.delete("/admin/authors/:id", requireAdmin, async (req, res) => {
   const author = await prisma.author.findUnique({ where: { id: req.params.id } });
   if (!author) return res.status(404).json({ error: "Auteur introuvable" });
@@ -285,15 +332,15 @@ router.delete("/admin/authors/:id", requireAdmin, async (req, res) => {
   res.status(204).end();
 });
 
-// PATCH /admin/comics/:id/authors — lier/délier des auteurs à un comic
 router.patch("/admin/comics/:id/authors", requireAdmin, async (req, res) => {
-  const { authorIds } = req.body; // string[]
-  if (!Array.isArray(authorIds)) return res.status(400).json({ error: "authorIds doit être un tableau" });
+  const { authorIds } = req.body;
+  if (!Array.isArray(authorIds)) {
+    return res.status(400).json({ error: "authorIds doit être un tableau" });
+  }
 
   const comic = await prisma.comic.findUnique({ where: { id: req.params.id } });
   if (!comic) return res.status(404).json({ error: "Comic introuvable" });
 
-  // Supprimer toutes les liaisons existantes puis recréer
   await prisma.authorOnComic.deleteMany({ where: { comicId: req.params.id } });
   if (authorIds.length > 0) {
     await prisma.authorOnComic.createMany({
@@ -304,7 +351,8 @@ router.patch("/admin/comics/:id/authors", requireAdmin, async (req, res) => {
   res.json({ linked: authorIds.length });
 });
 
-// GET /admin/stats — statistiques globales
+// ─── Stats ────────────────────────────────────────────────────────────────────
+
 router.get("/admin/stats", requireAdmin, async (req, res) => {
   const [users, comics, reviews, readingEntries] = await Promise.all([
     prisma.user.count(),

@@ -30,4 +30,9 @@ coverage/
 
 # Temporary files
 *.tmp
-*.swp.claude/
+*.swp
+.claude/
+
+# Uploads (fichiers générés par les admins — ne pas versionner)
+backend/uploads/
+uploads/

@@ -60,7 +60,8 @@
 
             <div>
               <label class="block text-xs font-medium text-gray-400 mb-2">Nom d'utilisateur</label>
-              <input v-model="form.username" type="text" required minlength="3" placeholder="spider_reader" class="input" />
+              <input v-model="form.username" type="text" required minlength="3" placeholder="spider_reader" class="input" :class="usernameReserved ? 'border-red-500/60' : ''" />
+              <p v-if="usernameReserved" class="text-xs text-red-400 mt-1">Ce nom d'utilisateur est réservé.</p>
             </div>
 
             <div>
@@ -115,6 +116,20 @@ const form = reactive({ email: '', username: '', password: '', passwordConfirm: 
 const error = ref('')
 const loading = ref(false)
 
+const RESERVED_USERNAMES = new Set([
+  'admin', 'administrator', 'root', 'superadmin', 'moderator', 'mod',
+  'support', 'help', 'api', 'auth', 'login', 'logout', 'register',
+  'me', 'users', 'user', 'profile', 'settings', 'dashboard', 'feed',
+  'comics', 'comic', 'authors', 'author', 'lists', 'reviews', 'review',
+  'stats', 'notifications', 'search', 'legal', 'rgpd', 'mentions-legales',
+  'security', 'system', 'null', 'undefined', 'anonymous', 'comicster',
+])
+
+const usernameReserved = computed(() => {
+  const normalized = form.username.trim().toLowerCase()
+  return normalized.length > 0 && RESERVED_USERNAMES.has(normalized)
+})
+
 const features = [
   { icon: '📚', title: 'Journal de lecture', desc: 'Marque ce que tu lis, ce que tu as terminé, ce que tu veux lire.' },
   { icon: '⭐', title: 'Notes & avis', desc: 'Donne une note de 1 à 5 étoiles et laisse ton avis sur chaque comic.' },
@@ -147,6 +162,10 @@ const strengthColor = computed(() => {
 async function submit() {
   if (form.password !== form.passwordConfirm) {
     error.value = 'Les mots de passe ne correspondent pas.'
+    return
+  }
+  if (usernameReserved.value) {
+    error.value = "Ce nom d'utilisateur est réservé."
     return
   }
   error.value = ''

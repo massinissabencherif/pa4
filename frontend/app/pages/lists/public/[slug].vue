@@ -2,6 +2,8 @@
   <div class="min-h-screen px-4 sm:px-6 py-12">
     <div class="max-w-5xl mx-auto">
 
+      <BackButton to="/feed" label="Retour" />
+
       <!-- Loading -->
       <div v-if="pending" class="flex items-center gap-3 text-gray-500 py-16">
         <svg class="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
@@ -49,13 +51,11 @@
           >
             <div class="relative aspect-[2/3] rounded-xl overflow-hidden bg-white/5 mb-3 ring-1 ring-white/8 group-hover:ring-red-500/50 transition-all duration-200">
               <img
-                v-if="item.comic.coverUrl"
-                :src="item.comic.coverUrl"
+                :src="getComicCover(item.comic)"
                 :alt="item.comic.title"
                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 loading="lazy"
               />
-              <div v-else class="w-full h-full flex items-center justify-center text-3xl text-gray-700">📚</div>
             </div>
             <p class="text-sm font-medium text-gray-200 line-clamp-2 leading-snug group-hover:text-white transition-colors">
               {{ item.comic.title }}
@@ -80,6 +80,7 @@
 </template>
 
 <script setup>
+import { getComicCover } from '~/utils/comicCover.js'
 const route = useRoute()
 const config = useRuntimeConfig()
 const base = config.public.apiBase

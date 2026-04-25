@@ -72,7 +72,9 @@ export async function checkAndAwardBadges(userId, prisma) {
       prisma.review.count({ where: { userId } }),
       prisma.follow.count({ where: { followerId: userId } }),
       prisma.readingEntry.count({ where: { userId, status: "IN_PROGRESS" } }),
-      prisma.user.count({ where: { createdAt: { lte: (await prisma.user.findUnique({ where: { id: userId }, select: { createdAt: true } })).createdAt } } }),
+      prisma.user.findUnique({ where: { id: userId }, select: { createdAt: true } }).then((u) =>
+        u ? prisma.user.count({ where: { createdAt: { lte: u.createdAt } } }) : 999
+      ),
       prisma.readingEntry.findMany({
         where: { userId, status: "FINISHED" },
         include: { comic: { select: { genres: true } } },

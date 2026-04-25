@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 450" width="300" height="450">
+  <defs>
+    <linearGradient id="bgdefault-comic" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1e1e2e"/>
+      <stop offset="100%" stop-color="#111120"/>
+    </linearGradient>
+  </defs>
+  <rect width="300" height="450" fill="url(#bgdefault-comic)"/>
+  <text x="150" y="210" text-anchor="middle" font-family="Impact,sans-serif" font-size="36" font-weight="bold" fill="#9b59b6">COMIC</text>
+  <text x="150" y="250" text-anchor="middle" font-family="sans-serif" font-size="14" fill="#9b59b688">Comicster</text>
+</svg>
