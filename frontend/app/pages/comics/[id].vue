@@ -233,9 +233,22 @@
         <h2 class="text-xl font-bold mb-6">Avis de la communauté</h2>
         <div class="space-y-6">
           <div v-for="r in communityReviews" :key="r.id" class="card p-5">
-            <div class="flex items-center gap-3 mb-2">
-              <NuxtLink :to="`/profile/${r.user.username}`" class="font-medium text-sm text-gray-300 hover:text-red-400 transition">{{ r.user.username }}</NuxtLink>
-              <span class="text-yellow-400 text-sm">{{ '★'.repeat(r.rating) }}<span class="text-gray-700">{{ '★'.repeat(5 - r.rating) }}</span></span>
+            <div class="flex items-start justify-between gap-3 mb-2">
+              <div class="flex items-center gap-3">
+                <NuxtLink :to="`/profile/${r.user.username}`" class="font-medium text-sm text-gray-300 hover:text-red-400 transition">{{ r.user.username }}</NuxtLink>
+                <span class="text-yellow-400 text-sm">{{ '★'.repeat(r.rating) }}<span class="text-gray-700">{{ '★'.repeat(5 - r.rating) }}</span></span>
+              </div>
+              <button
+                @click="toggleReviewLike(r)"
+                class="flex items-center gap-1.5 text-xs transition shrink-0"
+                :class="r.likedByMe ? 'text-red-400' : 'text-gray-600 hover:text-red-400'"
+                :aria-label="r.likedByMe ? 'Retirer le like' : 'Liker cet avis'"
+              >
+                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+                <span>{{ r.likeCount }}</span>
+              </button>
             </div>
             <p v-if="r.content" class="text-sm text-gray-400 leading-relaxed mb-4">{{ r.content }}</p>
 
@@ -502,6 +515,23 @@ async function submitComment(review) {
     commentDrafts[review.id] = ''
     await loadReviews()
   } catch {}
+}
+
+async function toggleReviewLike(review) {
+  if (!isLoggedIn.value) { navigateTo('/auth/login'); return }
+  const wasLiked = review.likedByMe
+  review.likedByMe = !wasLiked
+  review.likeCount += wasLiked ? -1 : 1
+  try {
+    const res = await $fetch(`${base}/reviews/${review.id}/like`, {
+      method: wasLiked ? 'DELETE' : 'POST',
+      headers: authHeaders(),
+    })
+    review.likeCount = res.likeCount
+  } catch {
+    review.likedByMe = wasLiked
+    review.likeCount += wasLiked ? 1 : -1
+  }
 }
 
 async function toggleCommentLike(comment) {

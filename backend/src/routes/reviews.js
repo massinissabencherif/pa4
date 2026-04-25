@@ -80,6 +80,7 @@ router.get("/reviews/comic/:comicId", optionalAuth, async (req, res) => {
     where: { comicId: req.params.comicId },
     include: {
       user: { select: { id: true, username: true } },
+      likes: { select: { userId: true } },
       comments: {
         include: {
           user: { select: { id: true, username: true } },
@@ -94,6 +95,9 @@ router.get("/reviews/comic/:comicId", optionalAuth, async (req, res) => {
   const userId = req.user?.id ?? null;
   const result = reviews.map((r) => ({
     ...r,
+    likeCount: r.likes.length,
+    likedByMe: userId ? r.likes.some((l) => l.userId === userId) : false,
+    likes: undefined,
     comments: r.comments.map((c) => ({
       id: c.id,
       content: c.content,
@@ -105,6 +109,31 @@ router.get("/reviews/comic/:comicId", optionalAuth, async (req, res) => {
   }));
 
   res.json(result);
+});
+
+// POST /reviews/:id/like — liker un avis
+router.post("/reviews/:id/like", requireAuth, async (req, res) => {
+  const review = await prisma.review.findUnique({ where: { id: req.params.id } });
+  if (!review) return res.status(404).json({ error: "Avis introuvable" });
+
+  await prisma.reviewLike.upsert({
+    where: { userId_reviewId: { userId: req.user.id, reviewId: req.params.id } },
+    create: { userId: req.user.id, reviewId: req.params.id },
+    update: {},
+  });
+
+  const likeCount = await prisma.reviewLike.count({ where: { reviewId: req.params.id } });
+  res.json({ liked: true, likeCount });
+});
+
+// DELETE /reviews/:id/like — retirer un like d'un avis
+router.delete("/reviews/:id/like", requireAuth, async (req, res) => {
+  await prisma.reviewLike.deleteMany({
+    where: { userId: req.user.id, reviewId: req.params.id },
+  });
+
+  const likeCount = await prisma.reviewLike.count({ where: { reviewId: req.params.id } });
+  res.json({ liked: false, likeCount });
 });
 
 // POST /reviews/:id/comments — ajouter un commentaire sur un avis
