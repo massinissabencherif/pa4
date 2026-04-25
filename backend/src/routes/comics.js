@@ -66,22 +66,23 @@ router.get("/search", async (req, res) => {
   // Sans clés Marvel → recherche dans la DB locale avec correspondance partielle sur les auteurs
   if (!hasMarvelKeys()) {
     const search = q.trim().toLowerCase();
-    const candidates = await prisma.comic.findMany({
-      where: { title: { contains: search, mode: "insensitive" } },
-      orderBy: { createdAt: "desc" },
-      take: 200,
-    });
-    const byAuthor = await prisma.comic.findMany({
-      where: { authors: { isEmpty: false } },
-      select: { id: true, title: true, authors: true, coverUrl: true, genres: true, publisher: true, publishedAt: true, externalId: true, description: true, pdfUrl: true, createdAt: true, updatedAt: true },
-      orderBy: { createdAt: "desc" },
-      take: 500,
-    });
-    const authorMatches = byAuthor.filter((c) =>
+    const [byTitle, allWithAuthors] = await Promise.all([
+      prisma.comic.findMany({
+        where: { title: { contains: search, mode: "insensitive" } },
+        orderBy: { createdAt: "desc" },
+        take: 200,
+      }),
+      prisma.comic.findMany({
+        where: { authors: { isEmpty: false } },
+        orderBy: { createdAt: "desc" },
+        take: 500,
+      }),
+    ]);
+    const authorMatches = allWithAuthors.filter((c) =>
       c.authors.some((a) => a.toLowerCase().includes(search))
     );
-    const seen = new Set(candidates.map((c) => c.id));
-    const merged = [...candidates, ...authorMatches.filter((c) => !seen.has(c.id))];
+    const seen = new Set(byTitle.map((c) => c.id));
+    const merged = [...byTitle, ...authorMatches.filter((c) => !seen.has(c.id))];
     const comics = merged.slice(offset, offset + limit);
     return res.json({ total: merged.length, count: comics.length, offset, comics });
   }
