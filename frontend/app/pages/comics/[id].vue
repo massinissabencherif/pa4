@@ -240,15 +240,14 @@
             <p v-if="r.content" class="text-sm text-gray-400 leading-relaxed mb-4">{{ r.content }}</p>
 
             <!-- Commentaires sur l'avis -->
-            <div v-if="r.comments?.length" class="border-t border-white/8 pt-3 mt-3 space-y-3">
+            <div class="border-t border-white/8 pt-3 mt-3 space-y-3">
               <div v-for="c in r.comments" :key="c.id" class="flex items-start gap-3">
                 <div class="flex-1 min-w-0">
                   <span class="text-xs font-medium text-gray-400">{{ c.user.username }}</span>
                   <p class="text-xs text-gray-500 leading-relaxed mt-0.5">{{ c.content }}</p>
                 </div>
-                <!-- Like bouton -->
                 <button
-                  @click="toggleCommentLike(c)"
+                  @click.stop="toggleCommentLike(c)"
                   class="flex items-center gap-1 text-xs transition shrink-0 mt-0.5"
                   :class="c.likedByMe ? 'text-red-400' : 'text-gray-600 hover:text-red-400'"
                   :aria-label="c.likedByMe ? 'Retirer le like' : 'Liker'"
@@ -259,11 +258,9 @@
                   <span>{{ c.likeCount }}</span>
                 </button>
               </div>
-            </div>
 
-            <!-- Formulaire de commentaire -->
-            <div v-if="isLoggedIn" class="border-t border-white/8 pt-3 mt-3">
-              <form @submit.prevent="submitComment(r)" class="flex gap-2">
+              <!-- Formulaire -->
+              <form v-if="isLoggedIn" @submit.prevent="submitComment(r)" class="flex gap-2 pt-1">
                 <input
                   v-model="commentDrafts[r.id]"
                   type="text"
@@ -385,7 +382,7 @@ const communityReviews = ref([])
 async function loadReviews() {
   if (!comic.value) return
   try {
-    const all = await $fetch(`${base}/reviews/comic/${comic.value.id}`)
+    const all = await $fetch(`${base}/reviews/comic/${comic.value.id}`, { headers: authHeaders() })
     communityReviews.value = all
     if (isLoggedIn.value) {
       const { user } = useAuth()
@@ -497,13 +494,13 @@ async function submitComment(review) {
   const content = commentDrafts[review.id]?.trim()
   if (!content) return
   try {
-    const comment = await $fetch(`${base}/reviews/${review.id}/comments`, {
+    await $fetch(`${base}/reviews/${review.id}/comments`, {
       method: 'POST',
       body: { content },
       headers: authHeaders(),
     })
-    review.comments = [...(review.comments || []), comment]
     commentDrafts[review.id] = ''
+    await loadReviews()
   } catch {}
 }
 

@@ -73,7 +73,7 @@
         </div>
       </div>
 
-      <!-- ── Sidebar droite ──────────────────────────────────────────────── -->
+      <!-- ── Sidebar droite (recommandations + derniers ajouts) ────────── -->
       <aside class="hidden lg:block w-72 shrink-0 space-y-8">
 
         <!-- Recommandations -->
@@ -119,29 +119,32 @@
           </div>
         </div>
 
-        <!-- Tendances du jour -->
-        <div v-if="trendingData?.comics?.length">
-          <h2 class="text-base font-bold mb-3">Tendances du jour</h2>
-          <div class="space-y-2">
-            <NuxtLink
-              v-for="comic in trendingData.comics"
-              :key="comic.id"
-              :to="`/comics/${comic.externalId}`"
-              class="card p-3 flex gap-3 hover:border-white/15 transition group"
-            >
-              <img :src="getComicCover(comic)" :alt="comic.title" class="w-10 h-14 object-cover rounded shrink-0" />
-              <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium group-hover:text-white transition line-clamp-2">{{ comic.title }}</p>
-                <p class="text-xs text-gray-600 mt-1">{{ comic.readCount }} lecture{{ comic.readCount > 1 ? 's' : '' }}</p>
-              </div>
-            </NuxtLink>
-          </div>
-        </div>
-
       </aside>
     </div>
 
-    <!-- Commentaires les plus aimés (pleine largeur, dessous le feed) -->
+    <!-- Tendances du jour (pleine largeur, même style que commentaires) -->
+    <div v-if="trendingData?.comics?.length" class="mt-10">
+      <h2 class="text-xl font-bold mb-4">Tendances du jour</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <NuxtLink
+          v-for="comic in trendingData.comics"
+          :key="comic.id"
+          :to="`/comics/${comic.externalId}`"
+          class="card p-4 hover:border-white/15 transition group"
+        >
+          <div class="flex gap-3 mb-3">
+            <img :src="getComicCover(comic)" :alt="comic.title" class="w-10 h-14 object-cover rounded shrink-0" />
+            <div class="flex-1 min-w-0">
+              <p class="text-xs text-gray-500 line-clamp-1">{{ comic.publisher || '' }}</p>
+              <p class="text-sm font-medium group-hover:text-white transition line-clamp-2 mt-0.5">{{ comic.title }}</p>
+            </div>
+          </div>
+          <p class="text-xs text-gray-600">{{ comic.readCount }} lecture{{ comic.readCount > 1 ? 's' : '' }} aujourd'hui</p>
+        </NuxtLink>
+      </div>
+    </div>
+
+    <!-- Commentaires les plus aimés (pleine largeur, même style) -->
     <div v-if="topLikedData?.comments?.length" class="mt-10">
       <h2 class="text-xl font-bold mb-4">Commentaires les plus aimés</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
