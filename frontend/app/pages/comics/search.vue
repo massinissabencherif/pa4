@@ -64,8 +64,7 @@
             class="group flex flex-col"
           >
             <div class="relative aspect-[2/3] rounded-xl overflow-hidden bg-white/5 mb-3 ring-1 ring-white/8 group-hover:ring-red-500/50 transition-all duration-200">
-              <img v-if="comic.coverUrl" :src="comic.coverUrl" :alt="comic.title" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
-              <div v-else class="w-full h-full flex items-center justify-center text-4xl text-gray-700">📚</div>
+              <img :src="getComicCover(comic)" :alt="comic.title" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
               <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
                 <span class="text-xs text-white font-medium">Voir le détail →</span>
               </div>
@@ -96,6 +95,7 @@
 </template>
 
 <script setup>
+import { getComicCover } from '~/utils/comicCover.js'
 const config = useRuntimeConfig()
 const base = config.public.apiBase
 

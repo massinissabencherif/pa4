@@ -2,13 +2,7 @@
   <div class="min-h-screen px-4 sm:px-6 py-12">
     <div class="max-w-5xl mx-auto">
 
-      <!-- Retour -->
-      <NuxtLink to="/authors" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-white transition mb-8 group">
-        <svg class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-        </svg>
-        Tous les auteurs
-      </NuxtLink>
+      <BackButton to="/authors" label="Tous les auteurs" />
 
       <div v-if="pending" class="flex justify-center py-20 text-gray-500">Chargement…</div>
 
@@ -43,13 +37,11 @@
             >
               <div class="relative aspect-[2/3] rounded-xl overflow-hidden bg-white/5 mb-3 ring-1 ring-white/8 group-hover:ring-red-500/50 transition-all duration-200">
                 <img
-                  v-if="comic.coverUrl"
-                  :src="comic.coverUrl"
+                  :src="getComicCover(comic)"
                   :alt="comic.title"
                   class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   loading="lazy"
                 />
-                <div v-else class="w-full h-full flex items-center justify-center text-4xl text-gray-700">📚</div>
                 <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
                   <span class="text-xs text-white font-medium">Voir →</span>
                 </div>
@@ -73,6 +65,7 @@
 </template>
 
 <script setup>
+import { getComicCover } from '~/utils/comicCover.js'
 const route = useRoute()
 const config = useRuntimeConfig()
 const base = config.public.apiBase

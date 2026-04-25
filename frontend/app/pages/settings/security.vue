@@ -1,5 +1,6 @@
 <template>
   <div class="max-w-2xl mx-auto px-4 py-10 space-y-8">
+    <BackButton to="/dashboard" label="Tableau de bord" />
     <div>
       <h1 class="text-2xl font-bold">Sécurité</h1>
       <p class="text-gray-500 text-sm mt-1">Gérer la double authentification de ton compte.</p>

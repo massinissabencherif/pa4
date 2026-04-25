@@ -60,13 +60,11 @@
             <NuxtLink :to="`/comics/${entry.comic.externalId}`" class="shrink-0">
               <div class="w-14 aspect-[2/3] rounded-lg overflow-hidden bg-white/5 ring-1 ring-white/8">
                 <img
-                  v-if="entry.comic.coverUrl"
-                  :src="entry.comic.coverUrl"
+                  :src="getComicCover(entry.comic)"
                   :alt="entry.comic.title"
                   class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                   loading="lazy"
                 />
-                <div v-else class="w-full h-full flex items-center justify-center text-xl text-gray-700">📚</div>
               </div>
             </NuxtLink>
 
@@ -122,6 +120,7 @@
 </template>
 
 <script setup>
+import { getComicCover } from '~/utils/comicCover.js'
 definePageMeta({ middleware: 'auth' })
 
 const config = useRuntimeConfig()

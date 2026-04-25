@@ -29,6 +29,7 @@ model User {
   following      Follow[]       @relation("follower")
   followers      Follow[]       @relation("following")
   comments       Comment[]
+  commentLikes   CommentLike[]
   refreshTokens  RefreshToken[]
   badges         UserBadge[]
 }
@@ -41,12 +42,21 @@ enum Role {
 
 model RefreshToken {
   id        String   @id @default(cuid())
-  token     String   @unique
+  tokenHash String   @unique
   userId    String
   expiresAt DateTime
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Code temporaire à usage unique pour le flux OAuth (expire en 2 min)
+model OAuthCode {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 }
 
 model Follow {
@@ -134,10 +144,24 @@ model Comment {
   content   String
   createdAt DateTime @default(now())
 
-  user   User   @relation(fields: [userId],   references: [id])
-  review Review @relation(fields: [reviewId], references: [id])
+  user   User          @relation(fields: [userId],   references: [id])
+  review Review        @relation(fields: [reviewId], references: [id])
+  likes  CommentLike[]
 
   @@index([reviewId])
+}
+
+model CommentLike {
+  userId    String
+  commentId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId],    references: [id], onDelete: Cascade)
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@id([userId, commentId])
+  @@index([commentId])
+  @@index([userId])
 }
 
 // ─── Auteurs ─────────────────────────────────────────────────────────────────
