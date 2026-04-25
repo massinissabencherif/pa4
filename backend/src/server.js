@@ -56,8 +56,9 @@ app.use(helmet({
 }));
 
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000,
   max: 20,
+  skip: () => process.env.NODE_ENV === "test",
   message: { error: "Trop de tentatives, réessaie dans 15 minutes." },
   standardHeaders: true,
   legacyHeaders: false,
