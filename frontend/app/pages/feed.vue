@@ -73,8 +73,8 @@
         </div>
       </div>
 
-      <!-- ── Sidebar droite (recommandations + derniers ajouts) ────────── -->
-      <aside class="hidden lg:block w-72 shrink-0 space-y-8">
+      <!-- ── Sidebar droite (recommandations) ────────── -->
+      <aside class="hidden lg:block w-72 shrink-0">
 
         <!-- Recommandations -->
         <div>
@@ -95,25 +95,6 @@
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium group-hover:text-white transition line-clamp-2">{{ comic.title }}</p>
                 <p class="text-xs text-gray-600 mt-1">{{ comic.genres?.slice(0,2).join(', ') }}</p>
-              </div>
-            </NuxtLink>
-          </div>
-        </div>
-
-        <!-- Derniers ajouts -->
-        <div v-if="latestData?.comics?.length">
-          <h2 class="text-base font-bold mb-3">Derniers ajouts</h2>
-          <div class="space-y-2">
-            <NuxtLink
-              v-for="comic in latestData.comics"
-              :key="comic.id"
-              :to="`/comics/${comic.externalId}`"
-              class="card p-3 flex gap-3 hover:border-white/15 transition group"
-            >
-              <img :src="getComicCover(comic)" :alt="comic.title" class="w-10 h-14 object-cover rounded shrink-0" />
-              <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium group-hover:text-white transition line-clamp-2">{{ comic.title }}</p>
-                <p v-if="comic.publisher" class="text-xs text-gray-600 mt-1">{{ comic.publisher }}</p>
               </div>
             </NuxtLink>
           </div>
@@ -140,6 +121,27 @@
             </div>
           </div>
           <p class="text-xs text-gray-600">{{ comic.readCount }} lecture{{ comic.readCount > 1 ? 's' : '' }} aujourd'hui</p>
+        </NuxtLink>
+      </div>
+    </div>
+
+    <!-- Derniers ajouts (pleine largeur) -->
+    <div v-if="latestData?.comics?.length" class="mt-10">
+      <h2 class="text-xl font-bold mb-4">Derniers ajouts</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <NuxtLink
+          v-for="comic in latestData.comics"
+          :key="comic.id"
+          :to="`/comics/${comic.externalId}`"
+          class="card p-4 hover:border-white/15 transition group"
+        >
+          <div class="flex gap-3">
+            <img :src="getComicCover(comic)" :alt="comic.title" class="w-10 h-14 object-cover rounded shrink-0" />
+            <div class="flex-1 min-w-0">
+              <p class="text-xs text-gray-500 line-clamp-1">{{ comic.publisher || '' }}</p>
+              <p class="text-sm font-medium group-hover:text-white transition line-clamp-2 mt-0.5">{{ comic.title }}</p>
+            </div>
+          </div>
         </NuxtLink>
       </div>
     </div>
