@@ -21,6 +21,32 @@ import statsRouter from "./routes/stats.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+// ─── Validation des secrets critiques au démarrage ───────────────────────────
+const isProduction = process.env.NODE_ENV === "production";
+
+const REQUIRED_SECRETS = ["JWT_SECRET", "SESSION_SECRET", "TOTP_ENCRYPTION_KEY"];
+const WEAK_DEFAULTS = ["change_me_in_production", "change_me_staging", "change_me"];
+
+for (const key of REQUIRED_SECRETS) {
+  const value = process.env[key];
+  if (!value) {
+    if (isProduction) {
+      console.error(`FATAL: Variable d'environnement "${key}" manquante. Arrêt.`);
+      process.exit(1);
+    } else {
+      console.warn(`[WARN] "${key}" non définie — utiliser une valeur forte en production.`);
+    }
+  } else if (isProduction && WEAK_DEFAULTS.some((w) => value.includes(w))) {
+    console.error(`FATAL: "${key}" utilise une valeur par défaut faible. Arrêt.`);
+    process.exit(1);
+  }
+}
+
+if (isProduction && (!process.env.SESSION_SECRET || process.env.SESSION_SECRET === process.env.JWT_SECRET)) {
+  console.error("FATAL: SESSION_SECRET doit être distinct de JWT_SECRET en production.");
+  process.exit(1);
+}
+
 const app = express();
 
 // ─── Sécurité ────────────────────────────────────────────────────────────────
@@ -38,11 +64,18 @@ const authLimiter = rateLimit({
 
 app.use(cors({ origin: process.env.FRONTEND_URL || "http://localhost:3000", credentials: true }));
 app.use(express.json());
+
+// SESSION_SECRET séparé de JWT_SECRET — pas de fallback croisé
 app.use(session({
-  secret: process.env.SESSION_SECRET || process.env.JWT_SECRET,
+  secret: process.env.SESSION_SECRET || "dev_session_secret_change_me",
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false, maxAge: 10 * 60 * 1000 }, // 10min, only for OAuth flow
+  cookie: {
+    secure: isProduction,   // HTTPS seulement en prod
+    httpOnly: true,
+    sameSite: isProduction ? "lax" : "lax",
+    maxAge: 10 * 60 * 1000, // 10 min — seulement pour le flux OAuth
+  },
 }));
 app.use(passport.initialize());
 app.use(passport.session());
@@ -68,6 +101,14 @@ app.use("/", listsRouter);
 app.use("/", adminRouter);
 app.use("/", usersRouter);
 app.use("/", feedRouter);
+
+// ─── Middleware d'erreur global ───────────────────────────────────────────────
+app.use((err, req, res, next) => {
+  console.error(err);
+  if (err.code === "P2002") return res.status(409).json({ error: "Conflit : cette valeur existe déjà" });
+  if (err.code === "P2025") return res.status(404).json({ error: "Ressource introuvable" });
+  res.status(500).json({ error: "Erreur serveur" });
+});
 
 const port = process.env.PORT || 3001;
 

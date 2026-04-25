@@ -143,7 +143,7 @@ const isAdmin = computed(() => {
   if (!token.value) return false
   try {
     const payload = JSON.parse(atob(token.value.split('.')[1]))
-    return payload.role === 'ADMIN'
+    return ['ADMIN', 'SUPER_ADMIN'].includes(payload.role)
   } catch {
     return false
   }

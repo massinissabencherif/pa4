@@ -4,6 +4,14 @@ import prisma from "../lib/prisma.js";
 
 const router = Router();
 
+function parsePagination(query, defaults = { limit: 20, max: 100 }) {
+  const limitRaw = Number.parseInt(query.limit, 10)
+  const offsetRaw = Number.parseInt(query.offset, 10)
+  const limit = Number.isFinite(limitRaw) ? Math.min(Math.max(limitRaw, 1), defaults.max) : defaults.limit
+  const offset = Number.isFinite(offsetRaw) ? Math.max(offsetRaw, 0) : 0
+  return { limit, offset }
+}
+
 const hasMarvelKeys = () =>
   !!(process.env.MARVEL_PUBLIC_KEY && process.env.MARVEL_PRIVATE_KEY);
 
@@ -18,17 +26,18 @@ async function upsertComic(raw) {
 
 // GET /comics — liste tous les comics de la DB avec filtres optionnels
 router.get("/", async (req, res) => {
-  const { limit = 50, offset = 0, genre, author } = req.query;
+  const { limit: lq, offset: oq, genre, author } = req.query;
+  const { limit, offset } = parsePagination({ limit: lq ?? 50, offset: oq }, { limit: 50, max: 200 });
 
   const where = {};
   if (genre) where.genres = { has: genre };
   if (author) where.authors = { has: author };
 
   const [comics, total] = await Promise.all([
-    prisma.comic.findMany({ where, skip: Number(offset), take: Number(limit), orderBy: { createdAt: "desc" } }),
+    prisma.comic.findMany({ where, skip: offset, take: limit, orderBy: { createdAt: "desc" } }),
     prisma.comic.count({ where }),
   ]);
-  res.json({ total, count: comics.length, offset: Number(offset), comics });
+  res.json({ total, count: comics.length, offset, comics });
 });
 
 // GET /comics/genres — liste tous les genres disponibles
@@ -47,47 +56,41 @@ router.get("/author-names", async (req, res) => {
 
 // GET /comics/search?q=batman&limit=20&offset=0
 router.get("/search", async (req, res) => {
-  const { q, limit = 20, offset = 0 } = req.query;
+  const { q } = req.query;
+  const { limit, offset } = parsePagination(req.query);
 
   if (!q || q.trim().length < 2) {
     return res.status(400).json({ error: "Le paramètre q doit contenir au moins 2 caractères" });
   }
 
-  // Sans clés Marvel → recherche dans la DB locale
+  // Sans clés Marvel → recherche dans la DB locale avec correspondance partielle sur les auteurs
   if (!hasMarvelKeys()) {
     const search = q.trim().toLowerCase();
-    const comics = await prisma.comic.findMany({
-      where: {
-        OR: [
-          { title: { contains: search, mode: "insensitive" } },
-          { authors: { has: search } },
-        ],
-      },
-      skip: Number(offset),
-      take: Number(limit),
+    const candidates = await prisma.comic.findMany({
+      where: { title: { contains: search, mode: "insensitive" } },
       orderBy: { createdAt: "desc" },
+      take: 200,
     });
-    const total = await prisma.comic.count({
-      where: {
-        OR: [
-          { title: { contains: search, mode: "insensitive" } },
-          { authors: { has: search } },
-        ],
-      },
+    const byAuthor = await prisma.comic.findMany({
+      where: { authors: { isEmpty: false } },
+      select: { id: true, title: true, authors: true, coverUrl: true, genres: true, publisher: true, publishedAt: true, externalId: true, description: true, pdfUrl: true, createdAt: true, updatedAt: true },
+      orderBy: { createdAt: "desc" },
+      take: 500,
     });
-    return res.json({ total, count: comics.length, offset: Number(offset), comics });
+    const authorMatches = byAuthor.filter((c) =>
+      c.authors.some((a) => a.toLowerCase().includes(search))
+    );
+    const seen = new Set(candidates.map((c) => c.id));
+    const merged = [...candidates, ...authorMatches.filter((c) => !seen.has(c.id))];
+    const comics = merged.slice(offset, offset + limit);
+    return res.json({ total: merged.length, count: comics.length, offset, comics });
   }
 
   // Avec clés Marvel → recherche sur l'API
-  const results = await searchComics(q.trim(), Number(limit), Number(offset));
+  const results = await searchComics(q.trim(), limit, offset);
   const comics = await Promise.all(results.results.map(upsertComic));
 
-  res.json({
-    total: results.total,
-    count: results.count,
-    offset: results.offset,
-    comics,
-  });
+  res.json({ total: results.total, count: results.count, offset: results.offset, comics });
 });
 
 // GET /comics/:externalId
