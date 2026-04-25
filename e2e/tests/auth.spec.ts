@@ -38,7 +38,7 @@ test.describe('Inscription', () => {
     await page.getByPlaceholder('Au moins 8 caractères').fill(TEST_USER.password)
     await page.getByPlaceholder('Répète ton mot de passe').fill('DifferentPass999!')
     await page.getByRole('button', { name: 'Commencer gratuitement' }).click()
-    await expect(page.getByText('Les mots de passe ne correspondent pas')).toBeVisible()
+    await expect(page.getByText('Les mots de passe ne correspondent pas').first()).toBeVisible()
     await expect(page).toHaveURL(/\/auth\/register/)
   })
 
