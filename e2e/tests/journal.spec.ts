@@ -58,8 +58,9 @@ test.describe('Navigation principale', () => {
 
   test('les liens de nav sont visibles après connexion', async ({ page }) => {
     await registerAndLogin(page)
-    await expect(page.getByRole('link', { name: 'Feed', exact: true })).toBeVisible()
-    await expect(page.getByRole('link', { name: 'Journal', exact: true })).toBeVisible()
-    await expect(page.getByRole('link', { name: 'Explorer', exact: true })).toBeVisible()
+    const nav = page.getByLabel('Navigation principale')
+    await expect(nav.getByRole('link', { name: 'Feed', exact: true })).toBeVisible()
+    await expect(nav.getByRole('link', { name: 'Journal', exact: true })).toBeVisible()
+    await expect(nav.getByRole('link', { name: 'Explorer', exact: true })).toBeVisible()
   })
 })
