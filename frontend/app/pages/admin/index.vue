@@ -10,12 +10,20 @@
           </div>
           <h1 class="text-3xl font-bold">Administration</h1>
         </div>
-        <button v-if="activeTab === 'comics'" @click="showUpload = true" class="btn-primary flex items-center gap-2">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-          </svg>
-          Ajouter un comic
-        </button>
+        <div v-if="activeTab === 'comics'" class="flex items-center gap-2">
+          <button @click="showCsvImport = true" class="btn-ghost flex items-center gap-2 text-sm">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414A1 1 0 0120 9.414V19a2 2 0 01-2 2z"/>
+            </svg>
+            Ajouter via CSV
+          </button>
+          <button @click="showUpload = true" class="btn-primary flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Ajouter un comic
+          </button>
+        </div>
         <button v-else-if="activeTab === 'authors'" @click="showAuthorForm = true" class="btn-primary flex items-center gap-2">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
@@ -44,6 +52,183 @@
           <div class="text-xs text-gray-600">{{ s.label }}</div>
         </div>
       </div>
+
+      <!-- Modal import CSV -->
+      <Teleport to="body">
+        <div v-if="showCsvImport" class="fixed inset-0 z-50 flex items-start justify-center px-4 py-8 overflow-y-auto">
+          <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="closeCsvImport" />
+          <div class="relative w-full max-w-2xl my-auto">
+            <div class="card p-7">
+              <h2 class="text-xl font-bold mb-1">Import CSV en masse</h2>
+              <p class="text-xs text-gray-500 mb-6">Uploade un CSV + tous les PDFs (et covers optionnelles) en une seule opération.</p>
+
+              <!-- Résultat import -->
+              <div v-if="csvResult" class="space-y-4">
+                <div class="flex items-center gap-3 px-4 py-3 rounded-xl"
+                  :class="csvResult.errors.length ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-green-500/10 border border-green-500/20'">
+                  <span class="text-2xl">{{ csvResult.errors.length ? '⚠' : '✓' }}</span>
+                  <div>
+                    <p class="font-semibold text-sm">{{ csvResult.success }} comic{{ csvResult.success > 1 ? 's' : '' }} importé{{ csvResult.success > 1 ? 's' : '' }} avec succès</p>
+                    <p v-if="csvResult.errors.length" class="text-xs text-amber-400">{{ csvResult.errors.length }} erreur{{ csvResult.errors.length > 1 ? 's' : '' }} · {{ csvResult.warnings.length }} avertissement{{ csvResult.warnings.length > 1 ? 's' : '' }}</p>
+                  </div>
+                </div>
+                <div v-if="csvResult.errors.length" class="rounded-xl border border-red-500/20 overflow-hidden">
+                  <div class="px-4 py-2 bg-red-500/10 text-xs font-semibold text-red-400">Erreurs (lignes ignorées)</div>
+                  <div v-for="e in csvResult.errors" :key="e.ligne" class="px-4 py-2 text-xs text-gray-300 border-t border-white/5">
+                    <span class="text-gray-500 mr-2">Ligne {{ e.ligne }}</span>{{ e.raison }}
+                  </div>
+                </div>
+                <div v-if="csvResult.warnings.length" class="rounded-xl border border-amber-500/20 overflow-hidden">
+                  <div class="px-4 py-2 bg-amber-500/10 text-xs font-semibold text-amber-400">Avertissements</div>
+                  <div v-for="w in csvResult.warnings" :key="w.ligne" class="px-4 py-2 text-xs text-gray-300 border-t border-white/5">
+                    <span class="text-gray-500 mr-2">Ligne {{ w.ligne }}</span>{{ w.raison }}
+                  </div>
+                </div>
+                <div class="flex gap-3 pt-2">
+                  <button @click="closeCsvImport" class="btn-primary flex-1 justify-center">Fermer</button>
+                  <button @click="csvResult = null" class="btn-ghost flex-1 justify-center">Nouvel import</button>
+                </div>
+              </div>
+
+              <!-- Formulaire import -->
+              <div v-else class="space-y-5">
+
+                <!-- Template download -->
+                <div class="flex items-center justify-between px-4 py-3 rounded-xl bg-white/3 border border-white/8">
+                  <div>
+                    <p class="text-sm font-medium">Template CSV</p>
+                    <p class="text-xs text-gray-500 mt-0.5">Colonnes : titre · auteurs (séparés par |) · editeur · genres (|) · description · date_publication · fichier_pdf · image_couverture</p>
+                  </div>
+                  <button @click="downloadTemplate" class="shrink-0 text-xs px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 transition ml-4">
+                    Télécharger
+                  </button>
+                </div>
+
+                <!-- CSV -->
+                <div>
+                  <label class="block text-xs font-medium text-gray-400 mb-1.5">Fichier CSV *</label>
+                  <div
+                    class="border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition-colors"
+                    :class="csvFile ? 'border-green-500/40 bg-green-500/5' : 'border-white/10 hover:border-red-500/40'"
+                    @click="$refs.csvInput.click()"
+                    @dragover.prevent
+                    @drop.prevent="e => { csvFile = e.dataTransfer.files[0]; parseCsvPreview() }"
+                  >
+                    <input ref="csvInput" type="file" accept=".csv,text/csv" class="hidden" @change="e => { csvFile = e.target.files[0]; parseCsvPreview() }" />
+                    <div v-if="csvFile" class="flex items-center justify-center gap-2 text-green-400 text-sm">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"/></svg>
+                      {{ csvFile.name }}
+                    </div>
+                    <div v-else class="text-gray-500 text-sm">Glisse le CSV ici ou <span class="text-red-400">clique pour choisir</span></div>
+                  </div>
+                </div>
+
+                <!-- PDFs -->
+                <div>
+                  <label class="block text-xs font-medium text-gray-400 mb-1.5">Fichiers PDF * <span class="text-gray-600">(sélection multiple)</span></label>
+                  <div
+                    class="border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition-colors"
+                    :class="csvPdfs.length ? 'border-green-500/40 bg-green-500/5' : 'border-white/10 hover:border-red-500/40'"
+                    @click="$refs.pdfsInput.click()"
+                    @dragover.prevent
+                    @drop.prevent="e => { csvPdfs = Array.from(e.dataTransfer.files).filter(f => f.name.endsWith('.pdf')); refreshPreview() }"
+                  >
+                    <input ref="pdfsInput" type="file" accept=".pdf,application/pdf" multiple class="hidden" @change="e => { csvPdfs = Array.from(e.target.files); refreshPreview() }" />
+                    <div v-if="csvPdfs.length" class="text-green-400 text-sm">{{ csvPdfs.length }} PDF{{ csvPdfs.length > 1 ? 's' : '' }} sélectionné{{ csvPdfs.length > 1 ? 's' : '' }}</div>
+                    <div v-else class="text-gray-500 text-sm">Glisse les PDFs ici ou <span class="text-red-400">clique pour choisir</span></div>
+                  </div>
+                </div>
+
+                <!-- Covers -->
+                <div>
+                  <label class="block text-xs font-medium text-gray-400 mb-1.5">Images de couverture <span class="text-gray-600">(optionnel — sélection multiple)</span></label>
+                  <div
+                    class="border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-colors"
+                    :class="csvCovers.length ? 'border-blue-500/40 bg-blue-500/5' : 'border-white/10 hover:border-white/20'"
+                    @click="$refs.coversInput.click()"
+                    @dragover.prevent
+                    @drop.prevent="e => { csvCovers = Array.from(e.dataTransfer.files); refreshPreview() }"
+                  >
+                    <input ref="coversInput" type="file" accept="image/jpeg,image/png,image/webp" multiple class="hidden" @change="e => { csvCovers = Array.from(e.target.files); refreshPreview() }" />
+                    <div v-if="csvCovers.length" class="text-blue-400 text-sm">{{ csvCovers.length }} image{{ csvCovers.length > 1 ? 's' : '' }} sélectionnée{{ csvCovers.length > 1 ? 's' : '' }}</div>
+                    <div v-else class="text-gray-500 text-sm">Clique pour ajouter des covers</div>
+                  </div>
+                </div>
+
+                <!-- Prévisualisation -->
+                <div v-if="csvPreviewRows.length">
+                  <p class="text-xs font-medium text-gray-400 mb-2">Aperçu — {{ csvPreviewRows.length }} ligne{{ csvPreviewRows.length > 1 ? 's' : '' }}</p>
+                  <div class="rounded-xl border border-white/8 overflow-hidden">
+                    <table class="w-full text-xs">
+                      <thead>
+                        <tr class="border-b border-white/8 text-gray-500">
+                          <th class="px-3 py-2 text-left font-medium">#</th>
+                          <th class="px-3 py-2 text-left font-medium">Titre</th>
+                          <th class="px-3 py-2 text-left font-medium hidden sm:table-cell">Auteurs</th>
+                          <th class="px-3 py-2 text-left font-medium">PDF</th>
+                          <th class="px-3 py-2 text-left font-medium hidden sm:table-cell">Cover</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-for="(row, idx) in csvPreviewRows" :key="idx"
+                          class="border-b border-white/5 last:border-0"
+                          :class="!row.titre || !row._pdfOk ? 'bg-red-500/5' : ''"
+                        >
+                          <td class="px-3 py-2 text-gray-600">{{ idx + 2 }}</td>
+                          <td class="px-3 py-2 text-gray-200">{{ row.titre || '—' }}</td>
+                          <td class="px-3 py-2 text-gray-500 hidden sm:table-cell">{{ row.auteurs || '—' }}</td>
+                          <td class="px-3 py-2">
+                            <span v-if="!row.fichier_pdf" class="text-gray-600">—</span>
+                            <span v-else-if="row._pdfOk" class="text-green-400">✓ {{ row.fichier_pdf }}</span>
+                            <span v-else class="text-red-400">✗ {{ row.fichier_pdf }}</span>
+                          </td>
+                          <td class="px-3 py-2 hidden sm:table-cell">
+                            <span v-if="!row.image_couverture" class="text-gray-600">—</span>
+                            <span v-else-if="row._coverOk" class="text-green-400">✓</span>
+                            <span v-else class="text-amber-400">⚠ non trouvée</span>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <p v-if="csvPreviewRows.some(r => !r.titre || !r._pdfOk)" class="text-xs text-red-400 mt-2">
+                    ⚠ Certaines lignes ont des erreurs et seront ignorées à l'import.
+                  </p>
+                </div>
+
+                <!-- Erreur -->
+                <div v-if="csvImportError" class="flex items-center gap-2 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-sm text-red-400">
+                  ⚠ {{ csvImportError }}
+                </div>
+
+                <!-- Progression -->
+                <div v-if="csvUploading" class="space-y-2">
+                  <div class="flex justify-between text-xs text-gray-400">
+                    <span>Upload en cours…</span>
+                    <span>{{ csvUploadProgress }}%</span>
+                  </div>
+                  <div class="h-1.5 rounded-full bg-white/10 overflow-hidden">
+                    <div class="h-full bg-red-500 transition-all duration-300" :style="`width: ${csvUploadProgress}%`" />
+                  </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex gap-3 pt-2">
+                  <button
+                    @click="submitCsvImport"
+                    :disabled="csvUploading || !csvFile || !csvPdfs.length"
+                    class="btn-primary flex-1 justify-center disabled:opacity-40"
+                  >
+                    {{ csvUploading ? 'Import en cours…' : 'Importer' }}
+                  </button>
+                  <button type="button" @click="closeCsvImport" class="btn-ghost flex-1 justify-center">Annuler</button>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </Teleport>
 
       <!-- Modal upload -->
       <Teleport to="body">
@@ -649,6 +834,130 @@ async function submitComic() {
     uploadError.value = 'Erreur réseau'
   })
   xhr.open('POST', `${base}/admin/comics`)
+  xhr.setRequestHeader('Authorization', `Bearer ${token.value}`)
+  xhr.send(fd)
+}
+
+// ─── Import CSV ───────────────────────────────────────────────────────────────
+
+const showCsvImport    = ref(false)
+const csvFile          = ref(null)
+const csvPdfs          = ref([])
+const csvCovers        = ref([])
+const csvPreviewRows   = ref([])
+const csvImportError   = ref('')
+const csvUploading     = ref(false)
+const csvUploadProgress = ref(0)
+const csvResult        = ref(null)
+
+function closeCsvImport() {
+  showCsvImport.value   = false
+  csvFile.value         = null
+  csvPdfs.value         = []
+  csvCovers.value       = []
+  csvPreviewRows.value  = []
+  csvImportError.value  = ''
+  csvUploading.value    = false
+  csvUploadProgress.value = 0
+  csvResult.value       = null
+}
+
+function parseCSVClient(text) {
+  const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n')
+  function parseLine(line) {
+    const fields = []; let field = ''; let inQuotes = false
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i]
+      if (inQuotes) {
+        if (c === '"' && line[i + 1] === '"') { field += '"'; i++ }
+        else if (c === '"') { inQuotes = false }
+        else { field += c }
+      } else if (c === '"') { inQuotes = true }
+      else if (c === ',') { fields.push(field); field = '' }
+      else { field += c }
+    }
+    fields.push(field)
+    return fields
+  }
+  const headers = parseLine(lines[0]).map(h => h.trim())
+  const rows = []
+  for (let i = 1; i < lines.length; i++) {
+    if (!lines[i].trim()) continue
+    const values = parseLine(lines[i])
+    const row = {}
+    headers.forEach((h, idx) => { row[h] = (values[idx] ?? '').trim() })
+    rows.push(row)
+  }
+  return rows
+}
+
+async function parseCsvPreview() {
+  if (!csvFile.value) return
+  const text = await csvFile.value.text()
+  const rows = parseCSVClient(text)
+  refreshPreviewRows(rows)
+}
+
+function refreshPreview() {
+  if (!csvFile.value) return
+  csvFile.value.text().then(text => refreshPreviewRows(parseCSVClient(text)))
+}
+
+function refreshPreviewRows(rows) {
+  const pdfNames   = new Set(csvPdfs.value.map(f => f.name))
+  const coverNames = new Set(csvCovers.value.map(f => f.name))
+  csvPreviewRows.value = rows.map(row => ({
+    ...row,
+    _pdfOk:   !!row.fichier_pdf && pdfNames.has(row.fichier_pdf.trim()),
+    _coverOk: !!row.image_couverture && coverNames.has(row.image_couverture.trim()),
+  }))
+}
+
+function downloadTemplate() {
+  const content = [
+    'titre,auteurs,editeur,genres,description,date_publication,fichier_pdf,image_couverture',
+    'The Amazing Spider-Man #1,Stan Lee|Steve Ditko,Marvel Comics,Super-héros|Action,Premier numéro solo de Spider-Man.,1963-03-01,spider-man-1.pdf,spider-man-1.jpg',
+    'Batman Year One,Frank Miller|David Mazzucchelli,DC Comics,Super-héros|Noir,L\'origine du Chevalier Noir.,1987-02-01,batman-year-one.pdf,',
+    'Watchmen,Alan Moore|Dave Gibbons,DC Comics,Super-héros|Dystopie,Dans un monde où les super-héros sont réels.,1986-09-01,watchmen.pdf,watchmen-cover.jpg',
+  ].join('\n')
+  const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' })
+  const url  = URL.createObjectURL(blob)
+  const a    = document.createElement('a')
+  a.href = url; a.download = 'template-import-comics.csv'; a.click()
+  URL.revokeObjectURL(url)
+}
+
+function submitCsvImport() {
+  csvImportError.value = ''
+  if (!csvFile.value)    return (csvImportError.value = 'Sélectionne un fichier CSV')
+  if (!csvPdfs.value.length) return (csvImportError.value = 'Sélectionne au moins un PDF')
+
+  csvUploading.value      = true
+  csvUploadProgress.value = 0
+
+  const fd = new FormData()
+  fd.append('csv', csvFile.value)
+  csvPdfs.value.forEach(f   => fd.append('pdfs',   f))
+  csvCovers.value.forEach(f => fd.append('covers', f))
+
+  const xhr = new XMLHttpRequest()
+  xhr.upload.addEventListener('progress', (e) => {
+    if (e.lengthComputable) csvUploadProgress.value = Math.round((e.loaded / e.total) * 100)
+  })
+  xhr.addEventListener('load', () => {
+    csvUploading.value = false
+    if (xhr.status === 200) {
+      csvResult.value = JSON.parse(xhr.responseText)
+      if (csvResult.value.success > 0) loadAll()
+    } else {
+      csvImportError.value = JSON.parse(xhr.responseText)?.error || 'Erreur import'
+    }
+  })
+  xhr.addEventListener('error', () => {
+    csvUploading.value   = false
+    csvImportError.value = 'Erreur réseau'
+  })
+  xhr.open('POST', `${base}/admin/comics/import-csv`)
   xhr.setRequestHeader('Authorization', `Bearer ${token.value}`)
   xhr.send(fd)
 }
