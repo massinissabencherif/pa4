@@ -65,6 +65,73 @@ const uploadFields = multer({
 
 const MAX_COVER_SIZE = 10 * 1024 * 1024; // 10 MB pour les couvertures
 
+// ─── Multer config pour import CSV en masse ───────────────────────────────────
+
+const ALLOWED_CSV_EXT = [".csv"];
+
+function csvImportFileFilter(req, file, cb) {
+  const ext = path.extname(file.originalname).toLowerCase();
+  if (file.fieldname === "csv") {
+    if (!ALLOWED_CSV_EXT.includes(ext))
+      return cb(new Error(`Le fichier doit avoir l'extension .csv`), false);
+  } else if (file.fieldname === "pdfs") {
+    if (!ALLOWED_PDF_MIME.includes(file.mimetype) || !ALLOWED_PDF_EXT.includes(ext))
+      return cb(new Error(`Fichier PDF invalide : ${file.originalname}`), false);
+  } else if (file.fieldname === "covers") {
+    if (!ALLOWED_IMAGE_MIME.includes(file.mimetype) || !ALLOWED_IMAGE_EXT.includes(ext))
+      return cb(new Error(`Image invalide : ${file.originalname}`), false);
+  } else {
+    return cb(new Error(`Champ non autorisé : ${file.fieldname}`), false);
+  }
+  cb(null, true);
+}
+
+const csvImportUpload = multer({
+  storage: comicStorage,
+  fileFilter: csvImportFileFilter,
+  limits: { fileSize: 100 * 1024 * 1024 },
+}).fields([
+  { name: "csv",    maxCount: 1   },
+  { name: "pdfs",   maxCount: 200 },
+  { name: "covers", maxCount: 200 },
+]);
+
+// Parser CSV minimal (gère les guillemets et les virgules dans les champs)
+function parseCSV(text) {
+  const lines = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
+  function parseLine(line) {
+    const fields = [];
+    let field = "";
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (inQuotes) {
+        if (c === '"' && line[i + 1] === '"') { field += '"'; i++; }
+        else if (c === '"') { inQuotes = false; }
+        else { field += c; }
+      } else if (c === '"') {
+        inQuotes = true;
+      } else if (c === ",") {
+        fields.push(field); field = "";
+      } else {
+        field += c;
+      }
+    }
+    fields.push(field);
+    return fields;
+  }
+  const headers = parseLine(lines[0]).map((h) => h.trim());
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    if (!lines[i].trim()) continue;
+    const values = parseLine(lines[i]);
+    const row = {};
+    headers.forEach((h, idx) => { row[h] = (values[idx] ?? "").trim(); });
+    rows.push(row);
+  }
+  return rows;
+}
+
 // ─── Validation simple ────────────────────────────────────────────────────────
 
 function requireField(value, name) {
@@ -193,6 +260,147 @@ router.post("/admin/comics", requireAdmin, (req, res) => {
     });
 
     res.status(201).json(comic);
+  });
+});
+
+// ─── Import CSV en masse ──────────────────────────────────────────────────────
+
+router.post("/admin/comics/import-csv", requireAdmin, (req, res) => {
+  csvImportUpload(req, res, async (err) => {
+    if (err) return res.status(400).json({ error: err.message });
+
+    const csvFile = req.files?.csv?.[0];
+    if (!csvFile) return res.status(400).json({ error: "Fichier CSV requis" });
+
+    const pdfFiles  = req.files?.pdfs   || [];
+    const coverFiles = req.files?.covers || [];
+
+    // Lire et parser le CSV
+    let rows;
+    try {
+      const content = fs.readFileSync(csvFile.path, "utf-8");
+      rows = parseCSV(content);
+    } catch (e) {
+      return res.status(400).json({ error: `Erreur de lecture du CSV : ${e.message}` });
+    } finally {
+      try { fs.unlinkSync(csvFile.path); } catch {}
+    }
+
+    if (!rows.length) return res.status(400).json({ error: "Le CSV ne contient aucune ligne" });
+
+    // Maps nom_original → fichier multer
+    const pdfMap   = new Map(pdfFiles.map((f) => [f.originalname, f]));
+    const coverMap = new Map(coverFiles.map((f) => [f.originalname, f]));
+
+    // Collecter tous les noms d'auteurs uniques
+    const allAuthorNames = new Set();
+    for (const row of rows) {
+      (row.auteurs || "").split("|").map((n) => n.trim()).filter(Boolean).forEach((n) => allAuthorNames.add(n));
+    }
+
+    // Résoudre les auteurs : lookup DB + création si absent (dédupliqué)
+    const authorCache = new Map(); // slug → id
+    for (const name of allAuthorNames) {
+      const slug = slugify(name);
+      const existing = await prisma.author.findUnique({ where: { slug } });
+      if (existing) {
+        authorCache.set(slug, existing.id);
+      } else {
+        const uniqueSlug = await uniqueAuthorSlug(name);
+        const created = await prisma.author.create({ data: { name, slug: uniqueSlug } });
+        authorCache.set(slug, created.id);
+      }
+    }
+
+    const protocol = req.get("x-forwarded-proto") || req.protocol;
+    const baseUrl  = `${protocol}://${req.get("host")}`;
+
+    const results = { success: 0, errors: [], warnings: [] };
+    // Fichiers PDF/cover des lignes en erreur à supprimer
+    const filesToDelete = [];
+
+    for (let i = 0; i < rows.length; i++) {
+      const row     = rows[i];
+      const lineNum = i + 2; // ligne 1 = header
+
+      // Validation champs obligatoires
+      if (!row.titre?.trim()) {
+        results.errors.push({ ligne: lineNum, raison: "Titre manquant" });
+        continue;
+      }
+      if (!row.fichier_pdf?.trim()) {
+        results.errors.push({ ligne: lineNum, raison: "Colonne fichier_pdf vide ou absente" });
+        continue;
+      }
+
+      const pdfEntry = pdfMap.get(row.fichier_pdf.trim());
+      if (!pdfEntry) {
+        results.errors.push({ ligne: lineNum, raison: `PDF "${row.fichier_pdf}" non trouvé parmi les fichiers uploadés` });
+        continue;
+      }
+
+      // Cover optionnelle
+      let coverEntry = null;
+      if (row.image_couverture?.trim()) {
+        coverEntry = coverMap.get(row.image_couverture.trim()) || null;
+        if (!coverEntry) {
+          results.warnings.push({ ligne: lineNum, raison: `Cover "${row.image_couverture}" non trouvée — comic créé sans image` });
+        }
+      }
+
+      // Date publication
+      let publishedAt = null;
+      if (row.date_publication?.trim()) {
+        const d = new Date(row.date_publication.trim());
+        if (isNaN(d.getTime())) {
+          results.warnings.push({ ligne: lineNum, raison: `Date "${row.date_publication}" invalide — champ ignoré` });
+        } else {
+          publishedAt = d;
+        }
+      }
+
+      const genresArr  = (row.genres  || "").split("|").map((g) => g.trim()).filter(Boolean);
+      const authorNames = (row.auteurs || "").split("|").map((n) => n.trim()).filter(Boolean);
+      const authorIds   = authorNames.map((n) => authorCache.get(slugify(n))).filter(Boolean);
+
+      const pdfUrl   = `${baseUrl}/uploads/${pdfEntry.filename}`;
+      const coverUrl = coverEntry ? `${baseUrl}/uploads/${coverEntry.filename}` : null;
+
+      try {
+        const comic = await prisma.comic.create({
+          data: {
+            externalId:  `manual-${crypto.randomBytes(8).toString("hex")}`,
+            title:       row.titre.trim(),
+            description: row.description?.trim() || null,
+            coverUrl,
+            pdfUrl,
+            authors:     authorNames,
+            publisher:   row.editeur?.trim() || null,
+            genres:      genresArr,
+            publishedAt,
+          },
+        });
+
+        if (authorIds.length > 0) {
+          await prisma.authorOnComic.createMany({
+            data: authorIds.map((authorId) => ({ authorId, comicId: comic.id })),
+            skipDuplicates: true,
+          });
+        }
+
+        results.success++;
+      } catch (e) {
+        filesToDelete.push(pdfEntry.path);
+        if (coverEntry) filesToDelete.push(coverEntry.path);
+        results.errors.push({ ligne: lineNum, raison: `Erreur base de données : ${e.message}` });
+      }
+    }
+
+    for (const fp of filesToDelete) {
+      try { fs.unlinkSync(fp); } catch {}
+    }
+
+    res.json(results);
   });
 });
 
