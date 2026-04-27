@@ -54,6 +54,7 @@
             <span v-if="selectedGenre" class="text-gray-300 font-medium"> · {{ selectedGenre }}</span>
             <span v-if="selectedAuthor" class="text-gray-300 font-medium"> · {{ selectedAuthor }}</span>
           </p>
+          <p v-if="totalPages > 1" class="text-xs text-gray-600">Page {{ currentPage }} / {{ totalPages }}</p>
         </div>
 
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -74,17 +75,35 @@
           </NuxtLink>
         </div>
 
-        <!-- Load more (recherche par texte) -->
-        <div v-if="searched && displayedComics.length < total" class="flex justify-center mt-12">
-          <button @click="loadMore" :disabled="loading" class="btn-ghost !px-8 disabled:opacity-40">
-            <span v-if="loading">Chargement…</span>
-            <span v-else>Voir plus ({{ total - displayedComics.length }} restants)</span>
-          </button>
+        <!-- Pagination -->
+        <div v-if="totalPages > 1" class="flex items-center justify-center gap-1 mt-12">
+          <button
+            @click="goToPage(currentPage - 1)"
+            :disabled="currentPage === 1 || loading"
+            class="px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition"
+          >← Préc.</button>
+
+          <template v-for="p in pageNumbers" :key="p">
+            <span v-if="p === '...'" class="px-2 py-2 text-gray-600 text-sm">…</span>
+            <button
+              v-else
+              @click="goToPage(p)"
+              :disabled="loading"
+              class="w-9 h-9 rounded-lg text-sm font-medium transition"
+              :class="p === currentPage ? 'bg-red-500 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'"
+            >{{ p }}</button>
+          </template>
+
+          <button
+            @click="goToPage(currentPage + 1)"
+            :disabled="currentPage === totalPages || loading"
+            class="px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition"
+          >Suiv. →</button>
         </div>
       </template>
 
       <!-- Aucun résultat -->
-      <div v-else-if="(searched || selectedGenre || selectedAuthor) && !loading" class="text-center py-24">
+      <div v-else-if="!loading" class="text-center py-24">
         <div class="text-5xl mb-4">🔍</div>
         <p class="text-gray-400 font-medium mb-1">Aucun résultat</p>
         <p class="text-gray-600 text-sm">Essaie d'autres critères de recherche.</p>
@@ -99,89 +118,94 @@ import { getComicCover } from '~/utils/comicCover.js'
 const config = useRuntimeConfig()
 const base = config.public.apiBase
 
+const PAGE_SIZE = 10
+
 const query = ref('')
 const selectedGenre = ref('')
 const selectedAuthor = ref('')
 const lastQuery = ref('')
+const currentPage = ref(1)
 
-const results = ref([])
-const allComics = ref([])
+const displayedComics = ref([])
 const total = ref(0)
-const offset = ref(0)
 const loading = ref(false)
 const error = ref('')
-const searched = ref(false)
+
+const totalPages = computed(() => Math.max(1, Math.ceil(total.value / PAGE_SIZE)))
+const offset = computed(() => (currentPage.value - 1) * PAGE_SIZE)
+
+// Numéros de pages à afficher (avec ellipsis)
+const pageNumbers = computed(() => {
+  const total = totalPages.value
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+  const cur = currentPage.value
+  const pages = []
+  pages.push(1)
+  if (cur > 3) pages.push('...')
+  for (let p = Math.max(2, cur - 1); p <= Math.min(total - 1, cur + 1); p++) pages.push(p)
+  if (cur < total - 2) pages.push('...')
+  pages.push(total)
+  return pages
+})
 
 // Genres et auteurs disponibles
 const { data: genres } = await useFetch(`${base}/comics/genres`)
 const { data: authorNames } = await useFetch(`${base}/comics/author-names`)
 
-// Charger tous les comics au montage
-const { data: initialData } = await useFetch(`${base}/comics`, { params: { limit: 100 } })
-if (initialData.value) {
-  allComics.value = initialData.value.comics
-  total.value = initialData.value.total
-}
+// Chargement initial
+await fetchComics()
 
-// Comics affichés selon l'état
-const displayedComics = computed(() => searched.value ? results.value : allComics.value)
+async function fetchComics() {
+  loading.value = true
+  error.value = ''
+  try {
+    const params = {
+      limit: PAGE_SIZE,
+      offset: offset.value,
+    }
+    let data
+    if (lastQuery.value.length >= 2) {
+      data = await $fetch(`${base}/comics/search`, {
+        params: { q: lastQuery.value, limit: PAGE_SIZE, offset: offset.value },
+      })
+    } else {
+      if (selectedGenre.value) params.genre = selectedGenre.value
+      if (selectedAuthor.value) params.author = selectedAuthor.value
+      data = await $fetch(`${base}/comics`, { params })
+    }
+    displayedComics.value = data.comics
+    total.value = data.total
+  } catch (e) {
+    error.value = e.data?.error || 'Erreur lors du chargement'
+  } finally {
+    loading.value = false
+  }
+}
 
 async function doSearch() {
   const hasTextQuery = query.value.trim().length >= 2
   const hasFilters = selectedGenre.value || selectedAuthor.value
-
+  lastQuery.value = hasTextQuery ? query.value.trim() : ''
+  currentPage.value = 1
   if (!hasTextQuery && !hasFilters) {
-    searched.value = false
-    return
+    lastQuery.value = ''
   }
-
-  results.value = []
-  offset.value = 0
-  searched.value = true
-  lastQuery.value = query.value.trim()
-  await fetchComics(false)
+  await fetchComics()
 }
 
-async function loadMore() {
-  offset.value += 20
-  await fetchComics(true)
-}
-
-async function fetchComics(append = false) {
-  loading.value = true
-  error.value = ''
-
-  try {
-    let data
-    if (lastQuery.value.length >= 2) {
-      data = await $fetch(`${base}/comics/search`, {
-        params: { q: lastQuery.value, limit: 20, offset: offset.value },
-      })
-    } else {
-      data = await $fetch(`${base}/comics`, {
-        params: {
-          limit: 100,
-          offset: 0,
-          genre: selectedGenre.value || undefined,
-          author: selectedAuthor.value || undefined,
-        },
-      })
-    }
-    total.value = data.total
-    results.value = append ? [...results.value, ...data.comics] : data.comics
-  } catch (e) {
-    error.value = e.data?.error || 'Erreur lors de la recherche'
-  } finally {
-    loading.value = false
-  }
+async function goToPage(page) {
+  if (page < 1 || page > totalPages.value) return
+  currentPage.value = page
+  await fetchComics()
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 function clearFilters() {
   query.value = ''
   selectedGenre.value = ''
   selectedAuthor.value = ''
-  searched.value = false
-  results.value = []
   lastQuery.value = ''
+  currentPage.value = 1
+  fetchComics()
 }
 </script>
