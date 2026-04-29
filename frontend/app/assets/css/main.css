@@ -24,10 +24,10 @@
     background-image: radial-gradient(circle, rgba(255,255,255,0.055) 1px, transparent 1px);
     background-size: 6px 6px;
     pointer-events: none;
-    z-index: 0;
+    z-index: -1;
   }
 
-  h1, h2, h3 {
+  h1, h2, h3, h4, h5, h6 {
     font-family: impact, sans-serif;
     text-transform: uppercase;
     letter-spacing: 0.02em;
@@ -118,33 +118,29 @@
     color: #333333;
   }
   .input:focus {
-    border-bottom: 2px solid #e02020;
-    padding-bottom: 9px;
+    border-bottom-color: #e02020;
+    box-shadow: 0 1px 0 0 #e02020;
   }
 
   /* ── Badges ── */
-  .badge {
+  .badge, .badge-outline {
     @apply inline-flex items-center;
     font-family: 'Courier New', Courier, monospace;
     font-size: 8px;
     letter-spacing: 3px;
     text-transform: uppercase;
-    background-color: #e02020;
-    color: #ffffff;
     padding: 3px 8px;
     border-radius: 0;
   }
 
+  .badge {
+    background-color: #e02020;
+    color: #ffffff;
+  }
+
   .badge-outline {
-    @apply inline-flex items-center;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 8px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
     border: 1px solid #e02020;
     color: #e02020;
-    padding: 3px 8px;
-    border-radius: 0;
     background: transparent;
   }
 
