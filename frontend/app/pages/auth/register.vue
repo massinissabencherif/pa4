@@ -65,8 +65,8 @@
                 <div
                   v-for="i in 4"
                   :key="i"
-                  style="height:2px;flex:1;transition:background 0.3s;"
-                  :style="{ background: i <= passwordStrength ? strengthColor : '#1e1e1e' }"
+                  style="height:2px;flex:1;transition:all 0.3s;"
+                  :class="i <= passwordStrength ? strengthColor : 'bg-[#1e1e1e]'"
                 ></div>
               </div>
             </div>
