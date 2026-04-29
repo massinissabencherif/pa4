@@ -84,13 +84,13 @@
               <p v-if="passwordMismatch" style="font-family:'Courier New',monospace;font-size:11px;color:#e02020;margin-top:4px;">Les mots de passe ne correspondent pas.</p>
             </div>
 
-            <div v-if="error" style="display:flex;align-items:center;gap:8px;background:rgba(224,32,32,0.08);border:1px solid rgba(224,32,32,0.2);padding:10px 12px;font-family:'Courier New',monospace;font-size:11px;color:#e02020;">
-              <span>⚠</span> {{ error }}
+            <div v-if="error" role="alert" style="display:flex;align-items:center;gap:8px;background:rgba(224,32,32,0.08);border:1px solid rgba(224,32,32,0.2);padding:10px 12px;font-family:'Courier New',monospace;font-size:11px;color:#e02020;">
+              <span aria-hidden="true">⚠</span> {{ error }}
             </div>
 
             <button type="submit" :disabled="loading" class="btn-primary" style="width:100%;justify-content:center;margin-top:8px;">
               <span v-if="loading" class="flex items-center gap-2">
-                <svg class="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24" fill="none">
+                <svg class="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
                 </svg>
