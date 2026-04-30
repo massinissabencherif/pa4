@@ -1,184 +1,219 @@
 <template>
-  <div class="max-w-5xl mx-auto px-4 sm:px-6 py-10">
+  <div>
 
-    <div class="flex gap-8">
-
-      <!-- ── Feed principal ────────────────────────────────────────────── -->
-      <div class="flex-1 min-w-0">
-        <h1 class="text-2xl font-bold mb-6">Fil d'actualité</h1>
-
-        <!-- Bannière suggestion -->
-        <div v-if="feedData?.suggestion" class="card p-4 mb-6 flex items-center gap-4 border-red-500/20 bg-red-500/5">
-          <span class="text-2xl shrink-0">👥</span>
-          <div>
-            <p class="text-sm font-medium text-white">Suis des fans de comics pour personnaliser ton fil d'actualité</p>
-            <p class="text-xs text-gray-500 mt-0.5">En attendant, voici quelques activités de la communauté</p>
-          </div>
+    <!-- Page header -->
+    <div style="border-bottom:1px solid #2a2a2a;">
+      <div class="max-w-[1100px] mx-auto px-6 pt-9 pb-0">
+        <div style="font-family:'Courier New',monospace;font-size:8px;letter-spacing:5px;color:#e02020;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:10px;">
+          <div style="width:16px;height:2px;background:#e02020;flex-shrink:0;"></div>
+          Activité · Communauté
         </div>
+        <div style="font-family:impact,sans-serif;font-size:52px;letter-spacing:1px;color:#fff;text-transform:uppercase;line-height:1;padding-bottom:18px;">FIL D'ACT.</div>
+      </div>
+    </div>
 
-        <!-- Événements -->
-        <div v-if="feedData?.events?.length" class="space-y-4">
+    <div class="max-w-[1100px] mx-auto px-6 py-8">
+      <div class="flex gap-8">
+
+        <!-- ── Feed principal ── -->
+        <div class="flex-1 min-w-0">
+
+          <!-- Bannière suggestion -->
+          <div v-if="feedData?.suggestion" style="display:flex;align-items:center;gap:14px;background:rgba(224,32,32,0.06);border:1px solid rgba(224,32,32,0.2);border-top:2px solid #e02020;padding:16px 20px;margin-bottom:24px;">
+            <span style="font-size:20px;flex-shrink:0;">👥</span>
+            <div>
+              <p style="font-family:impact,sans-serif;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#fff;">Suis des fans de comics pour personnaliser ton fil</p>
+              <p style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:1px;color:#888;margin-top:4px;">En attendant, voici quelques activités de la communauté</p>
+            </div>
+          </div>
+
+          <!-- Loading skeletons -->
           <div v-if="feedPending" class="space-y-4">
             <div v-for="i in 5" :key="i" class="card p-5 animate-pulse">
               <div class="flex gap-3">
-                <div class="w-10 h-10 rounded-full bg-white/5"></div>
+                <div class="w-10 h-10 bg-white/8 flex-shrink-0"></div>
                 <div class="flex-1 space-y-2">
-                  <div class="h-3 bg-white/5 rounded w-1/3"></div>
-                  <div class="h-3 bg-white/5 rounded w-2/3"></div>
+                  <div class="h-3 bg-white/8 w-1/3"></div>
+                  <div class="h-3 bg-white/8 w-2/3"></div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div
-            v-for="event in feedData?.events"
-            :key="`${event.type}-${event.id}`"
-            class="card p-5 hover:border-white/15 transition"
-          >
-            <div class="flex gap-4">
-              <!-- Cover -->
-              <NuxtLink :to="`/comics/${event.comic.externalId}`" class="shrink-0">
-                <img
-                  :src="getComicCover(event.comic)"
-                  :alt="event.comic.title"
-                  class="w-12 h-16 object-cover rounded-lg"
-                />
-              </NuxtLink>
-
-              <!-- Contenu -->
-              <div class="flex-1 min-w-0">
-                <div class="flex items-start justify-between gap-2 mb-1">
-                  <p class="text-sm">
-                    <NuxtLink :to="`/profile/${event.user.username}`" class="font-semibold hover:text-red-400 transition">
-                      {{ event.user.username }}
-                    </NuxtLink>
-                    <span class="text-gray-500"> {{ eventLabel(event.type) }} </span>
-                    <NuxtLink :to="`/comics/${event.comic.externalId}`" class="font-medium hover:text-white transition">
-                      {{ event.comic.title }}
-                    </NuxtLink>
-                  </p>
-                  <span class="text-xs text-gray-600 shrink-0">{{ timeAgo(event.date) }}</span>
-                </div>
-
-                <!-- Étoiles + avis -->
-                <template v-if="event.type === 'REVIEW'">
-                  <div class="flex gap-0.5 mb-1">
-                    <span v-for="i in 5" :key="i" :class="i <= event.data.rating ? 'text-amber-400' : 'text-gray-700'" class="text-sm">★</span>
+          <!-- Événements -->
+          <div v-else-if="feedData?.events?.length" class="space-y-px" style="background:#2a2a2a;">
+            <div
+              v-for="event in feedData?.events"
+              :key="`${event.type}-${event.id}`"
+              style="background:#0f0f0f;padding:16px 20px;transition:background 0.15s;"
+              class="hover:bg-[#141414]"
+            >
+              <div class="flex gap-4">
+                <!-- Cover -->
+                <NuxtLink :to="`/comics/${event.comic.externalId}`" class="shrink-0">
+                  <div style="width:44px;height:60px;overflow:hidden;background:#1e1e1e;flex-shrink:0;">
+                    <img
+                      :src="getComicCover(event.comic)"
+                      :alt="event.comic.title"
+                      class="w-full h-full object-cover"
+                    />
                   </div>
-                  <p v-if="event.data.content" class="text-sm text-gray-400 line-clamp-2">{{ event.data.content }}</p>
-                </template>
+                </NuxtLink>
+
+                <!-- Contenu -->
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-start justify-between gap-2 mb-1">
+                    <p style="font-family:'Courier New',monospace;font-size:12px;letter-spacing:0.5px;">
+                      <NuxtLink :to="`/profile/${event.user.username}`" style="color:#fff;font-weight:700;text-decoration:none;transition:color 0.15s;" class="hover:text-[#e02020]">
+                        {{ event.user.username }}
+                      </NuxtLink>
+                      <span style="color:#888;"> {{ eventLabel(event.type) }} </span>
+                      <NuxtLink :to="`/comics/${event.comic.externalId}`" style="color:#d4d4d4;text-decoration:none;transition:color 0.15s;" class="hover:text-white">
+                        {{ event.comic.title }}
+                      </NuxtLink>
+                    </p>
+                    <span style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:2px;color:#555;white-space:nowrap;flex-shrink:0;">{{ timeAgo(event.date) }}</span>
+                  </div>
+
+                  <!-- Étoiles + avis -->
+                  <template v-if="event.type === 'REVIEW'">
+                    <div class="flex gap-0.5 mb-1">
+                      <span v-for="i in 5" :key="i" :style="i <= event.data.rating ? 'color:#fbbf24;' : 'color:#3a3a3a;'" style="font-size:13px;">★</span>
+                    </div>
+                    <p v-if="event.data.content" style="font-family:'Courier New',monospace;font-size:12px;line-height:1.6;color:#aaa;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ event.data.content }}</p>
+                  </template>
+                </div>
               </div>
             </div>
+          </div>
+
+          <!-- État vide -->
+          <div v-else-if="!feedPending" style="text-align:center;padding:80px 24px;">
+            <div style="font-family:impact,sans-serif;font-size:40px;letter-spacing:2px;text-transform:uppercase;color:#2a2a2a;margin-bottom:12px;">AUCUNE ACTIVITÉ</div>
+            <div style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:3px;color:#555;text-transform:uppercase;">Suis des membres pour voir leur activité ici.</div>
           </div>
         </div>
-      </div>
 
-      <!-- ── Sidebar droite (recommandations) ────────── -->
-      <aside class="hidden lg:block w-72 shrink-0">
+        <!-- ── Sidebar droite ── -->
+        <aside class="hidden lg:block w-72 shrink-0">
 
-        <!-- Recommandations -->
-        <div>
-          <h2 class="text-base font-bold mb-3">Recommandations</h2>
-          <div v-if="recoData?.basis === 'popular' || recoData?.basis === 'taste'" class="mb-2">
-            <p class="text-xs text-gray-600">
-              {{ recoData.basis === 'taste' ? `Basé sur : ${recoData.topGenres?.slice(0,3).join(', ')}` : 'Comics populaires' }}
-            </p>
-          </div>
-          <div class="space-y-2">
+          <!-- Recommandations -->
+          <div style="border:1px solid #2a2a2a;border-top:2px solid #e02020;margin-bottom:24px;">
+            <div style="padding:12px 16px;border-bottom:1px solid #2a2a2a;display:flex;justify-content:space-between;align-items:center;">
+              <div style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:3px;color:#e02020;text-transform:uppercase;">Pour toi</div>
+              <span style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:2px;color:#555;">
+                {{ recoData?.basis === 'taste' ? 'GOÛTS' : 'POPULAR' }}
+              </span>
+            </div>
+            <div v-if="recoData?.basis === 'taste' && recoData?.topGenres?.length" style="padding:8px 16px;border-bottom:1px solid #1e1e1e;">
+              <p style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:2px;color:#888;text-transform:uppercase;">{{ recoData.topGenres.slice(0,3).join(' · ') }}</p>
+            </div>
             <NuxtLink
               v-for="comic in recoData?.recommendations"
               :key="comic.id"
               :to="`/comics/${comic.externalId}`"
-              class="card p-3 flex gap-3 hover:border-white/15 transition group"
+              style="display:flex;gap:12px;align-items:flex-start;padding:12px 16px;border-bottom:1px solid #1e1e1e;text-decoration:none;transition:background 0.15s;"
+              class="hover:bg-[#141414] group"
             >
-              <img :src="getComicCover(comic)" :alt="comic.title" class="w-10 h-14 object-cover rounded shrink-0" />
+              <div style="width:36px;height:50px;overflow:hidden;background:#1e1e1e;flex-shrink:0;">
+                <img :src="getComicCover(comic)" :alt="comic.title" class="w-full h-full object-cover" />
+              </div>
               <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium group-hover:text-white transition line-clamp-2">{{ comic.title }}</p>
-                <p class="text-xs text-gray-600 mt-1">{{ comic.genres?.slice(0,2).join(', ') }}</p>
+                <p style="font-family:impact,sans-serif;font-size:12px;letter-spacing:0.5px;text-transform:uppercase;color:#fff;line-height:1.2;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;" class="group-hover:text-[#e02020] transition-colors">{{ comic.title }}</p>
+                <p style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:1px;color:#888;text-transform:uppercase;">{{ comic.genres?.slice(0,2).join(' · ') }}</p>
               </div>
             </NuxtLink>
           </div>
+
+        </aside>
+      </div>
+
+      <!-- Tendances du jour -->
+      <div v-if="trendingData?.comics?.length" class="mt-10">
+        <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #2a2a2a;">
+          <div style="font-family:impact,sans-serif;font-size:22px;letter-spacing:1px;text-transform:uppercase;color:#fff;">Tendances du jour</div>
+          <div style="width:20px;height:2px;background:#e02020;flex-shrink:0;align-self:center;"></div>
         </div>
-
-      </aside>
-    </div>
-
-    <!-- Tendances du jour (pleine largeur, même style que commentaires) -->
-    <div v-if="trendingData?.comics?.length" class="mt-10">
-      <h2 class="text-xl font-bold mb-4">Tendances du jour</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <NuxtLink
-          v-for="comic in trendingData.comics"
-          :key="comic.id"
-          :to="`/comics/${comic.externalId}`"
-          class="card p-4 hover:border-white/15 transition group"
-        >
-          <div class="flex gap-3 mb-3">
-            <img :src="getComicCover(comic)" :alt="comic.title" class="w-10 h-14 object-cover rounded shrink-0" />
-            <div class="flex-1 min-w-0">
-              <p class="text-xs text-gray-500 line-clamp-1">{{ comic.publisher || '' }}</p>
-              <p class="text-sm font-medium group-hover:text-white transition line-clamp-2 mt-0.5">{{ comic.title }}</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px" style="background:#2a2a2a;">
+          <NuxtLink
+            v-for="comic in trendingData.comics"
+            :key="comic.id"
+            :to="`/comics/${comic.externalId}`"
+            style="background:#0f0f0f;display:flex;gap:12px;padding:16px;text-decoration:none;transition:background 0.15s;"
+            class="hover:bg-[#141414] group"
+          >
+            <div style="width:40px;height:56px;overflow:hidden;background:#1e1e1e;flex-shrink:0;">
+              <img :src="getComicCover(comic)" :alt="comic.title" class="w-full h-full object-cover" />
             </div>
-          </div>
-          <p class="text-xs text-gray-600">{{ comic.readCount }} lecture{{ comic.readCount > 1 ? 's' : '' }} aujourd'hui</p>
-        </NuxtLink>
-      </div>
-    </div>
-
-    <!-- Derniers ajouts (pleine largeur) -->
-    <div v-if="latestData?.comics?.length" class="mt-10">
-      <h2 class="text-xl font-bold mb-4">Derniers ajouts</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <NuxtLink
-          v-for="comic in latestData.comics"
-          :key="comic.id"
-          :to="`/comics/${comic.externalId}`"
-          class="card p-4 hover:border-white/15 transition group"
-        >
-          <div class="flex gap-3">
-            <img :src="getComicCover(comic)" :alt="comic.title" class="w-10 h-14 object-cover rounded shrink-0" />
             <div class="flex-1 min-w-0">
-              <p class="text-xs text-gray-500 line-clamp-1">{{ comic.publisher || '' }}</p>
-              <p class="text-sm font-medium group-hover:text-white transition line-clamp-2 mt-0.5">{{ comic.title }}</p>
+              <p style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#888;margin-bottom:4px;">{{ comic.publisher || '' }}</p>
+              <p style="font-family:impact,sans-serif;font-size:13px;letter-spacing:0.5px;text-transform:uppercase;color:#fff;line-height:1.2;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;" class="group-hover:text-[#e02020] transition-colors">{{ comic.title }}</p>
+              <p style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:2px;color:#555;text-transform:uppercase;">{{ comic.readCount }} lecture{{ comic.readCount > 1 ? 's' : '' }}</p>
             </div>
-          </div>
-        </NuxtLink>
+          </NuxtLink>
+        </div>
       </div>
-    </div>
 
-    <!-- Commentaires les plus aimés (pleine largeur, même style) -->
-    <div v-if="topLikedData?.comments?.length" class="mt-10">
-      <h2 class="text-xl font-bold mb-4">Commentaires les plus aimés</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <NuxtLink
-          v-for="c in topLikedData.comments"
-          :key="c.id"
-          :to="`/comics/${c.review?.comic?.externalId}`"
-          class="card p-4 hover:border-white/15 transition group"
-        >
-          <div class="flex gap-3 mb-3">
-            <img
-              v-if="c.review?.comic"
-              :src="getComicCover(c.review.comic)"
-              :alt="c.review.comic.title"
-              class="w-10 h-14 object-cover rounded shrink-0"
-            />
+      <!-- Derniers ajouts -->
+      <div v-if="latestData?.comics?.length" class="mt-10">
+        <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #2a2a2a;">
+          <div style="font-family:impact,sans-serif;font-size:22px;letter-spacing:1px;text-transform:uppercase;color:#fff;">Derniers ajouts</div>
+          <div style="width:20px;height:2px;background:#e02020;flex-shrink:0;align-self:center;"></div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px" style="background:#2a2a2a;">
+          <NuxtLink
+            v-for="comic in latestData.comics"
+            :key="comic.id"
+            :to="`/comics/${comic.externalId}`"
+            style="background:#0f0f0f;display:flex;gap:12px;padding:16px;text-decoration:none;transition:background 0.15s;"
+            class="hover:bg-[#141414] group"
+          >
+            <div style="width:40px;height:56px;overflow:hidden;background:#1e1e1e;flex-shrink:0;">
+              <img :src="getComicCover(comic)" :alt="comic.title" class="w-full h-full object-cover" />
+            </div>
             <div class="flex-1 min-w-0">
-              <p class="text-xs text-gray-500 line-clamp-1">{{ c.review?.comic?.title }}</p>
-              <p class="text-xs font-medium text-gray-400 mt-0.5">{{ c.user?.username }}</p>
+              <p style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#888;margin-bottom:4px;">{{ comic.publisher || '' }}</p>
+              <p style="font-family:impact,sans-serif;font-size:13px;letter-spacing:0.5px;text-transform:uppercase;color:#fff;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;" class="group-hover:text-[#e02020] transition-colors">{{ comic.title }}</p>
             </div>
-          </div>
-          <p class="text-sm text-gray-400 leading-relaxed line-clamp-3">{{ c.content }}</p>
-          <div class="flex items-center gap-1 mt-3 text-xs text-red-400">
-            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-            </svg>
-            {{ c.likeCount }}
-          </div>
-        </NuxtLink>
+          </NuxtLink>
+        </div>
       </div>
-    </div>
 
+      <!-- Commentaires les plus aimés -->
+      <div v-if="topLikedData?.comments?.length" class="mt-10">
+        <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #2a2a2a;">
+          <div style="font-family:impact,sans-serif;font-size:22px;letter-spacing:1px;text-transform:uppercase;color:#fff;">Avis populaires</div>
+          <div style="width:20px;height:2px;background:#e02020;flex-shrink:0;align-self:center;"></div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px" style="background:#2a2a2a;">
+          <NuxtLink
+            v-for="c in topLikedData.comments"
+            :key="c.id"
+            :to="`/comics/${c.review?.comic?.externalId}`"
+            style="background:#0f0f0f;display:flex;flex-direction:column;padding:16px;text-decoration:none;transition:background 0.15s;"
+            class="hover:bg-[#141414] group"
+          >
+            <div class="flex gap-3 mb-3">
+              <div v-if="c.review?.comic" style="width:40px;height:56px;overflow:hidden;background:#1e1e1e;flex-shrink:0;">
+                <img :src="getComicCover(c.review.comic)" :alt="c.review.comic.title" class="w-full h-full object-cover" />
+              </div>
+              <div class="flex-1 min-w-0">
+                <p style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#888;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ c.review?.comic?.title }}</p>
+                <p style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:1px;color:#aaa;margin-top:2px;">{{ c.user?.username }}</p>
+              </div>
+            </div>
+            <p style="font-family:'Courier New',monospace;font-size:12px;line-height:1.6;color:#aaa;flex:1;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">{{ c.content }}</p>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:12px;font-family:'Courier New',monospace;font-size:10px;letter-spacing:2px;color:#e02020;text-transform:uppercase;">
+              <svg style="width:12px;height:12px;" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+              </svg>
+              {{ c.likeCount }}
+            </div>
+          </NuxtLink>
+        </div>
+      </div>
+
+    </div>
   </div>
 </template>
 

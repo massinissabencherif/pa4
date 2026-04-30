@@ -60,7 +60,7 @@
       <div v-else-if="!comic?.pdfUrl" class="flex flex-col items-center justify-center min-h-screen text-center px-4">
         <div class="text-5xl mb-4">📄</div>
         <p class="text-gray-400 font-medium mb-2">Aucun fichier PDF disponible</p>
-        <p class="text-gray-600 text-sm mb-6">Ce comic n'a pas encore de fichier de lecture associé.</p>
+        <p class="text-gray-400 text-sm mb-6">Ce comic n'a pas encore de fichier de lecture associé.</p>
         <NuxtLink :to="`/comics/${route.params.id}`" class="btn-ghost !px-6">Retour au détail</NuxtLink>
       </div>
 
