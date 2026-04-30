@@ -15,6 +15,14 @@ function parsePagination(query, defaults = { limit: 20, max: 100 }) {
 const hasMarvelKeys = () =>
   !!(process.env.MARVEL_PUBLIC_KEY && process.env.MARVEL_PRIVATE_KEY);
 
+function rewriteUploadUrl(url, req) {
+  if (!url || !url.includes("/uploads/")) return url;
+  const filename = url.split("/uploads/")[1];
+  const protocol = req.headers["x-forwarded-proto"] || req.protocol;
+  const host = req.get("host");
+  return `${protocol}://${host}/uploads/${filename}`;
+}
+
 async function upsertComic(raw) {
   const data = normalizeComic(raw);
   return prisma.comic.upsert({
@@ -153,7 +161,12 @@ router.get("/:externalId", async (req, res) => {
   });
   if (cached) {
     const { authorLinks, ...comic } = cached;
-    return res.json({ ...comic, linkedAuthors: authorLinks.map((l) => l.author) });
+    return res.json({
+      ...comic,
+      pdfUrl: rewriteUploadUrl(comic.pdfUrl, req),
+      coverUrl: rewriteUploadUrl(comic.coverUrl, req),
+      linkedAuthors: authorLinks.map((l) => l.author),
+    });
   }
 
   if (!hasMarvelKeys()) {

@@ -49,7 +49,7 @@
             :to="`/comics/${item.comic.externalId}`"
             class="group flex flex-col"
           >
-            <div class="relative aspect-[2/3] rounded-xl overflow-hidden bg-white/5 mb-3 ring-1 ring-white/8 group-hover:ring-red-500/50 transition-all duration-200">
+            <div class="relative aspect-[2/3] rounded-xl overflow-hidden bg-white/10 mb-3 ring-1 ring-white/8 group-hover:ring-red-500/50 transition-all duration-200">
               <img
                 :src="getComicCover(item.comic)"
                 :alt="item.comic.title"

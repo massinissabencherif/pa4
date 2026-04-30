@@ -22,7 +22,7 @@
       <div v-else-if="comic" class="flex flex-col sm:flex-row gap-10">
         <!-- Couverture -->
         <div class="shrink-0">
-          <div class="w-52 rounded-2xl overflow-hidden ring-1 ring-white/10 shadow-2xl shadow-black/60">
+          <div class="w-52 rounded-2xl overflow-hidden ring-1 ring-white/20 shadow-2xl shadow-black/60">
             <img
               :src="getComicCover(comic)"
               :alt="comic.title"
@@ -50,12 +50,12 @@
             <!-- Auteurs texte libres -->
             <span v-else-if="comic.authors?.length" class="text-sm text-gray-300">{{ comic.authors.join(', ') }}</span>
             <!-- Éditeur -->
-            <span v-if="comic.publisher" class="text-sm text-gray-500">{{ comic.publisher }}</span>
+            <span v-if="comic.publisher" class="text-sm text-gray-400">{{ comic.publisher }}</span>
             <!-- Note moyenne -->
             <div v-if="avgRating" class="flex items-center gap-1">
               <span class="text-yellow-400 text-sm">★</span>
               <span class="text-sm font-semibold text-white">{{ avgRating }}</span>
-              <span class="text-xs text-gray-600">({{ communityReviews.length }})</span>
+              <span class="text-xs text-gray-400">({{ communityReviews.length }})</span>
             </div>
           </div>
 
@@ -64,14 +64,14 @@
             <span
               v-for="genre in comic.genres"
               :key="genre"
-              class="px-3 py-1 rounded-full bg-white/6 border border-white/10 text-xs text-gray-400"
+              class="px-3 py-1 rounded-full bg-white/10 border border-white/20 text-xs text-gray-300"
             >
               {{ genre }}
             </span>
           </div>
 
           <!-- Description -->
-          <p v-if="comic.description" class="text-gray-400 text-sm leading-relaxed mb-6">
+          <p v-if="comic.description" class="text-gray-300 text-sm leading-relaxed mb-6">
             {{ comic.description }}
           </p>
 
@@ -145,7 +145,7 @@
             <!-- Ajouter à une liste -->
             <div class="card p-5 max-w-md mb-4">
               <h3 class="font-semibold mb-3">Ajouter à une liste</h3>
-              <div v-if="!userLists.length" class="text-sm text-gray-500">
+              <div v-if="!userLists.length" class="text-sm text-gray-400">
                 Aucune liste.
                 <NuxtLink to="/lists" class="text-red-400 hover:text-red-300">Créer une liste →</NuxtLink>
               </div>
@@ -162,7 +162,7 @@
                     class="accent-red-500 w-4 h-4"
                   />
                   <span class="text-sm text-gray-300 group-hover:text-white transition-colors">{{ l.name }}</span>
-                  <span class="ml-auto text-xs text-gray-700">{{ l._count?.items ?? 0 }}</span>
+                  <span class="ml-auto text-xs text-gray-500">{{ l._count?.items ?? 0 }}</span>
                 </label>
               </div>
             </div>
@@ -236,7 +236,7 @@
             <div class="flex items-start justify-between gap-3 mb-2">
               <div class="flex items-center gap-3">
                 <NuxtLink :to="`/profile/${r.user.username}`" class="font-medium text-sm text-gray-300 hover:text-red-400 transition">{{ r.user.username }}</NuxtLink>
-                <span class="text-yellow-400 text-sm">{{ '★'.repeat(r.rating) }}<span class="text-gray-700">{{ '★'.repeat(5 - r.rating) }}</span></span>
+                <span class="text-yellow-400 text-sm">{{ '★'.repeat(r.rating) }}<span class="text-gray-600">{{ '★'.repeat(5 - r.rating) }}</span></span>
               </div>
               <button
                 @click="toggleReviewLike(r)"
@@ -250,14 +250,14 @@
                 <span>{{ r.likeCount }}</span>
               </button>
             </div>
-            <p v-if="r.content" class="text-sm text-gray-400 leading-relaxed mb-4">{{ r.content }}</p>
+            <p v-if="r.content" class="text-sm text-gray-300 leading-relaxed mb-4">{{ r.content }}</p>
 
             <!-- Commentaires sur l'avis -->
-            <div class="border-t border-white/8 pt-3 mt-3 space-y-3">
+            <div class="border-t border-white/15 pt-3 mt-3 space-y-3">
               <div v-for="c in r.comments" :key="c.id" class="flex items-start gap-3">
                 <div class="flex-1 min-w-0">
                   <span class="text-xs font-medium text-gray-400">{{ c.user.username }}</span>
-                  <p class="text-xs text-gray-500 leading-relaxed mt-0.5">{{ c.content }}</p>
+                  <p class="text-xs text-gray-400 leading-relaxed mt-0.5">{{ c.content }}</p>
                 </div>
                 <button
                   @click.stop="toggleCommentLike(c)"

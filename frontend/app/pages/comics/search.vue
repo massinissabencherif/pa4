@@ -17,7 +17,7 @@
       <div class="max-w-[1100px] mx-auto px-6 py-5">
         <form @submit.prevent="doSearch" style="display:flex;">
           <div style="flex:1;display:flex;align-items:stretch;border:1px solid #2a2a2a;border-right:none;">
-            <div style="padding:0 14px;display:flex;align-items:center;border-right:1px solid #1e1e1e;flex-shrink:0;font-family:'Courier New',monospace;font-size:9px;letter-spacing:3px;color:#333;text-transform:uppercase;white-space:nowrap;">
+            <div style="padding:0 14px;display:flex;align-items:center;border-right:1px solid #1e1e1e;flex-shrink:0;font-family:'Courier New',monospace;font-size:9px;letter-spacing:3px;color:#888;text-transform:uppercase;white-space:nowrap;">
               QUERY_
             </div>
             <input
@@ -86,7 +86,7 @@
           <span v-if="selectedGenre"> · {{ selectedGenre }}</span>
           <span v-if="selectedAuthor"> · {{ selectedAuthor }}</span>
         </div>
-        <div v-if="totalPages > 1" style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:3px;color:#333;text-transform:uppercase;">
+        <div v-if="totalPages > 1" style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:3px;color:#888;text-transform:uppercase;">
           Page {{ currentPage }} / {{ totalPages }}
         </div>
       </div>
@@ -127,28 +127,28 @@
         <button
           @click="goToPage(currentPage - 1)"
           :disabled="currentPage === 1 || loading"
-          style="background:transparent;border:1px solid #1e1e1e;border-right:none;color:#555;font-family:'Courier New',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:9px 16px;cursor:pointer;border-radius:0;"
+          style="background:transparent;border:1px solid #1e1e1e;border-right:none;color:#aaa;font-family:'Courier New',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:9px 16px;cursor:pointer;border-radius:0;"
           :style="(currentPage === 1 || loading) ? 'opacity:0.25;cursor:not-allowed;' : ''"
         >← PRÉC</button>
 
         <template v-for="p in pageNumbers" :key="p">
           <span
             v-if="p === '...'"
-            style="padding:9px 10px;color:#333;font-size:9px;font-family:'Courier New',monospace;border:1px solid #1e1e1e;border-right:none;"
+            style="padding:9px 10px;color:#888;font-size:9px;font-family:'Courier New',monospace;border:1px solid #1e1e1e;border-right:none;"
           >…</span>
           <button
             v-else
             @click="goToPage(p)"
             :disabled="loading"
             style="background:transparent;border:1px solid #1e1e1e;border-right:none;font-family:'Courier New',monospace;font-size:9px;letter-spacing:1px;padding:9px 14px;cursor:pointer;border-radius:0;transition:background 0.15s,color 0.15s;"
-            :style="p === currentPage ? 'background:#e02020;color:#fff;border-color:#e02020;' : 'color:#555;'"
+            :style="p === currentPage ? 'background:#e02020;color:#fff;border-color:#e02020;' : 'color:#aaa;'"
           >{{ p }}</button>
         </template>
 
         <button
           @click="goToPage(currentPage + 1)"
           :disabled="currentPage === totalPages || loading"
-          style="background:transparent;border:1px solid #1e1e1e;color:#555;font-family:'Courier New',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:9px 16px;cursor:pointer;border-radius:0;"
+          style="background:transparent;border:1px solid #1e1e1e;color:#aaa;font-family:'Courier New',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:9px 16px;cursor:pointer;border-radius:0;"
           :style="(currentPage === totalPages || loading) ? 'opacity:0.25;cursor:not-allowed;' : ''"
         >SUIV →</button>
       </div>
@@ -158,7 +158,7 @@
     <!-- Empty state -->
     <div v-else-if="!loading" style="text-align:center;padding:96px 24px;">
       <div style="font-family:impact,sans-serif;font-size:48px;letter-spacing:2px;text-transform:uppercase;color:#1e1e1e;margin-bottom:14px;">AUCUN RÉSULTAT</div>
-      <div style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:3px;color:#333;text-transform:uppercase;">Essaie d'autres critères de recherche.</div>
+      <div style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:3px;color:#888;text-transform:uppercase;">Essaie d'autres critères de recherche.</div>
     </div>
 
   </div>
