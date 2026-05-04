@@ -1,0 +1,65 @@
+services:
+
+  # ─── PostgreSQL (sandbox) ────────────────────────────────────────────────────
+  postgres-sandbox:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: comicster_sandbox
+      POSTGRES_USER: comicster
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-comicster_secret}
+    volumes:
+      - pg_data_sandbox:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U comicster -d comicster_sandbox"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ─── Backend (sandbox) ───────────────────────────────────────────────────────
+  backend-sandbox:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres-sandbox:
+        condition: service_healthy
+    environment:
+      PORT: 3021
+      NODE_ENV: ${NODE_ENV:-production}
+      DATABASE_URL: postgresql://comicster:${POSTGRES_PASSWORD:-comicster_secret}@postgres-sandbox:5432/comicster_sandbox
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-15m}
+      SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET is required}
+      TOTP_ENCRYPTION_KEY: ${TOTP_ENCRYPTION_KEY:?TOTP_ENCRYPTION_KEY is required}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+      API_BASE_URL: ${SANDBOX_API_BASE_URL:-}
+      FRONTEND_URL: ${SANDBOX_FRONTEND_URL:-https://sandbox.sitedetestdemassinissabencherif.com}
+    volumes:
+      - uploads_sandbox:/app/uploads
+    ports:
+      - "3021:3021"
+
+  # ─── Frontend (sandbox) ──────────────────────────────────────────────────────
+  frontend-sandbox:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NUXT_PUBLIC_API_BASE: ${SANDBOX_NUXT_PUBLIC_API_BASE:-https://sandbox.sitedetestdemassinissabencherif.com/api}
+        NUXT_PUBLIC_UMAMI_ID: ${NUXT_PUBLIC_UMAMI_ID:-}
+        NUXT_PUBLIC_UMAMI_URL: ${NUXT_PUBLIC_UMAMI_URL:-}
+        NUXT_PUBLIC_APP_ENV: production
+    restart: unless-stopped
+    depends_on:
+      - backend-sandbox
+    ports:
+      - "3020:3000"
+
+volumes:
+  pg_data_sandbox:
+  uploads_sandbox:

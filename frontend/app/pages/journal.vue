@@ -103,10 +103,45 @@
                 <span v-for="i in 5" :key="i" style="font-size:11px;" :style="i <= reviewMap[entry.comicId].rating ? 'color:#fbbf24;' : 'color:#3a3a3a;'">★</span>
               </div>
 
+              <!-- Progression -->
+              <div v-if="entry.status === 'IN_PROGRESS'" style="margin-bottom:8px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                  <div style="flex:1;height:3px;background:#2a2a2a;overflow:hidden;">
+                    <div :style="`width:${entry.progress || 0}%;height:100%;background:#e02020;transition:width 0.3s;`"></div>
+                  </div>
+                  <span style="font-family:'Courier New',monospace;font-size:9px;color:#888;white-space:nowrap;">
+                    {{ entry.progress || 0 }}%
+                  </span>
+                </div>
+                <div v-if="entry.currentPage && entry.totalPages" style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:1px;color:#555;">
+                  p. {{ entry.currentPage }} / {{ entry.totalPages }}
+                </div>
+                <!-- Input progression rapide -->
+                <div style="display:flex;gap:4px;margin-top:6px;">
+                  <input
+                    v-model.number="progressDraft[entry.id]"
+                    type="number"
+                    :placeholder="`Page (/ ${entry.totalPages || '?'})`"
+                    min="0"
+                    :max="entry.totalPages || undefined"
+                    style="flex:1;background:#1a1a1a;border:1px solid #2a2a2a;color:#d4d4d4;font-family:'Courier New',monospace;font-size:9px;padding:4px 6px;outline:none;width:0;"
+                    @keyup.enter="saveProgress(entry)"
+                  />
+                  <button
+                    @click="saveProgress(entry)"
+                    style="background:#2a2a2a;border:none;color:#888;font-family:'Courier New',monospace;font-size:8px;letter-spacing:1px;padding:4px 8px;cursor:pointer;white-space:nowrap;"
+                  >OK</button>
+                </div>
+              </div>
+              <div v-else-if="entry.status === 'FINISHED' && entry.progress === 100" style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:1px;color:#22c55e;margin-bottom:6px;">
+                ✓ Terminé
+              </div>
+
               <!-- Dates -->
               <div style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:1px;color:#888;line-height:1.6;">
                 <div v-if="entry.startedAt">Commencé {{ fmt(entry.startedAt) }}</div>
                 <div v-if="entry.finishedAt">Terminé {{ fmt(entry.finishedAt) }}</div>
+                <div v-if="entry.lastReadAt && entry.status === 'IN_PROGRESS'">Lu {{ fmt(entry.lastReadAt) }}</div>
               </div>
             </div>
 
@@ -143,6 +178,7 @@ function authHeaders() {
 const pending = ref(true)
 const entries = ref([])
 const reviewMap = ref({})
+const progressDraft = reactive({})
 
 async function load() {
   pending.value = true
@@ -206,6 +242,21 @@ async function removeEntry(entry) {
       headers: authHeaders(),
     })
     entries.value = entries.value.filter(e => e.id !== entry.id)
+  } catch {}
+}
+
+async function saveProgress(entry) {
+  const currentPage = progressDraft[entry.id]
+  if (currentPage === undefined || currentPage === null || currentPage === '') return
+  try {
+    const updated = await $fetch(`${base}/reading-list/${entry.id}/progress`, {
+      method: 'PATCH',
+      body: { currentPage: Number(currentPage), totalPages: entry.totalPages || undefined },
+      headers: authHeaders(),
+    })
+    const idx = entries.value.findIndex(e => e.id === entry.id)
+    if (idx !== -1) entries.value[idx] = { ...entries.value[idx], ...updated }
+    progressDraft[entry.id] = ''
   } catch {}
 }
 
