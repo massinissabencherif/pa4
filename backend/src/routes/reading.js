@@ -58,6 +58,43 @@ router.patch("/reading-list/:id/status", requireAuth, async (req, res) => {
   res.json(updated);
 });
 
+// PATCH /reading-list/:id/progress — mettre à jour la progression
+router.patch("/reading-list/:id/progress", requireAuth, async (req, res) => {
+  const entry = await prisma.readingEntry.findUnique({ where: { id: req.params.id } });
+  if (!entry) return res.status(404).json({ error: "Entrée introuvable" });
+  if (entry.userId !== req.user.id) return res.status(403).json({ error: "Interdit" });
+
+  const currentPage = req.body.currentPage !== undefined ? Number.parseInt(req.body.currentPage, 10) : entry.currentPage;
+  const totalPages  = req.body.totalPages  !== undefined ? Number.parseInt(req.body.totalPages,  10) : entry.totalPages;
+
+  if (currentPage !== null && currentPage !== undefined && currentPage < 0)
+    return res.status(400).json({ error: "currentPage ne peut pas être négatif" });
+  if (totalPages !== null && totalPages !== undefined && totalPages < 1)
+    return res.status(400).json({ error: "totalPages doit être supérieur à 0" });
+  if (currentPage !== null && totalPages !== null && currentPage > totalPages)
+    return res.status(400).json({ error: "currentPage ne peut pas dépasser totalPages" });
+
+  const progress = (currentPage && totalPages) ? Math.round((currentPage / totalPages) * 100) : entry.progress;
+
+  const updates = { currentPage, totalPages, progress, lastReadAt: new Date() };
+
+  if (currentPage > 0 && entry.status === "TO_READ") {
+    updates.status = "IN_PROGRESS";
+    if (!entry.startedAt) updates.startedAt = new Date();
+  }
+  if (totalPages && currentPage === totalPages && entry.status !== "FINISHED") {
+    updates.status = "FINISHED";
+    if (!entry.finishedAt) updates.finishedAt = new Date();
+  }
+
+  const updated = await prisma.readingEntry.update({
+    where: { id: req.params.id },
+    data: updates,
+    include: { comic: true },
+  });
+  res.json(updated);
+});
+
 // GET /history — journal de lecture de l'utilisateur
 router.get("/history", requireAuth, async (req, res) => {
   const entries = await prisma.readingEntry.findMany({

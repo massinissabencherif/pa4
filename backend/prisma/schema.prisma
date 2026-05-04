@@ -96,14 +96,18 @@ model Comic {
 // ─── Journal de lecture ───────────────────────────────────────────────────────
 
 model ReadingEntry {
-  id         String        @id @default(cuid())
-  userId     String
-  comicId    String
-  status     ReadingStatus @default(TO_READ)
-  startedAt  DateTime?
-  finishedAt DateTime?
-  createdAt  DateTime      @default(now())
-  updatedAt  DateTime      @updatedAt
+  id          String        @id @default(cuid())
+  userId      String
+  comicId     String
+  status      ReadingStatus @default(TO_READ)
+  currentPage Int?
+  totalPages  Int?
+  progress    Int           @default(0)
+  startedAt   DateTime?
+  finishedAt  DateTime?
+  lastReadAt  DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
   user  User  @relation(fields: [userId],  references: [id])
   comic Comic @relation(fields: [comicId], references: [id])
