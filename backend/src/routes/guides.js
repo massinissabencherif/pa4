@@ -29,6 +29,10 @@ router.get("/guides/giphy", async (req, res) => {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+function rejectHtml(str) {
+  if (str && /<[^>]+>/.test(str)) throw Object.assign(new Error("HTML non autorisé"), { status: 400 });
+}
+
 function buildReplyTree(replies) {
   const map = {};
   for (const r of replies) map[r.id] = { ...r, children: [] };
@@ -99,6 +103,9 @@ router.post("/guides/:slug/topics", requireAuth, async (req, res) => {
   if (!title?.trim() || !content?.trim()) {
     return res.status(400).json({ error: "Titre et contenu requis" });
   }
+  if (title.length > 200) return res.status(400).json({ error: "Titre trop long (max 200 caractères)" });
+  if (content.length > 5000) return res.status(400).json({ error: "Contenu trop long (max 5000 caractères)" });
+  try { rejectHtml(title); rejectHtml(content); } catch { return res.status(400).json({ error: "HTML non autorisé dans le contenu" }); }
   const guide = await prisma.readingGuide.findUnique({
     where: { slug: req.params.slug },
     select: { id: true },
@@ -126,6 +133,8 @@ router.post("/guides/:slug/topics/:topicId/replies", requireAuth, async (req, re
   if (!content?.trim() && !imageUrl) {
     return res.status(400).json({ error: "Contenu ou GIF requis" });
   }
+  if (content && content.length > 2000) return res.status(400).json({ error: "Réponse trop longue (max 2000 caractères)" });
+  try { rejectHtml(content); } catch { return res.status(400).json({ error: "HTML non autorisé dans le contenu" }); }
   const topic = await prisma.guideTopic.findUnique({
     where: { id: req.params.topicId },
     select: { id: true },
