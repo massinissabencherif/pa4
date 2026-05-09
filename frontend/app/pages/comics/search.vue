@@ -1,115 +1,164 @@
 <template>
-  <div class="min-h-screen px-4 sm:px-6 py-12">
-    <div class="max-w-6xl mx-auto">
+  <div>
 
-      <!-- En-tête -->
-      <div class="mb-8">
-        <h1 class="text-3xl font-bold mb-1">Explorer les comics</h1>
-        <p class="text-gray-500 text-sm">Recherche dans la bibliothèque</p>
+    <!-- Page header -->
+    <div style="border-bottom:1px solid #1e1e1e;">
+      <div class="max-w-[1100px] mx-auto px-6 pt-9 pb-0">
+        <div style="font-family:'Courier New',monospace;font-size:8px;letter-spacing:5px;color:#e02020;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:10px;">
+          <div style="width:16px;height:2px;background:#e02020;flex-shrink:0;"></div>
+          Bibliothèque · {{ total }} comics
+        </div>
+        <div style="font-family:impact,sans-serif;font-size:52px;letter-spacing:1px;color:#fff;text-transform:uppercase;line-height:1;padding-bottom:18px;">EXPLORER</div>
       </div>
-
-      <!-- Barre de recherche + filtres -->
-      <div class="flex flex-col gap-4 mb-8">
-        <form @submit.prevent="doSearch" class="flex gap-3 max-w-xl">
-          <div class="relative flex-1">
-            <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input v-model="query" type="text" placeholder="Titre, auteur…" class="input pl-11" />
-          </div>
-          <button type="submit" :disabled="loading" class="btn-primary !px-6 shrink-0 disabled:opacity-40">
-            {{ loading ? '…' : 'Rechercher' }}
-          </button>
-        </form>
-
-        <!-- Filtres -->
-        <div class="flex flex-wrap gap-3">
-          <select v-model="selectedGenre" @change="doSearch" class="input !w-auto text-sm">
-            <option value="">Tous les genres</option>
-            <option v-for="g in genres" :key="g" :value="g">{{ g }}</option>
-          </select>
-          <select v-model="selectedAuthor" @change="doSearch" class="input !w-auto text-sm">
-            <option value="">Tous les éditeurs</option>
-            <option v-for="a in authorNames" :key="a" :value="a">{{ a }}</option>
-          </select>
-          <button
-            v-if="selectedGenre || selectedAuthor || query"
-            @click="clearFilters"
-            class="text-xs text-gray-500 hover:text-white transition px-3 py-2 rounded-lg border border-white/10 hover:border-white/20"
-          >
-            Réinitialiser
-          </button>
-        </div>
-      </div>
-
-      <!-- Erreur -->
-      <div v-if="error" class="card p-4 border-red-500/20 bg-red-500/5 text-sm text-red-400 mb-8">{{ error }}</div>
-
-      <!-- Résultats / grille -->
-      <template v-if="displayedComics.length">
-        <div class="flex items-center justify-between mb-5">
-          <p class="text-sm text-gray-500">
-            {{ total }} résultat{{ total > 1 ? 's' : '' }}
-            <span v-if="lastQuery" class="text-gray-300 font-medium"> pour "{{ lastQuery }}"</span>
-            <span v-if="selectedGenre" class="text-gray-300 font-medium"> · {{ selectedGenre }}</span>
-            <span v-if="selectedAuthor" class="text-gray-300 font-medium"> · {{ selectedAuthor }}</span>
-          </p>
-          <p v-if="totalPages > 1" class="text-xs text-gray-600">Page {{ currentPage }} / {{ totalPages }}</p>
-        </div>
-
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          <NuxtLink
-            v-for="comic in displayedComics"
-            :key="comic.id"
-            :to="`/comics/${comic.externalId}`"
-            class="group flex flex-col"
-          >
-            <div class="relative aspect-[2/3] rounded-xl overflow-hidden bg-white/5 mb-3 ring-1 ring-white/8 group-hover:ring-red-500/50 transition-all duration-200">
-              <img :src="getComicCover(comic)" :alt="comic.title" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
-              <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
-                <span class="text-xs text-white font-medium">Voir le détail →</span>
-              </div>
-            </div>
-            <p class="text-sm font-medium text-gray-200 line-clamp-2 leading-snug group-hover:text-white transition-colors">{{ comic.title }}</p>
-            <p v-if="comic.authors?.length" class="text-xs text-gray-600 mt-0.5 line-clamp-1">{{ comic.authors.join(', ') }}</p>
-          </NuxtLink>
-        </div>
-
-        <!-- Pagination -->
-        <div v-if="totalPages > 1" class="flex items-center justify-center gap-1 mt-12">
-          <button
-            @click="goToPage(currentPage - 1)"
-            :disabled="currentPage === 1 || loading"
-            class="px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition"
-          >← Préc.</button>
-
-          <template v-for="p in pageNumbers" :key="p">
-            <span v-if="p === '...'" class="px-2 py-2 text-gray-600 text-sm">…</span>
-            <button
-              v-else
-              @click="goToPage(p)"
-              :disabled="loading"
-              class="w-9 h-9 rounded-lg text-sm font-medium transition"
-              :class="p === currentPage ? 'bg-red-500 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'"
-            >{{ p }}</button>
-          </template>
-
-          <button
-            @click="goToPage(currentPage + 1)"
-            :disabled="currentPage === totalPages || loading"
-            class="px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition"
-          >Suiv. →</button>
-        </div>
-      </template>
-
-      <!-- Aucun résultat -->
-      <div v-else-if="!loading" class="text-center py-24">
-        <div class="text-5xl mb-4">🔍</div>
-        <p class="text-gray-400 font-medium mb-1">Aucun résultat</p>
-        <p class="text-gray-600 text-sm">Essaie d'autres critères de recherche.</p>
-      </div>
-
     </div>
+
+    <!-- Search bar -->
+    <div style="border-bottom:1px solid #1e1e1e;">
+      <div class="max-w-[1100px] mx-auto px-6 py-5">
+        <form @submit.prevent="doSearch" style="display:flex;">
+          <div style="flex:1;display:flex;align-items:stretch;border:1px solid #2a2a2a;border-right:none;">
+            <input
+              v-model="query"
+              type="text"
+              placeholder="Titre, auteur, éditeur…"
+              style="flex:1;background:transparent;border:none;color:#d4d4d4;font-family:'Courier New',monospace;font-size:14px;letter-spacing:1px;padding:14px 16px;outline:none;"
+            />
+          </div>
+          <button
+            type="submit"
+            :disabled="loading"
+            class="btn-primary"
+            style="border-radius:0;padding:0 28px;flex-shrink:0;font-size:12px;"
+            :style="loading ? 'opacity:0.4;' : ''"
+          >{{ loading ? '…' : 'RECHERCHER ▶' }}</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Filters strip -->
+    <div style="border-bottom:1px solid #1e1e1e;">
+      <div class="max-w-[1100px] mx-auto px-6" style="display:flex;align-items:center;height:44px;">
+        <span style="font-family:'Courier New',monospace;font-size:8px;letter-spacing:4px;color:#555;text-transform:uppercase;padding-right:20px;border-right:1px solid #1e1e1e;flex-shrink:0;">FILTRES</span>
+        <select
+          v-model="selectedGenre"
+          @change="doSearch"
+          style="background:transparent;border:none;border-right:1px solid #1e1e1e;color:#888;font-family:'Courier New',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:0 32px 0 16px;height:44px;outline:none;cursor:pointer;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2710%27 height=%276%27 fill=%27none%27%3E%3Cpath stroke=%27%23555%27 stroke-width=%271.5%27 d=%27M1 1l4 4 4-4%27/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 12px center;"
+        >
+          <option value="" style="background:#111;">Tous les genres</option>
+          <option v-for="g in genres" :key="g" :value="g" style="background:#111;">{{ g }}</option>
+        </select>
+        <select
+          v-model="selectedAuthor"
+          @change="doSearch"
+          style="background:transparent;border:none;border-right:1px solid #1e1e1e;color:#888;font-family:'Courier New',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:0 32px 0 16px;height:44px;outline:none;cursor:pointer;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2710%27 height=%276%27 fill=%27none%27%3E%3Cpath stroke=%27%23555%27 stroke-width=%271.5%27 d=%27M1 1l4 4 4-4%27/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 12px center;"
+        >
+          <option value="" style="background:#111;">Tous les éditeurs</option>
+          <option v-for="a in authorNames" :key="a" :value="a" style="background:#111;">{{ a }}</option>
+        </select>
+        <button
+          v-if="selectedGenre || selectedAuthor || query"
+          @click="clearFilters"
+          class="btn-ghost"
+          style="margin-left:auto;font-size:9px;letter-spacing:3px;padding:6px 14px;"
+        >× RÉINITIALISER</button>
+      </div>
+    </div>
+
+    <!-- Error -->
+    <div v-if="error" class="max-w-[1100px] mx-auto px-6 mt-6">
+      <div style="display:flex;align-items:center;gap:8px;background:rgba(224,32,32,0.08);border:1px solid rgba(224,32,32,0.2);padding:12px 16px;font-family:'Courier New',monospace;font-size:12px;color:#e02020;">
+        ⚠ {{ error }}
+      </div>
+    </div>
+
+    <!-- Results -->
+    <template v-if="displayedComics.length">
+
+      <!-- Results meta -->
+      <div class="max-w-[1100px] mx-auto px-6 py-5" style="display:flex;justify-content:space-between;align-items:center;">
+        <div style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:2px;color:#888;text-transform:uppercase;">
+          <span style="font-family:impact,sans-serif;font-size:14px;letter-spacing:1px;color:#e02020;">{{ total }}</span>
+          &nbsp;résultat{{ total > 1 ? 's' : '' }}
+          <span v-if="lastQuery"> pour "{{ lastQuery }}"</span>
+          <span v-if="selectedGenre"> · {{ selectedGenre }}</span>
+          <span v-if="selectedAuthor"> · {{ selectedAuthor }}</span>
+        </div>
+        <div v-if="totalPages > 1" style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:3px;color:#888;text-transform:uppercase;">
+          Page {{ currentPage }} / {{ totalPages }}
+        </div>
+      </div>
+
+      <!-- Comics grid -->
+      <div class="max-w-[1100px] mx-auto px-6 pb-12" style="display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:#1a1a1a;">
+        <NuxtLink
+          v-for="comic in displayedComics"
+          :key="comic.id"
+          :to="`/comics/${comic.externalId}`"
+          class="group"
+          style="background:#0f0f0f;display:flex;flex-direction:column;text-decoration:none;overflow:hidden;"
+        >
+          <!-- Cover -->
+          <div style="aspect-ratio:2/3;position:relative;overflow:hidden;background:#1a1a1a;">
+            <img
+              :src="getComicCover(comic)"
+              :alt="comic.title"
+              class="w-full h-full object-cover block group-hover:scale-[1.03]"
+              style="transition:transform 0.2s;"
+              loading="lazy"
+            />
+            <!-- Hover overlay -->
+            <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.85) 0%,transparent 50%);display:flex;align-items:flex-end;padding:10px;opacity:0;transition:opacity 0.2s;" class="group-hover:opacity-100">
+              <span style="font-family:impact,sans-serif;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#e02020;">VOIR →</span>
+            </div>
+          </div>
+          <!-- Info strip -->
+          <div style="padding:10px 12px 14px;border-top:1px solid #1a1a1a;flex:1;">
+            <div style="font-family:impact,sans-serif;font-size:13px;letter-spacing:0.5px;text-transform:uppercase;color:#fff;line-height:1.15;margin-bottom:5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ comic.title }}</div>
+            <div v-if="comic.authors?.length" style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:1px;color:#888;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px;">{{ comic.authors.join(', ') }}</div>
+            <div v-if="comic.avgRating" style="font-family:'Courier New',monospace;font-size:10px;color:#fbbf24;">{{ comic.avgRating.toFixed(1) }} ★</div>
+          </div>
+        </NuxtLink>
+      </div>
+
+      <!-- Pagination -->
+      <div v-if="totalPages > 1" class="max-w-[1100px] mx-auto px-6 pb-14" style="display:flex;align-items:center;border-top:1px solid #1e1e1e;padding-top:24px;margin-top:0;">
+        <button
+          @click="goToPage(currentPage - 1)"
+          :disabled="currentPage === 1 || loading"
+          style="background:transparent;border:1px solid #1e1e1e;border-right:none;color:#aaa;font-family:'Courier New',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:9px 16px;cursor:pointer;border-radius:0;"
+          :style="(currentPage === 1 || loading) ? 'opacity:0.25;cursor:not-allowed;' : ''"
+        >← PRÉC</button>
+
+        <template v-for="p in pageNumbers" :key="p">
+          <span
+            v-if="p === '...'"
+            style="padding:9px 10px;color:#888;font-size:9px;font-family:'Courier New',monospace;border:1px solid #1e1e1e;border-right:none;"
+          >…</span>
+          <button
+            v-else
+            @click="goToPage(p)"
+            :disabled="loading"
+            style="background:transparent;border:1px solid #1e1e1e;border-right:none;font-family:'Courier New',monospace;font-size:9px;letter-spacing:1px;padding:9px 14px;cursor:pointer;border-radius:0;transition:background 0.15s,color 0.15s;"
+            :style="p === currentPage ? 'background:#e02020;color:#fff;border-color:#e02020;' : 'color:#aaa;'"
+          >{{ p }}</button>
+        </template>
+
+        <button
+          @click="goToPage(currentPage + 1)"
+          :disabled="currentPage === totalPages || loading"
+          style="background:transparent;border:1px solid #1e1e1e;color:#aaa;font-family:'Courier New',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:9px 16px;cursor:pointer;border-radius:0;"
+          :style="(currentPage === totalPages || loading) ? 'opacity:0.25;cursor:not-allowed;' : ''"
+        >SUIV →</button>
+      </div>
+
+    </template>
+
+    <!-- Empty state -->
+    <div v-else-if="!loading" style="text-align:center;padding:96px 24px;">
+      <div style="font-family:impact,sans-serif;font-size:48px;letter-spacing:2px;text-transform:uppercase;color:#1e1e1e;margin-bottom:14px;">AUCUN RÉSULTAT</div>
+      <div style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:3px;color:#888;text-transform:uppercase;">Essaie d'autres critères de recherche.</div>
+    </div>
+
   </div>
 </template>
 

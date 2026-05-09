@@ -16,7 +16,7 @@
           :to="`/authors/${author.slug}`"
           class="card p-5 hover:border-red-500/30 transition group flex items-center gap-4"
         >
-          <div class="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-2xl shrink-0 group-hover:border-red-500/30 transition">
+          <div class="w-14 h-14 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-2xl shrink-0 group-hover:border-red-500/30 transition">
             ✍️
           </div>
           <div class="min-w-0">
@@ -26,7 +26,7 @@
         </NuxtLink>
       </div>
 
-      <div v-else class="text-center py-24 text-gray-600">
+      <div v-else class="text-center py-24 text-gray-400">
         <div class="text-4xl mb-3">✍️</div>
         <p>Aucun auteur disponible pour l'instant.</p>
       </div>

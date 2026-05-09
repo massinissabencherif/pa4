@@ -19,6 +19,7 @@ import feedRouter from "./routes/feed.js";
 import authorsRouter from "./routes/authors.js";
 import statsRouter from "./routes/stats.js";
 import commentsRouter from "./routes/comments.js";
+import guidesRouter from "./routes/guides.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -64,7 +65,11 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-app.use(cors({ origin: process.env.FRONTEND_URL || "http://localhost:3000", credentials: true }));
+const allowedOrigins = [
+  ...(process.env.FRONTEND_URL || "http://localhost:3000").split(",").map(o => o.trim()),
+  "http://localhost:3005",
+];
+app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json());
 
 // SESSION_SECRET séparé de JWT_SECRET — pas de fallback croisé
@@ -83,7 +88,12 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // Servir les fichiers uploadés (PDFs, couvertures)
-app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
+// Les PDFs sont affichés dans un iframe depuis le frontend — on lève les restrictions de framing
+app.use("/uploads", (req, res, next) => {
+  res.removeHeader("X-Frame-Options");
+  res.setHeader("Content-Security-Policy", "default-src 'none'");
+  next();
+}, express.static(path.join(__dirname, "..", "uploads")));
 
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });
@@ -104,6 +114,7 @@ app.use("/", listsRouter);
 app.use("/", adminRouter);
 app.use("/", usersRouter);
 app.use("/", feedRouter);
+app.use("/", guidesRouter);
 
 // ─── Middleware d'erreur global ───────────────────────────────────────────────
 app.use((err, req, res, next) => {

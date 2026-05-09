@@ -22,7 +22,7 @@
       <div v-else-if="comic" class="flex flex-col sm:flex-row gap-10">
         <!-- Couverture -->
         <div class="shrink-0">
-          <div class="w-52 rounded-2xl overflow-hidden ring-1 ring-white/10 shadow-2xl shadow-black/60">
+          <div class="w-52 rounded-2xl overflow-hidden ring-1 ring-white/20 shadow-2xl shadow-black/60">
             <img
               :src="getComicCover(comic)"
               :alt="comic.title"
@@ -50,12 +50,10 @@
             <!-- Auteurs texte libres -->
             <span v-else-if="comic.authors?.length" class="text-sm text-gray-300">{{ comic.authors.join(', ') }}</span>
             <!-- Éditeur -->
-            <span v-if="comic.publisher" class="text-sm text-gray-500">{{ comic.publisher }}</span>
+            <span v-if="comic.publisher" class="text-sm text-gray-400">{{ comic.publisher }}</span>
             <!-- Note moyenne -->
-            <div v-if="avgRating" class="flex items-center gap-1">
-              <span class="text-yellow-400 text-sm">★</span>
-              <span class="text-sm font-semibold text-white">{{ avgRating }}</span>
-              <span class="text-xs text-gray-600">({{ communityReviews.length }})</span>
+            <div v-if="avgRating" style="font-family:'Courier New',monospace;font-size:12px;color:#fbbf24;">
+              {{ avgRating }} ★ <span style="color:#888;font-size:10px;">({{ communityReviews.length }})</span>
             </div>
           </div>
 
@@ -64,14 +62,14 @@
             <span
               v-for="genre in comic.genres"
               :key="genre"
-              class="px-3 py-1 rounded-full bg-white/6 border border-white/10 text-xs text-gray-400"
+              class="px-3 py-1 rounded-full bg-white/10 border border-white/20 text-xs text-gray-300"
             >
               {{ genre }}
             </span>
           </div>
 
           <!-- Description -->
-          <p v-if="comic.description" class="text-gray-400 text-sm leading-relaxed mb-6">
+          <p v-if="comic.description" class="text-gray-300 text-sm leading-relaxed mb-6">
             {{ comic.description }}
           </p>
 
@@ -145,7 +143,7 @@
             <!-- Ajouter à une liste -->
             <div class="card p-5 max-w-md mb-4">
               <h3 class="font-semibold mb-3">Ajouter à une liste</h3>
-              <div v-if="!userLists.length" class="text-sm text-gray-500">
+              <div v-if="!userLists.length" class="text-sm text-gray-400">
                 Aucune liste.
                 <NuxtLink to="/lists" class="text-red-400 hover:text-red-300">Créer une liste →</NuxtLink>
               </div>
@@ -162,7 +160,7 @@
                     class="accent-red-500 w-4 h-4"
                   />
                   <span class="text-sm text-gray-300 group-hover:text-white transition-colors">{{ l.name }}</span>
-                  <span class="ml-auto text-xs text-gray-700">{{ l._count?.items ?? 0 }}</span>
+                  <span class="ml-auto text-xs text-gray-500">{{ l._count?.items ?? 0 }}</span>
                 </label>
               </div>
             </div>
@@ -236,7 +234,7 @@
             <div class="flex items-start justify-between gap-3 mb-2">
               <div class="flex items-center gap-3">
                 <NuxtLink :to="`/profile/${r.user.username}`" class="font-medium text-sm text-gray-300 hover:text-red-400 transition">{{ r.user.username }}</NuxtLink>
-                <span class="text-yellow-400 text-sm">{{ '★'.repeat(r.rating) }}<span class="text-gray-700">{{ '★'.repeat(5 - r.rating) }}</span></span>
+                <span style="font-family:'Courier New',monospace;font-size:12px;color:#fbbf24;">{{ r.rating }} ★</span>
               </div>
               <button
                 @click="toggleReviewLike(r)"
@@ -250,26 +248,34 @@
                 <span>{{ r.likeCount }}</span>
               </button>
             </div>
-            <p v-if="r.content" class="text-sm text-gray-400 leading-relaxed mb-4">{{ r.content }}</p>
+            <p v-if="r.content" class="text-sm text-gray-300 leading-relaxed mb-4">{{ r.content }}</p>
 
             <!-- Commentaires sur l'avis -->
-            <div class="border-t border-white/8 pt-3 mt-3 space-y-3">
+            <div class="border-t border-white/15 pt-3 mt-3 space-y-3">
               <div v-for="c in r.comments" :key="c.id" class="flex items-start gap-3">
                 <div class="flex-1 min-w-0">
                   <span class="text-xs font-medium text-gray-400">{{ c.user.username }}</span>
-                  <p class="text-xs text-gray-500 leading-relaxed mt-0.5">{{ c.content }}</p>
+                  <p class="text-xs text-gray-400 leading-relaxed mt-0.5">{{ c.content }}</p>
                 </div>
-                <button
-                  @click.stop="toggleCommentLike(c)"
-                  class="flex items-center gap-1 text-xs transition shrink-0 mt-0.5"
-                  :class="c.likedByMe ? 'text-red-400' : 'text-gray-600 hover:text-red-400'"
-                  :aria-label="c.likedByMe ? 'Retirer le like' : 'Liker'"
-                >
-                  <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                  </svg>
-                  <span>{{ c.likeCount }}</span>
-                </button>
+                <div class="flex items-center gap-2 shrink-0 mt-0.5">
+                  <button
+                    @click.stop="toggleCommentLike(c)"
+                    class="flex items-center gap-1 text-xs transition"
+                    :class="c.likedByMe ? 'text-red-400' : 'text-gray-600 hover:text-red-400'"
+                    :aria-label="c.likedByMe ? 'Retirer le like' : 'Liker'"
+                  >
+                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                    </svg>
+                    <span>{{ c.likeCount }}</span>
+                  </button>
+                  <button
+                    v-if="isLoggedIn && c.user.id === currentUserId"
+                    @click.stop="deleteComment(r, c)"
+                    class="text-xs text-gray-700 hover:text-red-400 transition"
+                    aria-label="Supprimer ce commentaire"
+                  >✕</button>
+                </div>
               </div>
 
               <!-- Formulaire -->
@@ -502,6 +508,20 @@ async function toggleList(list, checked) {
 
 // --- Commentaires & Likes ---
 const commentDrafts = reactive({})
+const currentUserId = computed(() => {
+  const { user } = useAuth()
+  return user.value?.id ?? null
+})
+
+async function deleteComment(review, comment) {
+  try {
+    await $fetch(`${base}/reviews/comments/${comment.id}`, {
+      method: 'DELETE',
+      headers: authHeaders(),
+    })
+    review.comments = review.comments.filter(c => c.id !== comment.id)
+  } catch {}
+}
 
 async function submitComment(review) {
   const content = commentDrafts[review.id]?.trim()

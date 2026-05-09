@@ -29,10 +29,11 @@
         <!-- En-tête -->
         <div class="mb-10">
           <h1 class="text-3xl font-bold mb-2">{{ list.name }}</h1>
-          <p class="text-gray-500 text-sm">
+          <p class="text-gray-500 text-sm mb-3">
             Par <span class="text-gray-300 font-medium">{{ list.user.username }}</span>
             · {{ list.items.length }} comic{{ list.items.length !== 1 ? 's' : '' }}
           </p>
+          <p v-if="list.description" class="text-gray-400 text-sm leading-relaxed max-w-xl">{{ list.description }}</p>
         </div>
 
         <!-- Vide -->
@@ -49,7 +50,7 @@
             :to="`/comics/${item.comic.externalId}`"
             class="group flex flex-col"
           >
-            <div class="relative aspect-[2/3] rounded-xl overflow-hidden bg-white/5 mb-3 ring-1 ring-white/8 group-hover:ring-red-500/50 transition-all duration-200">
+            <div class="relative aspect-[2/3] rounded-xl overflow-hidden bg-white/10 mb-3 ring-1 ring-white/8 group-hover:ring-red-500/50 transition-all duration-200">
               <img
                 :src="getComicCover(item.comic)"
                 :alt="item.comic.title"
