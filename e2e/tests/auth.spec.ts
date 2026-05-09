@@ -61,7 +61,7 @@ test.describe('Connexion', () => {
     await page.goto('/auth/login')
     await page.waitForLoadState('domcontentloaded')
     await dismissCookieBanner(page)
-    await expect(page.getByRole('heading', { name: /univers comics/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /connexion/i })).toBeVisible()
     await expect(page.getByPlaceholder('toi@example.com')).toBeVisible()
     await expect(page.getByPlaceholder('••••••••')).toBeVisible()
   })

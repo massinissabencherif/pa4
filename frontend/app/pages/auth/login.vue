@@ -57,8 +57,8 @@
 
           <!-- Credentials step -->
           <template v-else>
-            <div style="font-family:impact,sans-serif;font-size:28px;letter-spacing:2px;text-transform:uppercase;color:#fff;margin-bottom:4px;">CONNEXION</div>
-            <div style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:3px;color:#555;text-transform:uppercase;margin-bottom:28px;">Ton univers comics t'attend</div>
+            <h1 style="font-family:impact,sans-serif;font-size:28px;letter-spacing:2px;text-transform:uppercase;color:#fff;margin-bottom:4px;font-weight:normal;">CONNEXION</h1>
+            <p style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:3px;color:#555;text-transform:uppercase;margin-bottom:28px;">Ton univers comics t'attend</p>
 
             <form @submit.prevent="submit" class="space-y-5" aria-label="Connexion par email">
               <div>

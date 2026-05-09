@@ -8,7 +8,7 @@
           <div style="width:16px;height:2px;background:#e02020;flex-shrink:0;"></div>
           Suivi de lecture
         </div>
-        <div style="font-family:impact,sans-serif;font-size:52px;letter-spacing:1px;color:#fff;text-transform:uppercase;line-height:1;padding-bottom:18px;">MON JOURNAL</div>
+        <h1 style="font-family:impact,sans-serif;font-size:52px;letter-spacing:1px;color:#fff;text-transform:uppercase;line-height:1;padding-bottom:18px;font-weight:normal;">MON JOURNAL</h1>
       </div>
     </div>
 
