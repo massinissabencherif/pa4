@@ -65,6 +65,15 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+const writeLimiter = rateLimit({
+  windowMs: 60_000,
+  max: 20,
+  skip: () => process.env.NODE_ENV === "test",
+  message: { error: "Trop de requêtes, réessaie dans une minute." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 const allowedOrigins = [
   ...(process.env.FRONTEND_URL || "http://localhost:3000").split(",").map(o => o.trim()),
   "http://localhost:3005",
@@ -107,7 +116,8 @@ app.use("/auth", authLimiter, authRouter);
 app.use("/comics", comicsRouter);
 app.use("/authors", authorsRouter);
 app.use("/stats", statsRouter);
-app.use("/comments", commentsRouter);
+app.use("/comments", writeLimiter, commentsRouter);
+app.use(["/reviews", "/lists", "/guides"], writeLimiter);
 app.use("/", readingRouter);
 app.use("/", reviewsRouter);
 app.use("/", listsRouter);
