@@ -1,109 +1,112 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center px-4 py-16 bg-[#0a0a0f]">
-    <div class="absolute inset-0 pointer-events-none overflow-hidden">
-      <div class="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[300px] bg-red-800/8 rounded-full blur-3xl"></div>
-    </div>
+  <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:48px 24px;background:#0f0f0f;position:relative;">
+    <div style="position:fixed;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,0.055) 1px,transparent 1px);background-size:6px 6px;pointer-events:none;z-index:0;"></div>
 
-    <div class="relative w-full max-w-4xl flex flex-col lg:flex-row gap-12 items-center">
+    <div style="width:100%;max-width:420px;position:relative;z-index:1;">
+      <div class="card">
 
-      <!-- ── Contenu marketing ────────────────────────────────────────── -->
-      <div class="flex-1 hidden lg:block">
-        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass text-xs text-red-400 font-medium mb-6">
-          <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
-          Ton espace comics personnel
+        <!-- Header -->
+        <div style="padding:20px 28px;border-bottom:1px solid #1e1e1e;display:flex;align-items:center;justify-content:space-between;">
+          <NuxtLink to="/" class="flex items-center gap-[10px]">
+            <div style="width:24px;height:24px;background:#e02020;display:flex;align-items:center;justify-content:center;">
+              <span style="font-family:impact,sans-serif;font-size:13px;color:#fff;line-height:1;">C</span>
+            </div>
+            <span style="font-family:impact,sans-serif;font-size:15px;letter-spacing:4px;color:#fff;text-transform:uppercase;">COMICSTER</span>
+          </NuxtLink>
+          <span style="font-family:'Courier New',monospace;font-size:8px;letter-spacing:3px;color:#333;">№ 003</span>
         </div>
-        <h1 class="text-4xl font-extrabold tracking-tight leading-[1.15] mb-4">
-          Suis, note et<br />
-          <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-rose-400">
-            partage tes comics
-          </span>
-        </h1>
-        <p class="text-gray-400 leading-relaxed mb-8">
-          Journal de lecture, avis, listes personnalisées et recommandations.
-          Tout ce qu'il te faut pour ne jamais perdre le fil.
-        </p>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div v-for="f in features" :key="f.title" class="card p-4 flex gap-3">
-            <span class="text-2xl">{{ f.icon }}</span>
+        <!-- Marketing strip -->
+        <div style="padding:20px 28px;border-bottom:1px solid #1e1e1e;">
+          <div style="font-family:'Courier New',monospace;font-size:8px;letter-spacing:4px;color:#e02020;text-transform:uppercase;margin-bottom:14px;">Pourquoi Comicster ?</div>
+          <div
+            v-for="(f, i) in features"
+            :key="f.title"
+            style="display:flex;gap:14px;padding:12px 0;align-items:flex-start;"
+            :style="i < features.length - 1 ? 'border-bottom:1px solid #1a1a1a;' : ''"
+          >
+            <div style="font-family:impact,sans-serif;font-size:22px;color:#e02020;line-height:1;flex-shrink:0;width:28px;">{{ String(i + 1).padStart(2, '0') }}</div>
             <div>
-              <p class="font-semibold text-sm mb-0.5">{{ f.title }}</p>
-              <p class="text-gray-500 text-xs leading-relaxed">{{ f.desc }}</p>
+              <div style="font-family:impact,sans-serif;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#fff;margin-bottom:3px;">{{ f.title }}</div>
+              <div style="font-family:'Courier New',monospace;font-size:12px;line-height:1.6;color:#d4d4d4;">{{ f.desc }}</div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- ── Formulaire ───────────────────────────────────────────────── -->
-      <div class="w-full max-w-sm" id="form">
-        <div class="text-center mb-8">
-          <NuxtLink to="/" class="inline-flex items-center gap-2 mb-6">
-            <div class="w-9 h-9 bg-red-600 rounded-xl flex items-center justify-center shadow-lg shadow-red-900/40">
-              <span class="text-white font-black">C</span>
-            </div>
-          </NuxtLink>
-          <h2 class="text-2xl font-bold mb-1">Créer un compte</h2>
-          <p class="text-gray-500 text-sm">Gratuit et sans carte bancaire</p>
-        </div>
+        <!-- Form body -->
+        <div style="padding:28px;">
+          <div style="font-family:impact,sans-serif;font-size:28px;letter-spacing:2px;text-transform:uppercase;color:#fff;margin-bottom:4px;">CRÉER UN COMPTE</div>
+          <div style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:3px;color:#555;text-transform:uppercase;margin-bottom:28px;">Gratuit · Sans carte bancaire</div>
 
-        <!-- Bouton marketing mobile -->
-        <div class="lg:hidden text-center mb-6">
-          <p class="text-sm text-gray-400 mb-2">Journal de lecture · Notes & avis · Listes perso</p>
-        </div>
-
-        <div class="card p-7">
-          <form @submit.prevent="submit" class="space-y-4">
+          <form @submit.prevent="submit" class="space-y-5">
             <div>
-              <label class="block text-xs font-medium text-gray-400 mb-2">Email</label>
+              <label style="display:block;font-family:'Courier New',monospace;font-size:9px;letter-spacing:4px;color:#888;text-transform:uppercase;margin-bottom:8px;">Email</label>
               <input v-model="form.email" type="email" required placeholder="toi@example.com" class="input" />
             </div>
 
             <div>
-              <label class="block text-xs font-medium text-gray-400 mb-2">Nom d'utilisateur</label>
-              <input v-model="form.username" type="text" required minlength="3" placeholder="spider_reader" class="input" :class="usernameReserved ? 'border-red-500/60' : ''" />
-              <p v-if="usernameReserved" class="text-xs text-red-400 mt-1">Ce nom d'utilisateur est réservé.</p>
+              <label style="display:block;font-family:'Courier New',monospace;font-size:9px;letter-spacing:4px;color:#888;text-transform:uppercase;margin-bottom:8px;">Nom d'utilisateur</label>
+              <input
+                v-model="form.username"
+                type="text"
+                required
+                minlength="3"
+                placeholder="spider_reader"
+                class="input"
+                :style="usernameReserved ? 'border-bottom-color:#e02020;' : ''"
+              />
+              <p v-if="usernameReserved" style="font-family:'Courier New',monospace;font-size:11px;color:#e02020;margin-top:4px;">Ce nom d'utilisateur est réservé.</p>
             </div>
 
             <div>
-              <label class="block text-xs font-medium text-gray-400 mb-2">Mot de passe</label>
+              <label style="display:block;font-family:'Courier New',monospace;font-size:9px;letter-spacing:4px;color:#888;text-transform:uppercase;margin-bottom:8px;">Mot de passe</label>
               <input v-model="form.password" type="password" required minlength="8" placeholder="Au moins 8 caractères" class="input" />
-            </div>
-
-            <div v-if="form.password.length > 0" class="flex gap-1 mt-1 mb-1">
-              <div
-                v-for="i in 4" :key="i"
-                class="h-1 flex-1 rounded-full transition-all duration-300"
-                :class="i <= passwordStrength ? strengthColor : 'bg-white/10'"
-              ></div>
+              <div v-if="form.password.length > 0" style="display:flex;gap:3px;margin-top:6px;">
+                <div
+                  v-for="i in 4"
+                  :key="i"
+                  style="height:2px;flex:1;transition:all 0.3s;"
+                  :class="i <= passwordStrength ? strengthColor : 'bg-[#1e1e1e]'"
+                ></div>
+              </div>
             </div>
 
             <div>
-              <label class="block text-xs font-medium text-gray-400 mb-2">Confirmer le mot de passe</label>
-              <input v-model="form.passwordConfirm" type="password" required placeholder="Répète ton mot de passe" class="input" :class="passwordMismatch ? 'border-red-500/60' : ''" />
-              <p v-if="passwordMismatch" class="text-xs text-red-400 mt-1">Les mots de passe ne correspondent pas.</p>
+              <label style="display:block;font-family:'Courier New',monospace;font-size:9px;letter-spacing:4px;color:#888;text-transform:uppercase;margin-bottom:8px;">Confirmer le mot de passe</label>
+              <input
+                v-model="form.passwordConfirm"
+                type="password"
+                required
+                placeholder="Répète ton mot de passe"
+                class="input"
+                :style="passwordMismatch ? 'border-bottom-color:#e02020;' : ''"
+              />
+              <p v-if="passwordMismatch" style="font-family:'Courier New',monospace;font-size:11px;color:#e02020;margin-top:4px;">Les mots de passe ne correspondent pas.</p>
             </div>
 
-            <div v-if="error" class="flex items-center gap-2 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-sm text-red-400">
-              <span>⚠</span> {{ error }}
+            <div v-if="error" role="alert" style="display:flex;align-items:center;gap:8px;background:rgba(224,32,32,0.08);border:1px solid rgba(224,32,32,0.2);padding:10px 12px;font-family:'Courier New',monospace;font-size:11px;color:#e02020;">
+              <span aria-hidden="true">⚠</span> {{ error }}
             </div>
 
-            <button type="submit" :disabled="loading" class="btn-primary w-full justify-center !py-3 text-base mt-2">
-              <span v-if="loading" class="flex items-center justify-center gap-2">
-                <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+            <button type="submit" :disabled="loading" class="btn-primary" style="width:100%;justify-content:center;margin-top:8px;">
+              <span v-if="loading" class="flex items-center gap-2">
+                <svg class="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
                 </svg>
                 Création…
               </span>
-              <span v-else>Commencer gratuitement</span>
+              <span v-else>COMMENCER GRATUITEMENT ▶</span>
             </button>
           </form>
         </div>
 
-        <p class="text-center text-sm text-gray-600 mt-5">
+        <!-- Footer -->
+        <div style="padding:14px 28px;border-top:1px solid #1e1e1e;text-align:center;font-family:'Courier New',monospace;font-size:11px;color:#555;display:flex;align-items:center;justify-content:center;gap:6px;">
           Déjà un compte ?
-          <NuxtLink to="/auth/login" class="text-red-400 hover:text-red-300 font-medium transition">Se connecter</NuxtLink>
-        </p>
+          <NuxtLink to="/auth/login" style="color:#e02020;text-decoration:none;letter-spacing:1px;">Se connecter →</NuxtLink>
+        </div>
+
       </div>
     </div>
   </div>
