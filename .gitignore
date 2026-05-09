@@ -36,3 +36,10 @@ coverage/
 # Uploads (fichiers générés par les admins — ne pas versionner)
 backend/uploads/
 uploads/
+
+# Artefacts de tests et outils locaux
+audit/
+test-results/
+e2e/test-results/
+.playwright-mcp/
+.superpowers/

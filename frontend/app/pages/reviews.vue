@@ -67,16 +67,8 @@
                 </NuxtLink>
 
                 <!-- Étoiles -->
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-                  <div class="flex gap-0.5">
-                    <span
-                      v-for="s in 5"
-                      :key="s"
-                      style="font-size:16px;line-height:1;"
-                      :style="s <= review.rating ? 'color:#fbbf24;' : 'color:#3a3a3a;'"
-                    >★</span>
-                  </div>
-                  <span style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:2px;color:#888;">{{ review.rating }}/5</span>
+                <div style="margin-bottom:10px;">
+                  <span style="font-family:'Courier New',monospace;font-size:13px;color:#fbbf24;">{{ review.rating }} ★</span>
                 </div>
 
                 <!-- Texte -->

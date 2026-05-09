@@ -17,9 +17,6 @@
       <div class="max-w-[1100px] mx-auto px-6 py-5">
         <form @submit.prevent="doSearch" style="display:flex;">
           <div style="flex:1;display:flex;align-items:stretch;border:1px solid #2a2a2a;border-right:none;">
-            <div style="padding:0 14px;display:flex;align-items:center;border-right:1px solid #1e1e1e;flex-shrink:0;font-family:'Courier New',monospace;font-size:9px;letter-spacing:3px;color:#888;text-transform:uppercase;white-space:nowrap;">
-              QUERY_
-            </div>
             <input
               v-model="query"
               type="text"
@@ -117,7 +114,8 @@
           <!-- Info strip -->
           <div style="padding:10px 12px 14px;border-top:1px solid #1a1a1a;flex:1;">
             <div style="font-family:impact,sans-serif;font-size:13px;letter-spacing:0.5px;text-transform:uppercase;color:#fff;line-height:1.15;margin-bottom:5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ comic.title }}</div>
-            <div v-if="comic.authors?.length" style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:1px;color:#888;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ comic.authors.join(', ') }}</div>
+            <div v-if="comic.authors?.length" style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:1px;color:#888;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px;">{{ comic.authors.join(', ') }}</div>
+            <div v-if="comic.avgRating" style="font-family:'Courier New',monospace;font-size:10px;color:#fbbf24;">{{ comic.avgRating.toFixed(1) }} ★</div>
           </div>
         </NuxtLink>
       </div>

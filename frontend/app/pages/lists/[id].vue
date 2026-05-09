@@ -180,7 +180,9 @@ async function removeComic(comicId) {
       headers: authHeaders(),
     })
     list.value.items = list.value.items.filter(i => i.comicId !== comicId)
-  } catch {}
+  } catch (e) {
+    alert(e.data?.error || 'Erreur lors de la suppression')
+  }
 }
 
 // Copie du lien

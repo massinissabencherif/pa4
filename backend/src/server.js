@@ -19,6 +19,7 @@ import feedRouter from "./routes/feed.js";
 import authorsRouter from "./routes/authors.js";
 import statsRouter from "./routes/stats.js";
 import commentsRouter from "./routes/comments.js";
+import guidesRouter from "./routes/guides.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -113,6 +114,7 @@ app.use("/", listsRouter);
 app.use("/", adminRouter);
 app.use("/", usersRouter);
 app.use("/", feedRouter);
+app.use("/", guidesRouter);
 
 // ─── Middleware d'erreur global ───────────────────────────────────────────────
 app.use((err, req, res, next) => {

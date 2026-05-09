@@ -47,7 +47,7 @@
                 </div>
                 <!-- Note -->
                 <div v-if="comic.avgRating" class="absolute top-2 right-2 bg-black/70 rounded-md px-1.5 py-0.5 text-xs font-semibold text-yellow-400">
-                  ★ {{ comic.avgRating }}
+                  {{ comic.avgRating }} ★
                 </div>
               </div>
               <p class="text-sm font-medium text-gray-200 line-clamp-2 leading-snug group-hover:text-white transition-colors">
