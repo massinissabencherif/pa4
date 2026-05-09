@@ -35,7 +35,7 @@
 
         <!-- Form body -->
         <div style="padding:28px;">
-          <div style="font-family:impact,sans-serif;font-size:28px;letter-spacing:2px;text-transform:uppercase;color:#fff;margin-bottom:4px;">CRÉER UN COMPTE</div>
+          <h1 style="font-family:impact,sans-serif;font-size:28px;letter-spacing:2px;text-transform:uppercase;color:#fff;margin-bottom:4px;font-weight:normal;">CRÉER UN COMPTE</h1>
           <div style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:3px;color:#555;text-transform:uppercase;margin-bottom:28px;">Gratuit · Sans carte bancaire</div>
 
           <form @submit.prevent="submit" class="space-y-5">
