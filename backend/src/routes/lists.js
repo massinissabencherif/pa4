@@ -26,6 +26,40 @@ router.get("/lists", requireAuth, async (req, res) => {
   res.json(lists);
 });
 
+// GET /lists/discover — toutes les listes publiques (sans auth, avec recherche)
+router.get("/lists/discover", async (req, res) => {
+  const q = req.query.q?.trim() || "";
+  const limit = Math.min(parseInt(req.query.limit) || 24, 50);
+  const offset = parseInt(req.query.offset) || 0;
+
+  const where = {
+    isPublic: true,
+    ...(q ? {
+      OR: [
+        { name: { contains: q, mode: "insensitive" } },
+        { description: { contains: q, mode: "insensitive" } },
+        { user: { username: { contains: q, mode: "insensitive" } } },
+      ],
+    } : {}),
+  };
+
+  const [lists, total] = await Promise.all([
+    prisma.list.findMany({
+      where,
+      include: {
+        user: { select: { username: true } },
+        _count: { select: { items: true } },
+      },
+      orderBy: { updatedAt: "desc" },
+      take: limit,
+      skip: offset,
+    }),
+    prisma.list.count({ where }),
+  ]);
+
+  res.json({ lists, total });
+});
+
 // GET /lists/public/:slug — liste publique (sans auth)
 router.get("/lists/public/:slug", async (req, res) => {
   const list = await prisma.list.findUnique({
@@ -61,30 +95,34 @@ router.get("/lists/:id", requireAuth, async (req, res) => {
 
 // POST /lists — créer une liste
 router.post("/lists", requireAuth, async (req, res) => {
-  const { name, isPublic = false } = req.body;
+  const { name, isPublic = false, description } = req.body;
   if (!name || name.trim().length === 0) {
     return res.status(400).json({ error: "name est requis" });
   }
 
   const slug = await uniqueSlug(name.trim());
   const list = await prisma.list.create({
-    data: { userId: req.user.id, name: name.trim(), slug, isPublic: Boolean(isPublic) },
+    data: {
+      userId: req.user.id,
+      name: name.trim(),
+      slug,
+      isPublic: Boolean(isPublic),
+      description: description?.trim() || null,
+    },
   });
   res.status(201).json(list);
 });
 
-// PATCH /lists/:id — renommer une liste
+// PATCH /lists/:id — renommer / modifier description
 router.patch("/lists/:id", requireAuth, async (req, res) => {
-  const { name } = req.body;
+  const { name, description } = req.body;
   const list = await prisma.list.findUnique({ where: { id: req.params.id } });
   if (!list) return res.status(404).json({ error: "Liste introuvable" });
   if (list.userId !== req.user.id) return res.status(403).json({ error: "Interdit" });
 
   const updates = {};
-  if (name && name.trim().length > 0) {
-    updates.name = name.trim();
-    // Le slug reste stable après création pour préserver les liens publics
-  }
+  if (name && name.trim().length > 0) updates.name = name.trim();
+  if (description !== undefined) updates.description = description?.trim() || null;
 
   const updated = await prisma.list.update({ where: { id: req.params.id }, data: updates });
   res.json(updated);
@@ -115,7 +153,7 @@ router.delete("/lists/:id", requireAuth, async (req, res) => {
   if (list.userId !== req.user.id) return res.status(403).json({ error: "Interdit" });
 
   await prisma.list.delete({ where: { id: req.params.id } });
-  res.status(204).end();
+  res.json({ success: true });
 });
 
 // POST /lists/:id/comics — ajouter un comic
@@ -156,7 +194,7 @@ router.delete("/lists/:id/comics/:comicId", requireAuth, async (req, res) => {
   await prisma.listItem.delete({
     where: { listId_comicId: { listId: req.params.id, comicId: req.params.comicId } },
   });
-  res.status(204).end();
+  res.json({ success: true });
 });
 
 export default router;

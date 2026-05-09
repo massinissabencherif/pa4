@@ -20,7 +20,7 @@
           <div class="flex-1">
             <div v-if="!editingName" class="flex items-center gap-3">
               <h1 class="text-3xl font-bold">{{ list.name }}</h1>
-              <button @click="startEditName" class="text-gray-600 hover:text-gray-300 transition p-1">
+              <button @click="startEditName" class="text-gray-400 hover:text-gray-300 transition p-1">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                 </svg>
@@ -40,7 +40,7 @@
               class="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm transition-all border"
               :class="list.isPublic
                 ? 'border-green-500/30 bg-green-500/10 text-green-400 hover:bg-green-500/20'
-                : 'border-white/10 bg-white/5 text-gray-500 hover:border-white/20'"
+                : 'border-white/20 bg-white/10 text-gray-500 hover:border-white/20'"
             >
               {{ list.isPublic ? '🌐 Publique' : '🔒 Privée' }}
             </button>
@@ -55,7 +55,7 @@
         </div>
 
         <!-- Info count -->
-        <p class="text-sm text-gray-600 mb-8">
+        <p class="text-sm text-gray-400 mb-8">
           {{ list.items.length }} comic{{ list.items.length !== 1 ? 's' : '' }} dans cette liste
         </p>
 
@@ -63,7 +63,7 @@
         <div v-if="!list.items.length" class="text-center py-20">
           <div class="text-5xl mb-4">📭</div>
           <p class="text-gray-400 mb-2">Cette liste est vide</p>
-          <p class="text-gray-600 text-sm">Ajoute des comics depuis la page de recherche ou les pages détail.</p>
+          <p class="text-gray-400 text-sm">Ajoute des comics depuis la page de recherche ou les pages détail.</p>
           <NuxtLink to="/comics/search" class="btn-ghost !px-6 mt-6 inline-block">Explorer les comics</NuxtLink>
         </div>
 
@@ -85,7 +85,7 @@
             </button>
 
             <NuxtLink :to="`/comics/${item.comic.externalId}`" class="flex flex-col flex-1">
-              <div class="relative aspect-[2/3] rounded-xl overflow-hidden bg-white/5 mb-3 ring-1 ring-white/8 group-hover:ring-red-500/50 transition-all duration-200">
+              <div class="relative aspect-[2/3] rounded-xl overflow-hidden bg-white/10 mb-3 ring-1 ring-white/8 group-hover:ring-red-500/50 transition-all duration-200">
                 <img
                   :src="getComicCover(item.comic)"
                   :alt="item.comic.title"
@@ -180,7 +180,9 @@ async function removeComic(comicId) {
       headers: authHeaders(),
     })
     list.value.items = list.value.items.filter(i => i.comicId !== comicId)
-  } catch {}
+  } catch (e) {
+    alert(e.data?.error || 'Erreur lors de la suppression')
+  }
 }
 
 // Copie du lien

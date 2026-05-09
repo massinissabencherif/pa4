@@ -1,126 +1,123 @@
 <template>
-  <div class="min-h-screen flex flex-col">
+  <div class="min-h-screen flex flex-col" style="position:relative;z-index:1;">
+
     <!-- Navbar -->
-    <header
-      class="fixed top-0 inset-x-0 z-50 transition-all duration-300"
-      :class="scrolled ? 'bg-[#0a0a0f]/90 backdrop-blur-xl border-b border-white/5 shadow-xl shadow-black/20' : 'bg-transparent'"
-    >
-      <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+    <header class="fixed top-0 inset-x-0 z-50" style="background:#0f0f0f;border-bottom:1px solid #1e1e1e;">
+      <div style="height:2px;background:#e02020;"></div>
+      <div class="max-w-[1100px] mx-auto px-6 h-[52px] flex items-center justify-between">
+
         <!-- Logo -->
-        <NuxtLink to="/" class="flex items-center gap-2 group" aria-label="Comicster — Accueil">
-          <div class="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center shadow-lg shadow-red-900/40 group-hover:scale-105 transition-transform">
-            <span class="text-white font-black text-sm">C</span>
+        <NuxtLink to="/" class="flex items-center gap-[10px]" aria-label="Comicster — Accueil">
+          <div style="width:26px;height:26px;background:#e02020;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <span style="font-family:impact,sans-serif;font-size:15px;color:#fff;line-height:1;">C</span>
           </div>
-          <span class="font-bold text-lg tracking-tight">
-            <span class="text-red-500">Comic</span><span class="text-white">ster</span>
-          </span>
+          <span style="font-family:impact,sans-serif;font-size:18px;letter-spacing:4px;color:#fff;text-transform:uppercase;">COMICSTER</span>
         </NuxtLink>
 
         <!-- Nav links -->
-        <nav class="hidden sm:flex items-center gap-1" aria-label="Navigation principale">
+        <nav class="hidden sm:flex items-center" aria-label="Navigation principale">
           <NuxtLink
             v-if="isLoggedIn"
             to="/feed"
-            class="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-all"
-            active-class="text-white bg-white/8"
-          >
-            Feed
-          </NuxtLink>
+            style="font-family:'Courier New',monospace;font-size:8px;letter-spacing:3px;text-transform:uppercase;color:#aaa;padding:0 14px;height:52px;display:flex;align-items:center;border-left:1px solid #2a2a2a;border-right:1px solid #2a2a2a;text-decoration:none;transition:color 0.15s;"
+            active-class="!text-[#e02020]"
+          >Feed</NuxtLink>
           <NuxtLink
             v-if="isLoggedIn"
             to="/comics/search"
-            class="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-all"
-            active-class="text-white bg-white/8"
-          >
-            Explorer
-          </NuxtLink>
+            style="font-family:'Courier New',monospace;font-size:8px;letter-spacing:3px;text-transform:uppercase;color:#aaa;padding:0 14px;height:52px;display:flex;align-items:center;border-right:1px solid #2a2a2a;text-decoration:none;transition:color 0.15s;"
+            active-class="!text-[#e02020]"
+          >Explorer</NuxtLink>
           <NuxtLink
             v-if="isLoggedIn"
             to="/journal"
-            class="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-all"
-            active-class="text-white bg-white/8"
-          >
-            Journal
-          </NuxtLink>
+            style="font-family:'Courier New',monospace;font-size:8px;letter-spacing:3px;text-transform:uppercase;color:#aaa;padding:0 14px;height:52px;display:flex;align-items:center;border-right:1px solid #2a2a2a;text-decoration:none;transition:color 0.15s;"
+            active-class="!text-[#e02020]"
+          >Journal</NuxtLink>
           <NuxtLink
             v-if="isLoggedIn"
             to="/lists"
-            class="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-all"
-            active-class="text-white bg-white/8"
-          >
-            Listes
-          </NuxtLink>
+            style="font-family:'Courier New',monospace;font-size:8px;letter-spacing:3px;text-transform:uppercase;color:#aaa;padding:0 14px;height:52px;display:flex;align-items:center;border-right:1px solid #2a2a2a;text-decoration:none;transition:color 0.15s;"
+            active-class="!text-[#e02020]"
+          >Listes</NuxtLink>
           <NuxtLink
             v-if="isLoggedIn"
             to="/reviews"
-            class="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-all"
-            active-class="text-white bg-white/8"
-          >
-            Mes avis
-          </NuxtLink>
+            style="font-family:'Courier New',monospace;font-size:8px;letter-spacing:3px;text-transform:uppercase;color:#aaa;padding:0 14px;height:52px;display:flex;align-items:center;border-right:1px solid #2a2a2a;text-decoration:none;transition:color 0.15s;"
+            active-class="!text-[#e02020]"
+          >Avis</NuxtLink>
+          <NuxtLink
+            v-if="isLoggedIn"
+            to="/recommendations"
+            style="font-family:'Courier New',monospace;font-size:8px;letter-spacing:3px;text-transform:uppercase;color:#aaa;padding:0 14px;height:52px;display:flex;align-items:center;border-right:1px solid #2a2a2a;text-decoration:none;transition:color 0.15s;"
+            active-class="!text-[#e02020]"
+          >Guide</NuxtLink>
           <NuxtLink
             v-if="isLoggedIn"
             to="/dashboard"
-            class="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-all"
-            active-class="text-white bg-white/8"
-          >
-            Mes stats
-          </NuxtLink>
+            style="font-family:'Courier New',monospace;font-size:8px;letter-spacing:3px;text-transform:uppercase;color:#aaa;padding:0 14px;height:52px;display:flex;align-items:center;border-right:1px solid #2a2a2a;text-decoration:none;transition:color 0.15s;"
+            active-class="!text-[#e02020]"
+          >Stats</NuxtLink>
         </nav>
 
         <!-- Auth actions -->
         <div class="flex items-center gap-3">
           <template v-if="isLoggedIn">
+            <span class="hidden sm:block" style="font-family:'Courier New',monospace;font-size:7px;letter-spacing:3px;color:#666;text-transform:uppercase;">№ 2026</span>
             <NuxtLink
               v-if="isAdmin"
               to="/admin"
-              class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all border border-red-500/20"
-            >
-              🛡 Admin
-            </NuxtLink>
+              class="hidden sm:flex items-center btn-ghost"
+              style="font-size:9px;padding:6px 12px;border-color:#e02020;color:#e02020;"
+            >ADMIN</NuxtLink>
             <NuxtLink
               to="/settings/security"
-              class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full glass text-sm text-gray-300 hover:text-white transition"
+              class="hidden sm:flex items-center gap-2"
+              style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:2px;color:#aaa;text-transform:uppercase;text-decoration:none;transition:color 0.15s;"
               :title="`Connecté en tant que ${user?.username}`"
             >
-              <div class="w-2 h-2 rounded-full bg-green-500"></div>
+              <div style="width:6px;height:6px;border-radius:50%;background:#22c55e;flex-shrink:0;"></div>
               {{ user?.username }}
             </NuxtLink>
             <button
               @click="logout"
-              class="text-gray-500 hover:text-gray-300 text-sm transition"
-            >
-              Déconnexion
-            </button>
+              style="font-family:'Courier New',monospace;font-size:8px;letter-spacing:2px;color:#888;text-transform:uppercase;background:none;border:none;cursor:pointer;transition:color 0.15s;"
+            >DÉCO_</button>
           </template>
           <template v-else>
-            <NuxtLink to="/auth/login" class="text-sm text-gray-400 hover:text-white transition px-3 py-2">
-              Connexion
-            </NuxtLink>
-            <NuxtLink to="/auth/register" class="btn-primary text-sm !py-2 !px-4">
-              S'inscrire
+            <span class="hidden sm:block" style="font-family:'Courier New',monospace;font-size:7px;letter-spacing:3px;color:#666;text-transform:uppercase;">№ 2026</span>
+            <NuxtLink
+              to="/auth/login"
+              style="font-family:'Courier New',monospace;font-size:8px;letter-spacing:3px;text-transform:uppercase;color:#aaa;text-decoration:none;padding:7px 14px;border:1px solid #3a3a3a;transition:border-color 0.15s,color 0.15s;"
+            >LOGIN_</NuxtLink>
+            <NuxtLink to="/auth/register" class="btn-primary" style="font-size:11px;padding:8px 16px;">
+              S'INSCRIRE
             </NuxtLink>
           </template>
         </div>
+
       </div>
     </header>
 
     <!-- Page content -->
-    <main class="flex-1 pt-16">
+    <main class="flex-1" style="padding-top:54px;position:relative;z-index:1;">
       <slot />
     </main>
 
     <!-- Footer -->
-    <footer class="border-t border-white/5 py-8 px-4 mt-auto">
-      <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-600">
-        <span><span class="text-red-600">Comic</span>ster — Ton journal de comics</span>
-        <div class="flex gap-6">
-          <NuxtLink to="/comics/search" class="hover:text-gray-400 transition">Explorer</NuxtLink>
-          <NuxtLink to="/rgpd" class="hover:text-gray-400 transition">RGPD</NuxtLink>
-          <NuxtLink to="/mentions-legales" class="hover:text-gray-400 transition">Mentions légales</NuxtLink>
+    <footer style="border-top:1px solid #1e1e1e;position:relative;z-index:1;">
+      <div style="height:2px;background:#e02020;"></div>
+      <div class="max-w-[1100px] mx-auto px-6 py-[22px] flex flex-col sm:flex-row items-center justify-between gap-3">
+        <span style="font-family:impact,sans-serif;font-size:13px;letter-spacing:4px;color:#555;text-transform:uppercase;">
+          COMICSTER — TON JOURNAL DE COMICS
+        </span>
+        <div class="flex">
+          <NuxtLink to="/rgpd" style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:3px;color:#888;text-transform:uppercase;text-decoration:none;padding:0 16px;border-right:1px solid #2a2a2a;transition:color 0.15s;">RGPD</NuxtLink>
+          <NuxtLink to="/mentions-legales" style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:3px;color:#888;text-transform:uppercase;text-decoration:none;padding:0 16px;transition:color 0.15s;">Mentions</NuxtLink>
         </div>
       </div>
     </footer>
+
   </div>
 </template>
 

@@ -33,6 +33,8 @@ model User {
   reviewLikes    ReviewLike[]
   refreshTokens  RefreshToken[]
   badges         UserBadge[]
+  guideTopics    GuideTopic[]   @relation("GuideTopic_author")
+  guideReplies   GuideReply[]   @relation("GuideReply_author")
 }
 
 enum Role {
@@ -96,14 +98,18 @@ model Comic {
 // ─── Journal de lecture ───────────────────────────────────────────────────────
 
 model ReadingEntry {
-  id         String        @id @default(cuid())
-  userId     String
-  comicId    String
-  status     ReadingStatus @default(TO_READ)
-  startedAt  DateTime?
-  finishedAt DateTime?
-  createdAt  DateTime      @default(now())
-  updatedAt  DateTime      @updatedAt
+  id          String        @id @default(cuid())
+  userId      String
+  comicId     String
+  status      ReadingStatus @default(TO_READ)
+  currentPage Int?
+  totalPages  Int?
+  progress    Int           @default(0)
+  startedAt   DateTime?
+  finishedAt  DateTime?
+  lastReadAt  DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
   user  User  @relation(fields: [userId],  references: [id])
   comic Comic @relation(fields: [comicId], references: [id])
@@ -220,13 +226,14 @@ model UserBadge {
 // ─── Listes personnalisées ───────────────────────────────────────────────────
 
 model List {
-  id        String   @id @default(cuid())
-  userId    String
-  name      String
-  slug      String   @unique
-  isPublic  Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  slug        String   @unique
+  description String?
+  isPublic    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   user  User       @relation(fields: [userId], references: [id])
   items ListItem[]
@@ -239,8 +246,69 @@ model ListItem {
   comicId String
   addedAt DateTime @default(now())
 
-  list  List  @relation(fields: [listId],  references: [id])
-  comic Comic @relation(fields: [comicId], references: [id])
+  list  List  @relation(fields: [listId],  references: [id], onDelete: Cascade)
+  comic Comic @relation(fields: [comicId], references: [id], onDelete: Cascade)
 
   @@id([listId, comicId])
+}
+
+// ─── Guides de lecture (Parcours) ───────────────────────────────────────────
+
+model ReadingGuide {
+  id           String       @id @default(cuid())
+  slug         String       @unique
+  character    String
+  imageUrl     String?
+  teaser       String
+  story        String
+  relatedSlugs String[]     @default([])
+  comics       GuideComic[]
+  topics       GuideTopic[]
+  createdAt    DateTime     @default(now())
+}
+
+model GuideComic {
+  id       String       @id @default(cuid())
+  guide    ReadingGuide @relation(fields: [guideId], references: [id], onDelete: Cascade)
+  guideId  String
+  title    String
+  coverUrl String?
+  comicUrl String?
+  note     String
+  order    Int          @default(0)
+
+  @@index([guideId])
+}
+
+model GuideTopic {
+  id        String       @id @default(cuid())
+  guide     ReadingGuide @relation(fields: [guideId], references: [id], onDelete: Cascade)
+  guideId   String
+  author    User         @relation("GuideTopic_author", fields: [authorId], references: [id])
+  authorId  String
+  title     String
+  content   String
+  imageUrl  String?
+  replies   GuideReply[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@index([guideId])
+}
+
+model GuideReply {
+  id        String       @id @default(cuid())
+  topic     GuideTopic   @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  topicId   String
+  parent    GuideReply?  @relation("ReplyThread", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  parentId  String?
+  children  GuideReply[] @relation("ReplyThread")
+  author    User         @relation("GuideReply_author", fields: [authorId], references: [id])
+  authorId  String
+  content   String
+  imageUrl  String?
+  createdAt DateTime     @default(now())
+
+  @@index([topicId])
+  @@index([parentId])
 }

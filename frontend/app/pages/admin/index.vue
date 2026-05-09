@@ -30,6 +30,12 @@
           </svg>
           Créer un auteur
         </button>
+        <button v-else-if="activeTab === 'guides'" @click="showGuideForm = true" class="btn-primary flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          Créer un parcours
+        </button>
       </div>
 
       <!-- Onglets -->
@@ -56,7 +62,7 @@
       <!-- Modal import CSV -->
       <Teleport to="body">
         <div v-if="showCsvImport" class="fixed inset-0 z-50 flex items-start justify-center px-4 py-8 overflow-y-auto">
-          <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="closeCsvImport" />
+          <div class="fixed inset-0 bg-black/70 backdrop-blur-sm" @click="closeCsvImport" />
           <div class="relative w-full max-w-2xl my-auto">
             <div class="card p-7">
               <h2 class="text-xl font-bold mb-1">Import CSV en masse</h2>
@@ -233,7 +239,7 @@
       <!-- Modal upload -->
       <Teleport to="body">
         <div v-if="showUpload" class="fixed inset-0 z-50 flex items-start justify-center px-4 py-8 overflow-y-auto">
-          <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="closeUpload" />
+          <div class="fixed inset-0 bg-black/70 backdrop-blur-sm" @click="closeUpload" />
           <div class="relative w-full max-w-lg my-auto">
             <div class="card p-7">
               <h2 class="text-xl font-bold mb-6">{{ editing ? 'Modifier le comic' : 'Ajouter un comic' }}</h2>
@@ -313,8 +319,23 @@
                 </div>
 
                 <!-- Fichier PDF -->
-                <div v-if="!editing">
-                  <label class="block text-xs font-medium text-gray-400 mb-1.5">Fichier PDF *</label>
+                <div>
+                  <label class="block text-xs font-medium text-gray-400 mb-1.5">
+                    Fichier PDF <span v-if="!editing" class="text-red-400">*</span>
+                    <span v-else class="text-gray-600">(optionnel — remplace le PDF actuel)</span>
+                  </label>
+
+                  <!-- Mode édition : URL texte + lien actuel -->
+                  <div v-if="editing" class="space-y-2 mb-2">
+                    <div v-if="form.pdfUrl && !pdfFile" class="flex items-center gap-2 text-xs text-blue-400 bg-blue-500/10 border border-blue-500/20 rounded-lg px-3 py-2">
+                      <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414A1 1 0 0120 9.414V19a2 2 0 01-2 2z"/>
+                      </svg>
+                      <span class="truncate">PDF actuel : {{ form.pdfUrl }}</span>
+                    </div>
+                    <input v-model="form.pdfUrl" type="text" placeholder="/uploads/comic-… ou https://…" class="input text-sm" />
+                  </div>
+
                   <div
                     class="relative border-2 border-dashed border-white/10 hover:border-red-500/40 rounded-xl p-6 text-center cursor-pointer transition-colors"
                     @click="$refs.pdfInput.click()"
@@ -334,7 +355,7 @@
                       <svg class="w-8 h-8 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
                       </svg>
-                      <p class="text-sm">Glisse le PDF ici ou <span class="text-red-400">clique pour choisir</span></p>
+                      <p class="text-sm">{{ editing ? 'Uploader un nouveau PDF' : 'Glisse le PDF ici ou' }} <span class="text-red-400">clique pour choisir</span></p>
                       <p class="text-xs mt-1">100 Mo maximum</p>
                     </div>
                   </div>
@@ -343,8 +364,18 @@
                 <!-- Image de couverture -->
                 <div>
                   <label class="block text-xs font-medium text-gray-400 mb-1.5">
-                    Couverture <span class="text-gray-600">(JPG / PNG — optionnel)</span>
+                    Couverture <span class="text-gray-600">(JPG / PNG / WebP — optionnel)</span>
                   </label>
+
+                  <!-- Mode édition : URL texte + preview actuelle -->
+                  <div v-if="editing" class="space-y-2 mb-2">
+                    <div v-if="form.coverUrl && !coverFile" class="flex items-center gap-3 bg-white/5 border border-white/10 rounded-lg px-3 py-2">
+                      <img :src="form.coverUrl" class="w-8 h-11 object-cover rounded shrink-0" @error="e => e.target.style.display='none'" />
+                      <span class="text-xs text-gray-400 truncate">{{ form.coverUrl }}</span>
+                    </div>
+                    <input v-model="form.coverUrl" type="text" placeholder="/covers/defaults/… ou https://…" class="input text-sm" />
+                  </div>
+
                   <div
                     class="relative border-2 border-dashed border-white/10 hover:border-red-500/40 rounded-xl p-4 text-center cursor-pointer transition-colors"
                     @click="$refs.coverInput.click()"
@@ -356,7 +387,7 @@
                       <span class="text-sm text-green-400">{{ coverFile.name }}</span>
                     </div>
                     <div v-else class="text-gray-500 text-sm">
-                      Clique pour ajouter une couverture
+                      {{ editing ? 'Uploader une nouvelle couverture' : 'Clique pour ajouter une couverture' }}
                     </div>
                   </div>
                 </div>
@@ -470,7 +501,7 @@
         <!-- Modal créer/modifier auteur -->
         <Teleport to="body">
           <div v-if="showAuthorForm" class="fixed inset-0 z-50 flex items-start justify-center px-4 py-8 overflow-y-auto">
-            <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="closeAuthorForm" />
+            <div class="fixed inset-0 bg-black/70 backdrop-blur-sm" @click="closeAuthorForm" />
             <div class="relative w-full max-w-md my-auto">
               <div class="card p-7">
                 <h2 class="text-xl font-bold mb-6">{{ editingAuthor ? 'Modifier l\'auteur' : 'Créer un auteur' }}</h2>
@@ -532,6 +563,211 @@
                     <NuxtLink :to="`/authors/${author.slug}`" class="text-xs text-gray-500 hover:text-gray-300 transition">Voir</NuxtLink>
                     <button @click="startEditAuthor(author)" class="text-xs text-gray-500 hover:text-yellow-400 transition">Modifier</button>
                     <button @click="deleteAuthor(author)" class="text-xs text-gray-500 hover:text-red-400 transition">Supprimer</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </template>
+
+      <!-- ─── ONGLET PARCOURS ─── -->
+      <template v-if="activeTab === 'guides'">
+
+        <!-- Modal guide -->
+        <Teleport to="body">
+          <div v-if="showGuideForm" class="fixed inset-0 z-50 flex items-start justify-center px-4 py-8 overflow-y-auto">
+            <div class="fixed inset-0 bg-black/70 backdrop-blur-sm" @click="closeGuideForm" />
+            <div class="relative w-full max-w-2xl my-auto">
+              <div class="card p-7">
+                <h2 class="text-xl font-bold mb-6">{{ editingGuide ? 'Modifier le parcours' : 'Créer un parcours' }}</h2>
+                <form @submit.prevent="submitGuide" class="space-y-5">
+
+                  <!-- Nom -->
+                  <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Nom du personnage *</label>
+                    <input v-model="guideForm.character" type="text" required placeholder="Ex: Spider-Man" class="input" />
+                  </div>
+
+                  <!-- Cover URL -->
+                  <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Cover (URL ou chemin relatif)</label>
+                    <input v-model="guideForm.imageUrl" type="text" placeholder="/covers/defaults/hp-spiderman.webp ou https://…" class="input" />
+                    <div v-if="guideForm.imageUrl" class="mt-2">
+                      <img :src="guideForm.imageUrl" class="h-24 object-cover rounded-lg border border-white/10" @error="e => e.target.style.display='none'" />
+                    </div>
+                  </div>
+
+                  <!-- Teaser -->
+                  <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Teaser * <span class="text-gray-600">(phrase d'accroche courte)</span></label>
+                    <input v-model="guideForm.teaser" type="text" required placeholder="Le héros de Brooklyn qui porte le masque depuis 10 ans." class="input" />
+                  </div>
+
+                  <!-- Story -->
+                  <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Récit * <span class="text-gray-600">(description longue)</span></label>
+                    <textarea v-model="guideForm.story" rows="5" required placeholder="Présentation du personnage, contexte, pourquoi ce parcours…" class="input resize-none" />
+                  </div>
+
+                  <!-- Découvrir aussi -->
+                  <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-2">Découvrir aussi <span class="text-gray-600">(parcours liés)</span></label>
+                    <div v-if="otherGuides.length" class="flex flex-wrap gap-2">
+                      <button
+                        v-for="g in otherGuides"
+                        :key="g.slug"
+                        type="button"
+                        @click="toggleRelatedSlug(g.slug)"
+                        class="flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs transition"
+                        :class="guideForm.relatedSlugs.includes(g.slug)
+                          ? 'bg-red-500/15 border-red-500/30 text-red-400'
+                          : 'bg-white/3 border-white/10 text-gray-400 hover:border-white/20'"
+                      >
+                        <img v-if="g.imageUrl" :src="g.imageUrl" class="w-5 h-5 object-cover rounded" @error="e => e.target.style.display='none'" />
+                        <span>{{ g.character }}</span>
+                        <span v-if="guideForm.relatedSlugs.includes(g.slug)" class="text-red-400">✓</span>
+                      </button>
+                    </div>
+                    <p v-else class="text-xs text-gray-600">Aucun autre parcours disponible.</p>
+                  </div>
+
+                  <!-- Comics recommandés -->
+                  <div>
+                    <div class="flex items-center justify-between mb-2">
+                      <label class="block text-xs font-medium text-gray-400">Comics recommandés</label>
+                      <button type="button" @click="addComic" class="text-xs px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 transition">
+                        + Ajouter un tome
+                      </button>
+                    </div>
+                    <div v-if="guideForm.comics.length" class="space-y-3">
+                      <div
+                        v-for="(comic, idx) in guideForm.comics"
+                        :key="idx"
+                        class="rounded-xl border border-white/8 bg-white/2 p-4 space-y-3"
+                      >
+                        <div class="flex items-center justify-between">
+                          <span class="text-xs font-medium text-gray-500">#{{ idx + 1 }}</span>
+                          <button type="button" @click="removeComic(idx)" class="text-xs text-gray-600 hover:text-red-400 transition">Retirer</button>
+                        </div>
+
+                        <!-- Recherche comic existant -->
+                        <div class="relative">
+                          <label class="block text-xs text-gray-500 mb-1">Rechercher un comic du site <span class="text-gray-600">(optionnel — remplit les champs automatiquement)</span></label>
+                          <input
+                            v-model="comicSearchQueries[idx]"
+                            type="text"
+                            placeholder="Tapez un titre…"
+                            class="input text-sm"
+                            @input="searchComics(idx)"
+                            @focus="comicSearchOpen[idx] = true"
+                            autocomplete="off"
+                          />
+                          <div
+                            v-if="comicSearchOpen[idx] && comicSearchResults[idx]?.length"
+                            class="absolute z-20 w-full mt-1 bg-[#13131a] border border-white/10 rounded-xl shadow-xl overflow-hidden max-h-48 overflow-y-auto"
+                          >
+                            <button
+                              v-for="result in comicSearchResults[idx]"
+                              :key="result.externalId"
+                              type="button"
+                              @click="selectComic(idx, result)"
+                              class="w-full text-left px-3 py-2 text-sm hover:bg-white/5 transition flex items-center gap-3"
+                            >
+                              <img v-if="result.coverUrl" :src="result.coverUrl" class="w-7 h-10 object-cover rounded shrink-0" @error="e => e.target.style.display='none'" />
+                              <div v-else class="w-7 h-10 bg-white/5 rounded shrink-0 flex items-center justify-center text-gray-700 text-xs">📚</div>
+                              <span class="text-gray-300 line-clamp-1">{{ result.title }}</span>
+                            </button>
+                          </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label class="block text-xs text-gray-500 mb-1">Titre *</label>
+                            <input v-model="comic.title" type="text" placeholder="The Amazing Spider-Man #1" class="input text-sm" />
+                          </div>
+                          <div>
+                            <label class="block text-xs text-gray-500 mb-1">Cover URL</label>
+                            <input v-model="comic.coverUrl" type="text" placeholder="/covers/defaults/… ou https://…" class="input text-sm" />
+                          </div>
+                        </div>
+                        <div>
+                          <label class="block text-xs text-gray-500 mb-1">Lien vers la page du comic</label>
+                          <input v-model="comic.comicUrl" type="text" placeholder="Rempli automatiquement ou saisir manuellement" class="input text-sm" />
+                        </div>
+                        <div>
+                          <label class="block text-xs text-gray-500 mb-1">Note <span class="text-gray-600">(pourquoi lire ce tome)</span></label>
+                          <input v-model="comic.note" type="text" placeholder="L'arc incontournable pour débuter." class="input text-sm" />
+                        </div>
+                      </div>
+                    </div>
+                    <p v-else class="text-xs text-gray-600 py-2">Aucun comic ajouté. Clique sur "+ Ajouter un tome".</p>
+                  </div>
+
+                  <div v-if="guideError" class="flex items-center gap-2 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-sm text-red-400">
+                    ⚠ {{ guideError }}
+                  </div>
+
+                  <div class="flex gap-3 pt-2">
+                    <button type="submit" :disabled="guideSaving" class="btn-primary flex-1 justify-center disabled:opacity-40">
+                      {{ guideSaving ? '…' : (editingGuide ? 'Enregistrer' : 'Créer') }}
+                    </button>
+                    <button type="button" @click="closeGuideForm" class="btn-ghost flex-1 justify-center">Annuler</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </Teleport>
+
+        <!-- Liste guides -->
+        <div v-if="loadingGuides" class="flex items-center gap-3 text-gray-500 py-16">
+          <svg class="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+          </svg>
+          Chargement…
+        </div>
+
+        <div v-else-if="!guides.length" class="text-center py-24">
+          <div class="text-5xl mb-4">🗺</div>
+          <p class="text-gray-400">Aucun parcours. Crée le premier.</p>
+        </div>
+
+        <div v-else class="overflow-hidden rounded-2xl border border-white/8">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-white/8 text-left text-xs text-gray-500">
+                <th class="px-5 py-3.5 font-medium">Parcours</th>
+                <th class="px-5 py-3.5 font-medium hidden sm:table-cell">Slug</th>
+                <th class="px-5 py-3.5 font-medium">Comics</th>
+                <th class="px-5 py-3.5 font-medium hidden md:table-cell">Sujets</th>
+                <th class="px-5 py-3.5 font-medium text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="guide in guides" :key="guide.id" class="border-b border-white/5 last:border-0 hover:bg-white/3 transition-colors">
+                <td class="px-5 py-4">
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-12 rounded-lg overflow-hidden bg-white/5 shrink-0">
+                      <img v-if="guide.imageUrl" :src="guide.imageUrl" class="w-full h-full object-cover" @error="e => e.target.style.display='none'" />
+                      <div v-else class="w-full h-full flex items-center justify-center text-gray-700 text-lg">🦸</div>
+                    </div>
+                    <div>
+                      <p class="font-medium text-gray-100">{{ guide.character }}</p>
+                      <p class="text-xs text-gray-600 line-clamp-1 mt-0.5">{{ guide.teaser }}</p>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-5 py-4 hidden sm:table-cell text-gray-500 text-xs font-mono">{{ guide.slug }}</td>
+                <td class="px-5 py-4 text-gray-400 text-xs">{{ guide.comics.length }} tome{{ guide.comics.length !== 1 ? 's' : '' }}</td>
+                <td class="px-5 py-4 hidden md:table-cell text-gray-400 text-xs">{{ guide._count.topics }} sujet{{ guide._count.topics !== 1 ? 's' : '' }}</td>
+                <td class="px-5 py-4 text-right">
+                  <div class="flex items-center justify-end gap-3">
+                    <NuxtLink :to="`/guides/${guide.slug}`" class="text-xs text-gray-500 hover:text-gray-300 transition">Voir</NuxtLink>
+                    <button @click="startEditGuide(guide)" class="text-xs text-gray-500 hover:text-yellow-400 transition">Modifier</button>
+                    <button @click="deleteGuide(guide)" class="text-xs text-gray-500 hover:text-red-400 transition">Supprimer</button>
                   </div>
                 </td>
               </tr>
@@ -675,7 +911,7 @@ const isSuperAdmin = computed(() => {
 })
 
 const tabs = computed(() => {
-  const t = [{ key: 'comics', label: 'Comics' }, { key: 'authors', label: 'Auteurs' }]
+  const t = [{ key: 'comics', label: 'Comics' }, { key: 'authors', label: 'Auteurs' }, { key: 'guides', label: 'Parcours' }]
   if (isSuperAdmin.value) t.push({ key: 'users', label: 'Utilisateurs' })
   return t
 })
@@ -690,7 +926,7 @@ async function loadAuthors() {
   } catch {}
 }
 
-const form = reactive({ title: '', publisher: '', genres: '', description: '', publishedAt: '', authorIds: [] })
+const form = reactive({ title: '', publisher: '', genres: '', description: '', publishedAt: '', authorIds: [], coverUrl: '', pdfUrl: '' })
 
 // Dropdown auteurs
 const authorSearch = ref('')
@@ -719,7 +955,7 @@ const uploadError = ref('')
 function closeUpload() {
   showUpload.value = false
   editing.value = null
-  Object.assign(form, { title: '', publisher: '', genres: '', description: '', publishedAt: '', authorIds: [] })
+  Object.assign(form, { title: '', publisher: '', genres: '', description: '', publishedAt: '', authorIds: [], coverUrl: '', pdfUrl: '' })
   authorSearch.value = ''
   authorDropdownOpen.value = false
   pdfFile.value = null
@@ -746,6 +982,8 @@ async function startEdit(comic) {
     description: comic.description || '',
     publishedAt: comic.publishedAt ? comic.publishedAt.split('T')[0] : '',
     authorIds: linkedIds,
+    coverUrl: comic.coverUrl || '',
+    pdfUrl: comic.pdfUrl || '',
   })
   showUpload.value = true
 }
@@ -768,26 +1006,43 @@ async function submitComic() {
   uploadError.value = ''
 
   if (editing.value) {
-    // Patch métadonnées seulement
-    try {
-      const updated = await $fetch(`${base}/admin/comics/${editing.value.id}`, {
-        method: 'PATCH',
-        body: {
-          title: form.title,
-          publisher: form.publisher,
-          genres: form.genres,
-          description: form.description,
-          publishedAt: form.publishedAt || undefined,
-          authorIds: form.authorIds,
-        },
-        headers: authHeaders(),
-      })
-      const idx = comics.value.findIndex(c => c.id === editing.value.id)
-      if (idx !== -1) comics.value[idx] = { ...comics.value[idx], ...updated }
-      closeUpload()
-    } catch (e) {
-      uploadError.value = e.data?.error || 'Erreur lors de la modification'
-    }
+    uploading.value = true
+    uploadProgress.value = 0
+    const fd = new FormData()
+    fd.append('title', form.title)
+    fd.append('publisher', form.publisher)
+    fd.append('genres', form.genres)
+    fd.append('description', form.description)
+    if (form.publishedAt) fd.append('publishedAt', form.publishedAt)
+    fd.append('authorIds', JSON.stringify(form.authorIds))
+    fd.append('coverUrl', form.coverUrl)
+    fd.append('pdfUrl', form.pdfUrl)
+    if (coverFile.value) fd.append('cover', coverFile.value)
+    if (pdfFile.value) fd.append('pdf', pdfFile.value)
+
+    const editId = editing.value.id
+    const xhr = new XMLHttpRequest()
+    xhr.upload.addEventListener('progress', (e) => {
+      if (e.lengthComputable) uploadProgress.value = Math.round((e.loaded / e.total) * 100)
+    })
+    xhr.addEventListener('load', () => {
+      uploading.value = false
+      if (xhr.status === 200) {
+        const updated = JSON.parse(xhr.responseText)
+        const idx = comics.value.findIndex(c => c.id === editId)
+        if (idx !== -1) comics.value[idx] = { ...comics.value[idx], ...updated }
+        closeUpload()
+      } else {
+        uploadError.value = JSON.parse(xhr.responseText)?.error || 'Erreur lors de la modification'
+      }
+    })
+    xhr.addEventListener('error', () => {
+      uploading.value = false
+      uploadError.value = 'Erreur réseau'
+    })
+    xhr.open('PATCH', `${base}/admin/comics/${editId}`)
+    xhr.setRequestHeader('Authorization', `Bearer ${token.value}`)
+    xhr.send(fd)
     return
   }
 
@@ -1031,6 +1286,156 @@ async function deleteComic(comic) {
   } catch {}
 }
 
+// ─── Gestion des parcours (guides) ───────────────────────────────────────────
+
+const guides = ref([])
+const loadingGuides = ref(false)
+const showGuideForm = ref(false)
+const editingGuide = ref(null)
+const guideSaving = ref(false)
+const guideError = ref('')
+
+const guideForm = reactive({
+  character: '',
+  imageUrl: '',
+  teaser: '',
+  story: '',
+  relatedSlugs: [],
+  comics: [],
+})
+
+const otherGuides = computed(() =>
+  guides.value.filter(g => !editingGuide.value || g.id !== editingGuide.value.id)
+)
+
+async function loadGuides() {
+  loadingGuides.value = true
+  try {
+    guides.value = await $fetch(`${base}/admin/guides`, { headers: authHeaders() })
+  } catch {}
+  loadingGuides.value = false
+}
+
+function closeGuideForm() {
+  showGuideForm.value = false
+  editingGuide.value = null
+  Object.assign(guideForm, { character: '', imageUrl: '', teaser: '', story: '', relatedSlugs: [], comics: [] })
+  comicSearchQueries.value = []
+  comicSearchResults.value = []
+  comicSearchOpen.value = []
+  guideError.value = ''
+}
+
+function startEditGuide(guide) {
+  editingGuide.value = guide
+  const comics = guide.comics.map(c => ({ title: c.title, coverUrl: c.coverUrl || '', comicUrl: c.comicUrl || '', note: c.note }))
+  Object.assign(guideForm, {
+    character: guide.character,
+    imageUrl: guide.imageUrl || '',
+    teaser: guide.teaser,
+    story: guide.story,
+    relatedSlugs: [...guide.relatedSlugs],
+    comics,
+  })
+  comicSearchQueries.value = comics.map(() => '')
+  comicSearchResults.value = comics.map(() => [])
+  comicSearchOpen.value = comics.map(() => false)
+  showGuideForm.value = true
+}
+
+function toggleRelatedSlug(slug) {
+  const idx = guideForm.relatedSlugs.indexOf(slug)
+  if (idx !== -1) guideForm.relatedSlugs.splice(idx, 1)
+  else guideForm.relatedSlugs.push(slug)
+}
+
+function addComic() {
+  guideForm.comics.push({ title: '', coverUrl: '', comicUrl: '', note: '' })
+  comicSearchQueries.value.push('')
+  comicSearchResults.value.push([])
+  comicSearchOpen.value.push(false)
+}
+
+function removeComic(idx) {
+  guideForm.comics.splice(idx, 1)
+  comicSearchQueries.value.splice(idx, 1)
+  comicSearchResults.value.splice(idx, 1)
+  comicSearchOpen.value.splice(idx, 1)
+}
+
+const comicSearchQueries = ref([])
+const comicSearchResults = ref([])
+const comicSearchOpen = ref([])
+const comicSearchTimers = {}
+
+function searchComics(idx) {
+  comicSearchOpen.value[idx] = true
+  clearTimeout(comicSearchTimers[idx])
+  const q = comicSearchQueries.value[idx]?.trim()
+  if (!q || q.length < 2) { comicSearchResults.value[idx] = []; return }
+  comicSearchTimers[idx] = setTimeout(async () => {
+    try {
+      const res = await $fetch(`${base}/comics/search?q=${encodeURIComponent(q)}&limit=8`, { headers: authHeaders() })
+      comicSearchResults.value[idx] = res.results || res.comics || res || []
+    } catch { comicSearchResults.value[idx] = [] }
+  }, 300)
+}
+
+function selectComic(idx, result) {
+  guideForm.comics[idx].title = result.title
+  guideForm.comics[idx].coverUrl = result.coverUrl || ''
+  guideForm.comics[idx].comicUrl = `/comics/${result.externalId}`
+  comicSearchQueries.value[idx] = ''
+  comicSearchResults.value[idx] = []
+  comicSearchOpen.value[idx] = false
+}
+
+async function submitGuide() {
+  guideSaving.value = true
+  guideError.value = ''
+  try {
+    const body = {
+      character: guideForm.character,
+      imageUrl: guideForm.imageUrl,
+      teaser: guideForm.teaser,
+      story: guideForm.story,
+      relatedSlugs: guideForm.relatedSlugs,
+      comics: guideForm.comics,
+    }
+    if (editingGuide.value) {
+      const updated = await $fetch(`${base}/admin/guides/${editingGuide.value.id}`, {
+        method: 'PATCH',
+        body,
+        headers: authHeaders(),
+      })
+      const idx = guides.value.findIndex(g => g.id === editingGuide.value.id)
+      if (idx !== -1) guides.value[idx] = updated
+    } else {
+      const created = await $fetch(`${base}/admin/guides`, {
+        method: 'POST',
+        body,
+        headers: authHeaders(),
+      })
+      guides.value.push(created)
+    }
+    closeGuideForm()
+  } catch (e) {
+    guideError.value = e.data?.error || 'Erreur'
+  } finally {
+    guideSaving.value = false
+  }
+}
+
+async function deleteGuide(guide) {
+  if (!confirm(`Supprimer le parcours "${guide.character}" ? Tous les sujets et commentaires associés seront supprimés.`)) return
+  try {
+    await $fetch(`${base}/admin/guides/${guide.id}`, { method: 'DELETE', headers: authHeaders() })
+    guides.value = guides.value.filter(g => g.id !== guide.id)
+  } catch (e) {
+    alert(e.data?.error || 'Erreur lors de la suppression')
+  }
+}
+
 // ─── Gestion des utilisateurs (SUPER_ADMIN) ───────────────────────────────────
 const users = ref([])
 const loadingUsers = ref(false)
@@ -1069,5 +1474,6 @@ async function setUserRole(u, role) {
 
 watch(activeTab, (tab) => {
   if (tab === 'users' && !users.value.length) fetchUsers()
+  if (tab === 'guides' && !guides.value.length) loadGuides()
 })
 </script>
