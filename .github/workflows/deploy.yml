@@ -24,6 +24,7 @@ jobs:
             git pull origin main
             docker compose -f docker-compose.yml up -d --build
             docker compose -f docker-compose.yml exec -T backend npx prisma migrate deploy
+            docker compose -f docker-compose.yml exec -T backend node prisma/seed-guides.js
             docker image prune -f
 
       - name: Deploy STAGING (dev)
@@ -38,4 +39,7 @@ jobs:
             git pull origin dev
             docker compose -f docker-compose.staging.yml -p pa4-staging up -d --build
             docker compose -f docker-compose.staging.yml -p pa4-staging exec -T backend-staging npx prisma migrate deploy
+            docker compose -f docker-compose.staging.yml -p pa4-staging exec -T backend-staging node prisma/seed-guides.js
+            docker compose -f docker-compose.staging.yml -p pa4-staging exec -T backend-staging node prisma/seed-demo.js
+            docker compose -f docker-compose.staging.yml -p pa4-staging exec -T backend-staging node prisma/seed-demo-2.js
             docker image prune -f
