@@ -4,6 +4,10 @@ import prisma from "../lib/prisma.js";
 
 const router = Router();
 
+function rejectHtml(str) {
+  if (str && /<[^>]+>/.test(str)) throw Object.assign(new Error("HTML non autorisé"), { status: 400 });
+}
+
 // POST /reviews — créer un avis
 router.post("/reviews", requireAuth, async (req, res) => {
   const { comicId, rating, content } = req.body;
@@ -13,6 +17,15 @@ router.post("/reviews", requireAuth, async (req, res) => {
   }
   if (!Number.isInteger(Number(rating)) || Number(rating) < 1 || Number(rating) > 5) {
     return res.status(400).json({ error: "rating doit être un entier entre 1 et 5" });
+  }
+  if (content && content.length > 5000) {
+    return res.status(400).json({ error: "Avis trop long (max 5000 caractères)" });
+  }
+  try { rejectHtml(content); } catch { return res.status(400).json({ error: "HTML non autorisé dans le contenu" }); }
+
+  const last = await prisma.review.findFirst({ where: { userId: req.user.id }, orderBy: { createdAt: "desc" } });
+  if (last && Date.now() - last.createdAt.getTime() < 30_000) {
+    return res.status(429).json({ error: "Attends 30 secondes entre deux avis" });
   }
 
   const comic = await prisma.comic.findUnique({ where: { id: comicId } });
@@ -45,7 +58,13 @@ router.patch("/reviews/:id", requireAuth, async (req, res) => {
     }
     updates.rating = Number(rating);
   }
-  if (content !== undefined) updates.content = content || null;
+  if (content !== undefined) {
+    if (content && content.length > 5000) {
+      return res.status(400).json({ error: "Avis trop long (max 5000 caractères)" });
+    }
+    try { rejectHtml(content); } catch { return res.status(400).json({ error: "HTML non autorisé dans le contenu" }); }
+    updates.content = content || null;
+  }
 
   const updated = await prisma.review.update({
     where: { id: req.params.id },
@@ -144,6 +163,12 @@ router.post("/reviews/:id/comments", requireAuth, async (req, res) => {
   }
   if (String(content).trim().length > 1000) {
     return res.status(400).json({ error: "Le commentaire dépasse 1000 caractères" });
+  }
+  try { rejectHtml(content); } catch { return res.status(400).json({ error: "HTML non autorisé dans le contenu" }); }
+
+  const lastComment = await prisma.comment.findFirst({ where: { userId: req.user.id }, orderBy: { createdAt: "desc" } });
+  if (lastComment && Date.now() - lastComment.createdAt.getTime() < 30_000) {
+    return res.status(429).json({ error: "Attends 30 secondes entre deux commentaires" });
   }
 
   const review = await prisma.review.findUnique({ where: { id: req.params.id } });
