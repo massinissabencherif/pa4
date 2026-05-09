@@ -404,42 +404,71 @@ router.post("/admin/comics/import-csv", requireAdmin, (req, res) => {
   });
 });
 
-router.patch("/admin/comics/:id", requireAdmin, async (req, res) => {
-  const { title, description, authors, publisher, genres, publishedAt, authorIds } = req.body;
+router.patch("/admin/comics/:id", requireAdmin, (req, res) => {
+  uploadFields(req, res, async (err) => {
+    if (err) return res.status(400).json({ error: err.message });
 
-  if (title !== undefined) {
-    const err = requireField(title, "title") || maxLen(title, "title", 500);
-    if (err) return res.status(400).json({ error: err });
-  }
+    const { title, description, authors, publisher, genres, publishedAt, authorIds, coverUrl, pdfUrl } = req.body;
 
-  const comic = await prisma.comic.findUnique({ where: { id: req.params.id } });
-  if (!comic) return res.status(404).json({ error: "Comic introuvable" });
-
-  const updates = {};
-  if (title?.trim()) updates.title = title.trim();
-  if (description !== undefined) updates.description = description?.trim() || null;
-  if (authors !== undefined)
-    updates.authors = authors.split(",").map((a) => a.trim()).filter(Boolean);
-  if (publisher !== undefined)
-    updates.publisher = publisher?.trim() || null;
-  if (genres !== undefined)
-    updates.genres = genres.split(",").map((g) => g.trim()).filter(Boolean);
-  if (publishedAt !== undefined)
-    updates.publishedAt = publishedAt ? new Date(publishedAt) : null;
-
-  const updated = await prisma.comic.update({ where: { id: req.params.id }, data: updates });
-
-  if (Array.isArray(authorIds)) {
-    await prisma.authorOnComic.deleteMany({ where: { comicId: req.params.id } });
-    if (authorIds.length > 0) {
-      await prisma.authorOnComic.createMany({
-        data: authorIds.map((authorId) => ({ authorId, comicId: req.params.id })),
-        skipDuplicates: true,
-      });
+    if (title !== undefined) {
+      const err = requireField(title, "title") || maxLen(title, "title", 500);
+      if (err) return res.status(400).json({ error: err });
     }
-  }
 
-  res.json(updated);
+    const comic = await prisma.comic.findUnique({ where: { id: req.params.id } });
+    if (!comic) return res.status(404).json({ error: "Comic introuvable" });
+
+    const updates = {};
+    if (title?.trim()) updates.title = title.trim();
+    if (description !== undefined) updates.description = description?.trim() || null;
+    if (authors !== undefined)
+      updates.authors = authors.split(",").map((a) => a.trim()).filter(Boolean);
+    if (publisher !== undefined)
+      updates.publisher = publisher?.trim() || null;
+    if (genres !== undefined)
+      updates.genres = genres.split(",").map((g) => g.trim()).filter(Boolean);
+    if (publishedAt !== undefined)
+      updates.publishedAt = publishedAt ? new Date(publishedAt) : null;
+
+    const protocol = req.get("x-forwarded-proto") || req.protocol;
+    const baseUrl = `${protocol}://${req.get("host")}`;
+
+    if (req.files?.cover?.[0]) {
+      const coverFile = req.files.cover[0];
+      if (coverFile.size > MAX_COVER_SIZE) {
+        fs.unlinkSync(coverFile.path);
+        return res.status(400).json({ error: "La couverture dépasse la taille maximale de 10 Mo" });
+      }
+      updates.coverUrl = `${baseUrl}/uploads/${coverFile.filename}`;
+    } else if (coverUrl !== undefined) {
+      updates.coverUrl = coverUrl.trim() || null;
+    }
+
+    if (req.files?.pdf?.[0]) {
+      const pdfFile = req.files.pdf[0];
+      updates.pdfUrl = `${baseUrl}/uploads/${pdfFile.filename}`;
+    } else if (pdfUrl !== undefined) {
+      updates.pdfUrl = pdfUrl.trim() || null;
+    }
+
+    const updated = await prisma.comic.update({ where: { id: req.params.id }, data: updates });
+
+    const parsedAuthorIds = typeof authorIds === "string"
+      ? JSON.parse(authorIds)
+      : Array.isArray(authorIds) ? authorIds : null;
+
+    if (Array.isArray(parsedAuthorIds)) {
+      await prisma.authorOnComic.deleteMany({ where: { comicId: req.params.id } });
+      if (parsedAuthorIds.length > 0) {
+        await prisma.authorOnComic.createMany({
+          data: parsedAuthorIds.map((authorId) => ({ authorId, comicId: req.params.id })),
+          skipDuplicates: true,
+        });
+      }
+    }
+
+    res.json(updated);
+  });
 });
 
 router.delete("/admin/comics/:id", requireAdmin, async (req, res) => {

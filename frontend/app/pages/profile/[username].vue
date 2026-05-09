@@ -27,7 +27,7 @@
           </div>
           <div class="flex-1">
             <h1 class="text-2xl font-bold mb-1">{{ profile.username }}</h1>
-            <p class="text-xs text-gray-600">Membre depuis {{ fmt(profile.createdAt) }}</p>
+            <p class="text-xs text-gray-400">Membre depuis {{ fmt(profile.createdAt) }}</p>
           </div>
           <div v-if="isLoggedIn && !isSelf" class="shrink-0">
             <button
@@ -47,19 +47,19 @@
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
             <div class="card p-5 text-center">
               <p class="text-3xl font-bold text-green-400">{{ stats.counts.finished }}</p>
-              <p class="text-xs text-gray-500 mt-1">Terminés</p>
+              <p class="text-xs text-gray-400 mt-1">Terminés</p>
             </div>
             <div class="card p-5 text-center">
               <p class="text-3xl font-bold text-blue-400">{{ stats.counts.inProgress }}</p>
-              <p class="text-xs text-gray-500 mt-1">En cours</p>
+              <p class="text-xs text-gray-400 mt-1">En cours</p>
             </div>
             <div class="card p-5 text-center">
               <p class="text-3xl font-bold text-gray-400">{{ stats.counts.toRead }}</p>
-              <p class="text-xs text-gray-500 mt-1">À lire</p>
+              <p class="text-xs text-gray-400 mt-1">À lire</p>
             </div>
             <div class="card p-5 text-center">
               <p class="text-3xl font-bold text-yellow-400">{{ stats.counts.reviews }}</p>
-              <p class="text-xs text-gray-500 mt-1">Avis postés</p>
+              <p class="text-xs text-gray-400 mt-1">Avis postés</p>
             </div>
           </div>
 
@@ -73,7 +73,7 @@
                     :style="{ height: maxMonthly > 0 ? `${(m.count / maxMonthly) * 80}px` : '2px' }"
                     :title="`${m.count} comic(s) terminé(s)`"
                   />
-                  <span class="text-[9px] text-gray-600 rotate-45 origin-left">{{ m.label }}</span>
+                  <span class="text-[9px] text-gray-400 rotate-45 origin-left">{{ m.label }}</span>
                 </div>
               </div>
             </div>
@@ -81,9 +81,9 @@
               <div>
                 <h2 class="text-sm font-semibold text-gray-300 mb-2">Note moyenne donnée</h2>
                 <p v-if="stats.avgRatingGiven" class="text-4xl font-bold text-yellow-400">
-                  ★ {{ stats.avgRatingGiven }}<span class="text-lg text-gray-500">/5</span>
+                  {{ stats.avgRatingGiven }} ★
                 </p>
-                <p v-else class="text-gray-600 text-sm">Aucun avis posté</p>
+                <p v-else class="text-gray-400 text-sm">Aucun avis posté</p>
               </div>
               <div>
                 <h2 class="text-sm font-semibold text-gray-300 mb-2">Communauté</h2>
@@ -111,13 +111,13 @@
                       <span class="text-gray-300 truncate">{{ g.genre }}</span>
                       <span class="text-gray-500 ml-2">{{ g.count }}</span>
                     </div>
-                    <div class="h-1.5 rounded-full bg-white/5 overflow-hidden">
+                    <div class="h-1.5 rounded-full bg-white/10 overflow-hidden">
                       <div class="h-full rounded-full bg-red-500/70" :style="{ width: `${(g.count / stats.topGenres[0].count) * 100}%` }" />
                     </div>
                   </div>
                 </div>
               </div>
-              <p v-else class="text-gray-600 text-sm">Lis des comics pour voir tes genres préférés.</p>
+              <p v-else class="text-gray-400 text-sm">Lis des comics pour voir tes genres préférés.</p>
             </div>
             <div class="card p-6">
               <h2 class="text-sm font-semibold text-gray-300 mb-4">Auteurs préférés</h2>
@@ -128,38 +128,38 @@
                       <span class="text-gray-300 truncate">{{ a.author }}</span>
                       <span class="text-gray-500 ml-2">{{ a.count }}</span>
                     </div>
-                    <div class="h-1.5 rounded-full bg-white/5 overflow-hidden">
+                    <div class="h-1.5 rounded-full bg-white/10 overflow-hidden">
                       <div class="h-full rounded-full bg-blue-500/70" :style="{ width: `${(a.count / stats.topAuthors[0].count) * 100}%` }" />
                     </div>
                   </div>
                 </div>
               </div>
-              <p v-else class="text-gray-600 text-sm">Lis des comics pour voir tes auteurs préférés.</p>
+              <p v-else class="text-gray-400 text-sm">Lis des comics pour voir tes auteurs préférés.</p>
             </div>
           </div>
 
           <div class="card p-6 mb-10">
             <h2 class="text-sm font-semibold text-gray-300 mb-4">
-              Badges <span class="text-gray-600 font-normal">({{ stats.badges.length }}/10)</span>
+              Badges <span class="text-gray-400 font-normal">({{ stats.badges.length }}/10)</span>
             </h2>
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
               <div
                 v-for="badge in stats.badges"
                 :key="badge.badgeKey"
-                class="flex flex-col items-center gap-1 p-3 rounded-xl bg-white/5 border border-white/8 text-center"
+                class="flex flex-col items-center gap-1 p-3 rounded-xl bg-white/8 border border-white/15 text-center"
                 :title="badge.description"
               >
                 <span class="text-2xl">{{ badge.icon }}</span>
                 <span class="text-xs font-medium text-gray-300">{{ badge.name }}</span>
-                <span class="text-[10px] text-gray-600">{{ new Date(badge.earnedAt).toLocaleDateString('fr-FR') }}</span>
+                <span class="text-[10px] text-gray-400">{{ new Date(badge.earnedAt).toLocaleDateString('fr-FR') }}</span>
               </div>
               <div
                 v-for="i in (10 - stats.badges.length)"
                 :key="`empty-${i}`"
-                class="flex flex-col items-center gap-1 p-3 rounded-xl bg-white/3 border border-white/5 text-center opacity-30"
+                class="flex flex-col items-center gap-1 p-3 rounded-xl bg-white/5 border border-white/10 text-center opacity-30"
               >
                 <span class="text-2xl grayscale">🏅</span>
-                <span class="text-xs text-gray-600">???</span>
+                <span class="text-xs text-gray-400">???</span>
               </div>
             </div>
           </div>
@@ -175,7 +175,7 @@
               <div
                 v-for="badge in badges"
                 :key="badge.badgeKey"
-                class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/8 text-xs"
+                class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/8 border border-white/15 text-xs"
                 :title="badge.description"
               >
                 <span>{{ badge.icon }}</span>
@@ -187,19 +187,19 @@
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-10">
             <div class="card px-4 py-4 text-center">
               <div class="text-xl font-black text-white mb-0.5">{{ profile._count.readingEntries }}</div>
-              <div class="text-xs text-gray-600">Comics suivis</div>
+              <div class="text-xs text-gray-400">Comics suivis</div>
             </div>
             <div class="card px-4 py-4 text-center">
               <div class="text-xl font-black text-white mb-0.5">{{ profile._count.reviews }}</div>
-              <div class="text-xs text-gray-600">Avis</div>
+              <div class="text-xs text-gray-400">Avis</div>
             </div>
             <div class="card px-4 py-4 text-center">
               <div class="text-xl font-black text-white mb-0.5">{{ profile._count.followers }}</div>
-              <div class="text-xs text-gray-600">Abonnés</div>
+              <div class="text-xs text-gray-400">Abonnés</div>
             </div>
             <div class="card px-4 py-4 text-center">
               <div class="text-xl font-black text-white mb-0.5">{{ profile._count.following }}</div>
-              <div class="text-xs text-gray-600">Abonnements</div>
+              <div class="text-xs text-gray-400">Abonnements</div>
             </div>
           </div>
 
@@ -207,11 +207,11 @@
 
         <!-- Avis (commun) -->
         <div v-if="allReviews.length" class="mb-10">
-          <h2 class="text-lg font-bold mb-5">Avis <span class="text-gray-600 text-sm font-normal">({{ allReviews.length }})</span></h2>
+          <h2 class="text-lg font-bold mb-5">Avis <span class="text-gray-400 text-sm font-normal">({{ allReviews.length }})</span></h2>
           <div class="space-y-3">
             <div v-for="review in displayedReviews" :key="review.id" class="card p-4 flex gap-4">
               <NuxtLink :to="`/comics/${review.comic.externalId}`" class="shrink-0">
-                <div class="w-12 aspect-[2/3] rounded-lg overflow-hidden bg-white/5">
+                <div class="w-12 aspect-[2/3] rounded-lg overflow-hidden bg-white/10">
                   <img :src="getComicCover(review.comic)" :alt="review.comic.title" class="w-full h-full object-cover" loading="lazy" />
                 </div>
               </NuxtLink>
@@ -220,9 +220,9 @@
                   {{ review.comic.title }}
                 </NuxtLink>
                 <div class="flex gap-0.5 my-1">
-                  <span v-for="s in 5" :key="s" class="text-sm leading-none" :class="s <= review.rating ? 'text-yellow-400' : 'text-gray-700'">★</span>
+                  <span style="font-family:'Courier New',monospace;font-size:12px;color:#fbbf24;">{{ review.rating }} ★</span>
                 </div>
-                <p v-if="review.content" class="text-xs text-gray-500 line-clamp-2 leading-relaxed">{{ review.content }}</p>
+                <p v-if="review.content" class="text-xs text-gray-400 line-clamp-2 leading-relaxed">{{ review.content }}</p>
               </div>
             </div>
           </div>
@@ -247,7 +247,7 @@
             >
               <div class="flex items-center justify-between">
                 <p class="font-medium text-sm group-hover:text-white transition-colors">{{ list.name }}</p>
-                <span class="text-xs text-gray-600">{{ list._count.items }} comics</span>
+                <span class="text-xs text-gray-400">{{ list._count.items }} comics</span>
               </div>
             </NuxtLink>
           </div>
