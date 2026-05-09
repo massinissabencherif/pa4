@@ -39,6 +39,7 @@ services:
       GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
       API_BASE_URL: ${SANDBOX_API_BASE_URL:-}
       FRONTEND_URL: ${SANDBOX_FRONTEND_URL:-https://sandbox.sitedetestdemassinissabencherif.com}
+      GIPHY_API_KEY: ${GIPHY_API_KEY:-}
     volumes:
       - uploads_sandbox:/app/uploads
     ports:

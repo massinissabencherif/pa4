@@ -5,7 +5,7 @@
     <section style="border-bottom:1px solid #1e1e1e;">
       <div
         class="max-w-[1100px] mx-auto px-6 py-20"
-        style="display:grid;grid-template-columns:1fr 320px;gap:48px;align-items:center;min-height:86vh;"
+        style="display:grid;grid-template-columns:1fr 420px;gap:48px;align-items:center;min-height:86vh;"
       >
 
         <!-- Left -->
@@ -48,25 +48,34 @@
           </div>
         </div>
 
-        <!-- Right — Trending sidebar -->
+        <!-- Right — Trending sidebar (infinite scroll) -->
         <div style="border:1px solid #1e1e1e;border-top:2px solid #e02020;">
           <div style="padding:12px 16px;border-bottom:1px solid #1e1e1e;display:flex;justify-content:space-between;align-items:center;">
             <h2 style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:3px;color:#e02020;text-transform:uppercase;margin:0;">Tendances</h2>
             <span style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:2px;color:#333;">№ 024</span>
           </div>
-          <div
-            v-for="(item, i) in trendingItems"
-            :key="i"
-            style="padding:14px 16px;border-bottom:1px solid #1a1a1a;display:flex;gap:12px;align-items:flex-start;"
-          >
-            <div style="width:36px;height:50px;background:#1e1e1e;flex-shrink:0;position:relative;overflow:hidden;">
-              <div style="position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,0.06) 1px,transparent 1px);background-size:4px 4px;"></div>
-              <span style="position:absolute;bottom:3px;left:3px;font-family:impact,sans-serif;font-size:11px;color:#e02020;z-index:1;">{{ String(i + 1).padStart(2, '0') }}</span>
-            </div>
-            <div>
-              <div style="font-family:impact,sans-serif;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#fff;margin-bottom:4px;line-height:1.15;">{{ item.title }}</div>
-              <div style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:1px;color:#888;text-transform:uppercase;">{{ item.meta }}</div>
-              <div style="display:inline-flex;align-items:center;font-family:'Courier New',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:2px 6px;margin-top:6px;border:1px solid #e02020;color:#e02020;">{{ item.status }}</div>
+          <div style="overflow:hidden;height:480px;">
+            <div class="carousel-track">
+              <div
+                v-for="(item, i) in [...trendingItems, ...trendingItems]"
+                :key="`${item.title}-${i}`"
+                style="padding:18px 20px;border-bottom:1px solid #1a1a1a;display:flex;gap:16px;align-items:flex-start;"
+              >
+                <div style="width:64px;height:90px;background:#1e1e1e;flex-shrink:0;position:relative;overflow:hidden;">
+                  <img
+                    v-if="item.coverUrl"
+                    :src="item.coverUrl"
+                    :alt="item.title"
+                    style="width:100%;height:100%;object-fit:cover;"
+                  />
+                  <div v-else style="position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,0.06) 1px,transparent 1px);background-size:4px 4px;"></div>
+                  <span style="position:absolute;bottom:4px;left:4px;font-family:impact,sans-serif;font-size:13px;color:#e02020;z-index:1;text-shadow:0 1px 3px #000;">{{ String((i % trendingItems.length) + 1).padStart(2, '0') }}</span>
+                </div>
+                <div>
+                  <div style="font-family:impact,sans-serif;font-size:15px;letter-spacing:1px;text-transform:uppercase;color:#fff;margin-bottom:6px;line-height:1.2;">{{ item.title }}</div>
+                  <div style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:1px;color:#888;text-transform:uppercase;">{{ item.meta }}</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -106,10 +115,14 @@ if (isLoggedIn.value) {
 }
 
 const trendingItems = [
-  { title: 'Amazing Spider-Man', meta: 'Marvel · 1963', status: 'En cours' },
-  { title: 'Batman: Year One', meta: 'DC · 1987', status: 'Terminé' },
-  { title: 'Watchmen', meta: 'DC · 1986', status: 'À lire' },
-  { title: 'Saga Vol. 1', meta: 'Image · 2012', status: 'En cours' },
+  { title: 'Amazing Spider-Man', meta: 'Marvel · 1963', coverUrl: '/covers/defaults/hp-spiderman.webp' },
+  { title: 'Batman: Year One', meta: 'DC · 1987', coverUrl: '/covers/defaults/hp-dayone.jpg' },
+  { title: 'Watchmen', meta: 'DC · 1986', coverUrl: '/covers/defaults/hp-watchmen.webp' },
+  { title: 'Valérian', meta: 'Dargaud · 1967', coverUrl: '/covers/defaults/hp-valerian.jpg' },
+  { title: 'Buck Danny', meta: 'Dupuis · 1947', coverUrl: '/covers/defaults/hp-buckdanny.jpg' },
+  { title: 'Invincible', meta: 'Image · 2003', coverUrl: '/covers/defaults/hp-invincible.jpg' },
+  { title: "Kraven's Last Hunt", meta: 'Marvel · 1987', coverUrl: '/covers/defaults/hp-kravenlasthunt.jpeg' },
+  { title: 'Man of Steel', meta: 'DC · 1986', coverUrl: '/covers/defaults/hp-mos.webp' },
 ]
 
 const features = [
@@ -119,3 +132,16 @@ const features = [
   { title: 'Recommandations', desc: 'Découvre de nouveaux comics basés sur tes genres et auteurs préférés.' },
 ]
 </script>
+
+<style scoped>
+@keyframes scrollUp {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-50%); }
+}
+.carousel-track {
+  animation: scrollUp 24s linear infinite;
+}
+.carousel-track:hover {
+  animation-play-state: paused;
+}
+</style>

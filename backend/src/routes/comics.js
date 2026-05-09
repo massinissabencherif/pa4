@@ -15,6 +15,19 @@ function parsePagination(query, defaults = { limit: 20, max: 100 }) {
 const hasMarvelKeys = () =>
   !!(process.env.MARVEL_PUBLIC_KEY && process.env.MARVEL_PRIVATE_KEY);
 
+async function withRatings(comics) {
+  if (!comics.length) return comics
+  const ids = comics.map(c => c.id)
+  const ratings = await prisma.review.groupBy({
+    by: ['comicId'],
+    where: { comicId: { in: ids } },
+    _avg: { rating: true },
+    _count: { rating: true },
+  })
+  const rMap = Object.fromEntries(ratings.map(r => [r.comicId, { avgRating: r._avg.rating, reviewCount: r._count.rating }]))
+  return comics.map(c => ({ ...c, ...(rMap[c.id] ?? { avgRating: null, reviewCount: 0 }) }))
+}
+
 function rewriteUploadUrl(url, req) {
   if (!url || !url.includes("/uploads/")) return url;
   const filename = url.split("/uploads/")[1];
@@ -41,21 +54,23 @@ router.get("/", async (req, res) => {
   if (genre) where.genres = { has: genre };
   if (author) where.authors = { has: author };
 
-  const [comics, total] = await Promise.all([
+  const [rawComics, total] = await Promise.all([
     prisma.comic.findMany({ where, skip: offset, take: limit, orderBy: { createdAt: "desc" } }),
     prisma.comic.count({ where }),
   ]);
+  const comics = await withRatings(rawComics)
   res.json({ total, count: comics.length, offset, comics });
 });
 
 // GET /comics/latest?limit=6
 router.get("/latest", async (req, res) => {
   const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 6, 1), 20);
-  const comics = await prisma.comic.findMany({
+  const raw = await prisma.comic.findMany({
     orderBy: { createdAt: "desc" },
     take: limit,
     select: { id: true, externalId: true, title: true, coverUrl: true, publisher: true, createdAt: true },
   });
+  const comics = await withRatings(raw)
   res.json({ comics });
 });
 
@@ -94,7 +109,7 @@ router.get("/trending", async (req, res) => {
   const sorted = comicIds.map((id) => comics.find((c) => c.id === id)).filter(Boolean)
     .map((c) => ({ ...c, readCount: countMap[c.id] }));
 
-  res.json({ comics: sorted });
+  res.json({ comics: await withRatings(sorted) });
 });
 
 // GET /comics/genres — liste tous les genres disponibles
@@ -140,13 +155,15 @@ router.get("/search", async (req, res) => {
     );
     const seen = new Set(byTitle.map((c) => c.id));
     const merged = [...byTitle, ...authorMatches.filter((c) => !seen.has(c.id))];
-    const comics = merged.slice(offset, offset + limit);
+    const sliced = merged.slice(offset, offset + limit);
+    const comics = await withRatings(sliced)
     return res.json({ total: merged.length, count: comics.length, offset, comics });
   }
 
   // Avec clés Marvel → recherche sur l'API
   const results = await searchComics(q.trim(), limit, offset);
-  const comics = await Promise.all(results.results.map(upsertComic));
+  const raw = await Promise.all(results.results.map(upsertComic));
+  const comics = await withRatings(raw)
 
   res.json({ total: results.total, count: results.count, offset: results.offset, comics });
 });

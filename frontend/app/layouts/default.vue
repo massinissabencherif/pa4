@@ -51,7 +51,7 @@
             to="/recommendations"
             style="font-family:'Courier New',monospace;font-size:8px;letter-spacing:3px;text-transform:uppercase;color:#aaa;padding:0 14px;height:52px;display:flex;align-items:center;border-right:1px solid #2a2a2a;text-decoration:none;transition:color 0.15s;"
             active-class="!text-[#e02020]"
-          >Recos</NuxtLink>
+          >Guide</NuxtLink>
           <NuxtLink
             v-if="isLoggedIn"
             to="/dashboard"
@@ -112,7 +112,6 @@
           COMICSTER — TON JOURNAL DE COMICS
         </span>
         <div class="flex">
-          <NuxtLink to="/comics/search" style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:3px;color:#888;text-transform:uppercase;text-decoration:none;padding:0 16px;border-right:1px solid #2a2a2a;transition:color 0.15s;">Explorer</NuxtLink>
           <NuxtLink to="/rgpd" style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:3px;color:#888;text-transform:uppercase;text-decoration:none;padding:0 16px;border-right:1px solid #2a2a2a;transition:color 0.15s;">RGPD</NuxtLink>
           <NuxtLink to="/mentions-legales" style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:3px;color:#888;text-transform:uppercase;text-decoration:none;padding:0 16px;transition:color 0.15s;">Mentions</NuxtLink>
         </div>

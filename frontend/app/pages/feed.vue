@@ -3,7 +3,7 @@
 
     <!-- Page header -->
     <div style="border-bottom:1px solid #2a2a2a;">
-      <div class="max-w-[1100px] mx-auto px-6 pt-9 pb-0">
+      <div class="max-w-[1600px] mx-auto px-6 pt-9 pb-0">
         <div style="font-family:'Courier New',monospace;font-size:8px;letter-spacing:5px;color:#e02020;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:10px;">
           <div style="width:16px;height:2px;background:#e02020;flex-shrink:0;"></div>
           Activité · Communauté
@@ -12,7 +12,7 @@
       </div>
     </div>
 
-    <div class="max-w-[1100px] mx-auto px-6 py-8">
+    <div class="max-w-[1600px] mx-auto px-6 py-8">
       <div class="flex gap-8">
 
         <!-- ── Feed principal ── -->
@@ -78,7 +78,7 @@
                   <!-- Étoiles + avis -->
                   <template v-if="event.type === 'REVIEW'">
                     <div class="flex gap-0.5 mb-1">
-                      <span v-for="i in 5" :key="i" :style="i <= event.data.rating ? 'color:#fbbf24;' : 'color:#3a3a3a;'" style="font-size:13px;">★</span>
+                      <span style="font-family:'Courier New',monospace;font-size:12px;color:#fbbf24;">{{ event.data.rating }} ★</span>
                     </div>
                     <p v-if="event.data.content" style="font-family:'Courier New',monospace;font-size:12px;line-height:1.6;color:#aaa;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ event.data.content }}</p>
                   </template>
@@ -120,7 +120,8 @@
               </div>
               <div class="flex-1 min-w-0">
                 <p style="font-family:impact,sans-serif;font-size:12px;letter-spacing:0.5px;text-transform:uppercase;color:#fff;line-height:1.2;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;" class="group-hover:text-[#e02020] transition-colors">{{ comic.title }}</p>
-                <p style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:1px;color:#888;text-transform:uppercase;">{{ comic.genres?.slice(0,2).join(' · ') }}</p>
+                <p style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:1px;color:#888;text-transform:uppercase;margin-bottom:2px;">{{ comic.genres?.slice(0,2).join(' · ') }}</p>
+                <div v-if="comic.avgRating" style="font-family:'Courier New',monospace;font-size:10px;color:#fbbf24;">{{ comic.avgRating.toFixed(1) }} ★</div>
               </div>
             </NuxtLink>
           </div>
@@ -148,7 +149,8 @@
             <div class="flex-1 min-w-0">
               <p style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#888;margin-bottom:4px;">{{ comic.publisher || '' }}</p>
               <p style="font-family:impact,sans-serif;font-size:13px;letter-spacing:0.5px;text-transform:uppercase;color:#fff;line-height:1.2;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;" class="group-hover:text-[#e02020] transition-colors">{{ comic.title }}</p>
-              <p style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:2px;color:#555;text-transform:uppercase;">{{ comic.readCount }} lecture{{ comic.readCount > 1 ? 's' : '' }}</p>
+              <p style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:2px;color:#555;text-transform:uppercase;margin-bottom:2px;">{{ comic.readCount }} lecture{{ comic.readCount > 1 ? 's' : '' }}</p>
+              <div v-if="comic.avgRating" style="font-family:'Courier New',monospace;font-size:10px;color:#fbbf24;">{{ comic.avgRating.toFixed(1) }} ★</div>
             </div>
           </NuxtLink>
         </div>
@@ -173,7 +175,8 @@
             </div>
             <div class="flex-1 min-w-0">
               <p style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#888;margin-bottom:4px;">{{ comic.publisher || '' }}</p>
-              <p style="font-family:impact,sans-serif;font-size:13px;letter-spacing:0.5px;text-transform:uppercase;color:#fff;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;" class="group-hover:text-[#e02020] transition-colors">{{ comic.title }}</p>
+              <p style="font-family:impact,sans-serif;font-size:13px;letter-spacing:0.5px;text-transform:uppercase;color:#fff;line-height:1.2;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;" class="group-hover:text-[#e02020] transition-colors">{{ comic.title }}</p>
+              <div v-if="comic.avgRating" style="font-family:'Courier New',monospace;font-size:10px;color:#fbbf24;">{{ comic.avgRating.toFixed(1) }} ★</div>
             </div>
           </NuxtLink>
         </div>

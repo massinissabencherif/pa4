@@ -81,7 +81,7 @@
               <div>
                 <h2 class="text-sm font-semibold text-gray-300 mb-2">Note moyenne donnée</h2>
                 <p v-if="stats.avgRatingGiven" class="text-4xl font-bold text-yellow-400">
-                  ★ {{ stats.avgRatingGiven }}<span class="text-lg text-gray-500">/5</span>
+                  {{ stats.avgRatingGiven }} ★
                 </p>
                 <p v-else class="text-gray-400 text-sm">Aucun avis posté</p>
               </div>
@@ -220,7 +220,7 @@
                   {{ review.comic.title }}
                 </NuxtLink>
                 <div class="flex gap-0.5 my-1">
-                  <span v-for="s in 5" :key="s" class="text-sm leading-none" :class="s <= review.rating ? 'text-yellow-400' : 'text-gray-400'">★</span>
+                  <span style="font-family:'Courier New',monospace;font-size:12px;color:#fbbf24;">{{ review.rating }} ★</span>
                 </div>
                 <p v-if="review.content" class="text-xs text-gray-400 line-clamp-2 leading-relaxed">{{ review.content }}</p>
               </div>

@@ -52,10 +52,8 @@
             <!-- Éditeur -->
             <span v-if="comic.publisher" class="text-sm text-gray-400">{{ comic.publisher }}</span>
             <!-- Note moyenne -->
-            <div v-if="avgRating" class="flex items-center gap-1">
-              <span class="text-yellow-400 text-sm">★</span>
-              <span class="text-sm font-semibold text-white">{{ avgRating }}</span>
-              <span class="text-xs text-gray-400">({{ communityReviews.length }})</span>
+            <div v-if="avgRating" style="font-family:'Courier New',monospace;font-size:12px;color:#fbbf24;">
+              {{ avgRating }} ★ <span style="color:#888;font-size:10px;">({{ communityReviews.length }})</span>
             </div>
           </div>
 
@@ -236,7 +234,7 @@
             <div class="flex items-start justify-between gap-3 mb-2">
               <div class="flex items-center gap-3">
                 <NuxtLink :to="`/profile/${r.user.username}`" class="font-medium text-sm text-gray-300 hover:text-red-400 transition">{{ r.user.username }}</NuxtLink>
-                <span class="text-yellow-400 text-sm">{{ '★'.repeat(r.rating) }}<span class="text-gray-600">{{ '★'.repeat(5 - r.rating) }}</span></span>
+                <span style="font-family:'Courier New',monospace;font-size:12px;color:#fbbf24;">{{ r.rating }} ★</span>
               </div>
               <button
                 @click="toggleReviewLike(r)"

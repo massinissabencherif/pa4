@@ -77,7 +77,7 @@
               <div style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:4px;text-transform:uppercase;color:#e02020;margin-bottom:6px;">Note</div>
               <div style="font-family:impact,sans-serif;font-size:16px;letter-spacing:1px;text-transform:uppercase;color:#fff;margin-bottom:12px;">Moyenne donnée</div>
               <p v-if="stats.avgRatingGiven" style="font-family:impact,sans-serif;font-size:42px;letter-spacing:1px;color:#fbbf24;line-height:1;">
-                ★ {{ stats.avgRatingGiven }}<span style="font-size:18px;color:#888;">/5</span>
+                {{ stats.avgRatingGiven }} ★
               </p>
               <p v-else style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:2px;color:#555;text-transform:uppercase;">Aucun avis posté</p>
             </div>
@@ -153,12 +153,17 @@
             <div
               v-for="badge in stats.badges"
               :key="badge.badgeKey"
-              style="background:#111;display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 12px;text-align:center;"
-              :title="badge.description"
+              style="background:#111;display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 12px;text-align:center;position:relative;"
+              class="badge-item"
             >
               <span style="font-size:24px;">{{ badge.icon }}</span>
               <span style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#d4d4d4;">{{ badge.name }}</span>
               <span style="font-family:'Courier New',monospace;font-size:8px;letter-spacing:1px;color:#888;">{{ new Date(badge.earnedAt).toLocaleDateString('fr-FR') }}</span>
+              <div class="badge-tooltip">
+                <div style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#e02020;margin-bottom:4px;">{{ badge.name }}</div>
+                <div style="font-family:'Courier New',monospace;font-size:10px;line-height:1.5;color:#d4d4d4;">{{ badge.description }}</div>
+                <div style="margin-top:6px;font-family:'Courier New',monospace;font-size:8px;letter-spacing:1px;color:#555;text-transform:uppercase;">Obtenu le {{ new Date(badge.earnedAt).toLocaleDateString('fr-FR') }}</div>
+              </div>
             </div>
             <div
               v-for="i in (10 - stats.badges.length)"
@@ -191,3 +196,31 @@ const maxMonthly = computed(() =>
   stats.value ? Math.max(...stats.value.monthlyActivity.map((m) => m.count), 1) : 1
 )
 </script>
+
+<style scoped>
+.badge-item { cursor: default; }
+.badge-tooltip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 180px;
+  background: #1a1a1a;
+  border: 1px solid #e02020;
+  padding: 10px 12px;
+  text-align: left;
+  z-index: 10;
+  pointer-events: none;
+}
+.badge-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: #e02020;
+}
+.badge-item:hover .badge-tooltip { display: block; }
+</style>
