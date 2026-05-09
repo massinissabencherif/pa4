@@ -96,7 +96,7 @@ test.describe('Connexion', () => {
     await page.getByPlaceholder('••••••••').fill(TEST_USER.password)
     await page.getByRole('button', { name: 'Se connecter' }).click()
     await page.waitForURL(/\/feed/, { timeout: 20_000 })
-    await page.getByRole('button', { name: 'Déconnexion' }).click()
+    await page.getByRole('button', { name: /déco/i }).click()
     await expect(page).toHaveURL(/\/$|\/auth\/login/)
   })
 })
