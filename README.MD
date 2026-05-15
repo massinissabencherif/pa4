@@ -522,26 +522,25 @@ En production, `JWT_SECRET`, `SESSION_SECRET` et `TOTP_ENCRYPTION_KEY` sont **ob
 
 ## Workflow de développement
 
-### Règle fondamentale
-```
-feat/xxx → sandbox (validation) → PR → dev (staging) → PR release → main (prod)
-```
-On ne saute jamais sandbox. `main` ne reçoit jamais de feature directement — uniquement des PRs depuis `dev`.
+### Règles fondamentales
 
-### Protections de branches (GitHub)
-- **`main`** et **`dev`** : push direct interdit, merge uniquement via PR, CI obligatoire avant merge
+- Toute **feature** passe par sandbox avant d'être mergée — on ne saute jamais sandbox
+- Toute feature fait l'objet d'une **PR GitHub** — jamais de merge direct en CLI (`git merge feat/xxx`)
+- Les branches feature sont **supprimées après merge** (origin + local)
+- Les pushs directs sur `main` sont réservés aux **correctifs et maintenance** (fix CI, fix tests, README, chore)
 - Pas de reviewer obligatoire (projet solo) — à activer quand l'équipe s'agrandit
 
-### Cycle complet — feature
+### Cycle complet — nouvelle feature
 1. Créer une branche depuis `main`
    ```bash
+   git checkout main && git pull origin main
    git checkout -b feat/nom-de-la-feature
    ```
-2. Développer et tester sur **sandbox**
-3. Push et PR vers **`dev`** (pas `main`)
+2. Développer et **tester sur sandbox** (copie des fichiers ou rebuild du container)
+3. Push et PR vers `main`
    ```bash
    git push -u origin feat/nom-de-la-feature
-   # Ouvrir la PR sur GitHub avec base : dev
+   # Ouvrir la PR sur GitHub
    ```
 4. Le CI tourne automatiquement (backend tests, frontend build, docker build)
 5. Merger la PR sur GitHub une fois les checks verts
@@ -549,22 +548,25 @@ On ne saute jamais sandbox. `main` ne reçoit jamais de feature directement — 
    ```bash
    git push origin --delete feat/nom-de-la-feature
    git branch -D feat/nom-de-la-feature
+   git checkout main && git pull origin main
    ```
 
-### Cycle complet — release vers prod
-Une fois `dev` validé sur staging :
-1. Ouvrir une PR `dev` → `main` sur GitHub
-2. Le CI tourne à nouveau
-3. Merger → déploiement automatique en production via GitHub Actions
-
-### Jamais en CLI
+### Cycle complet — correctif / maintenance
+Pour les fix de tests, CI, README, chore — push direct sur `main` autorisé :
 ```bash
-# INTERDIT
-git merge feat/xxx
+git add <fichiers>
+git commit -m "fix(...): ..."
 git push origin main
-git push origin dev
+```
 
-# TOUJOURS via PR GitHub
+### Ce qu'on ne fait jamais
+```bash
+# INTERDIT — merger une feature sans PR
+git merge feat/xxx
+git push origin feat/xxx:main
+
+# INTERDIT — pusher directement une nouvelle feature sur main ou dev
+# (les features passent toujours par une PR)
 ```
 
 ### Tests E2E
