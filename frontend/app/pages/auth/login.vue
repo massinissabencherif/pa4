@@ -66,7 +66,10 @@
                 <input id="login-email" v-model="form.email" type="email" required placeholder="toi@example.com" class="input" autocomplete="email" />
               </div>
               <div>
-                <label for="login-password" style="display:block;font-family:'Courier New',monospace;font-size:9px;letter-spacing:4px;color:#888;text-transform:uppercase;margin-bottom:8px;">Mot de passe</label>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                  <label for="login-password" style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:4px;color:#888;text-transform:uppercase;">Mot de passe</label>
+                  <NuxtLink to="/auth/forgot-password" style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:1px;color:#e02020;text-decoration:none;">Oublié ?</NuxtLink>
+                </div>
                 <input id="login-password" v-model="form.password" type="password" required placeholder="••••••••" class="input" autocomplete="current-password" />
               </div>
 

@@ -86,6 +86,20 @@ export function useAuth() {
     }
   }
 
+  async function forgotPassword(email) {
+    return $fetch(`${base}/auth/forgot-password`, {
+      method: 'POST',
+      body: { email },
+    })
+  }
+
+  async function resetPassword(resetToken, password) {
+    return $fetch(`${base}/auth/reset-password`, {
+      method: 'POST',
+      body: { token: resetToken, password },
+    })
+  }
+
   async function logout() {
     try {
       await $fetch(`${base}/auth/logout`, {
@@ -101,5 +115,5 @@ export function useAuth() {
 
   const isLoggedIn = computed(() => !!token.value)
 
-  return { token, user, login, register, exchangeOAuthCode, refreshAccessToken, fetchMe, logout, isLoggedIn }
+  return { token, user, login, register, exchangeOAuthCode, refreshAccessToken, forgotPassword, resetPassword, fetchMe, logout, isLoggedIn }
 }
