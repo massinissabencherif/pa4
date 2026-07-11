@@ -40,6 +40,10 @@ services:
       API_BASE_URL: ${SANDBOX_API_BASE_URL:-}
       FRONTEND_URL: ${SANDBOX_FRONTEND_URL:-https://sandbox.sitedetestdemassinissabencherif.com}
       GIPHY_API_KEY: ${GIPHY_API_KEY:-}
+      MAIL_HOST: host.docker.internal
+      MAIL_FROM: ${MAIL_FROM:-Comicster <postmaster@sitedetestdemassinissabencherif.com>}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - uploads_sandbox:/app/uploads
     ports:

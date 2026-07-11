@@ -11,6 +11,12 @@ import prisma from "../lib/prisma.js";
 import { requireAuth } from "../middleware/auth.js";
 import { hashToken, encryptTotp, decryptTotp } from "../lib/crypto.js";
 import { isReservedUsername, normalizeUsername } from "../lib/reservedUsernames.js";
+import {
+  sendWelcomeEmail,
+  sendPasswordResetEmail,
+  sendPasswordChangedEmail,
+  sendOAuthAccountNotice,
+} from "../lib/email.js";
 
 const router = Router();
 
@@ -196,6 +202,8 @@ router.post("/register", async (req, res) => {
     data: { email: email.trim().toLowerCase(), username: username.trim(), passwordHash },
   });
 
+  sendWelcomeEmail(user.email, user.username); // fire-and-forget, ne bloque jamais l'inscription
+
   const accessToken = signAccessToken(user);
   const refreshToken = await createRefreshToken(user.id);
   res.status(201).json({ token: accessToken, refreshToken, user: sanitizeUser(user) });
@@ -294,6 +302,79 @@ router.post("/logout", async (req, res) => {
     });
   }
   res.json({ message: "Déconnecté" });
+});
+
+// ─── Mot de passe oublié ───────────────────────────────────────────────────────
+
+async function createPasswordResetToken(userId) {
+  const token = crypto.randomBytes(32).toString("hex");
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 heure
+  await prisma.passwordResetToken.create({
+    data: { tokenHash: hashToken(token), userId, expiresAt },
+  });
+  return token;
+}
+
+router.post("/forgot-password", async (req, res) => {
+  const err = validate({ email: { required: true, email: true } }, req.body);
+  if (err) return res.status(400).json({ error: err });
+
+  const { email } = req.body;
+  const user = await prisma.user.findUnique({ where: { email: email.trim().toLowerCase() } });
+
+  // Réponse volontairement identique dans tous les cas, pour ne pas révéler
+  // si un compte existe pour cet email (anti-enumeration).
+  const genericResponse = {
+    message: "Si un compte existe pour cet email, des instructions ont été envoyées.",
+  };
+
+  if (!user) return res.json(genericResponse);
+
+  if (!user.passwordHash) {
+    sendOAuthAccountNotice(user.email);
+    return res.json(genericResponse);
+  }
+
+  const token = await createPasswordResetToken(user.id);
+  const resetUrl = `${process.env.FRONTEND_URL || "http://localhost:3000"}/auth/reset-password/${token}`;
+  sendPasswordResetEmail(user.email, resetUrl);
+
+  res.json(genericResponse);
+});
+
+router.post("/reset-password", async (req, res) => {
+  const err = validate(
+    {
+      token:    { required: true },
+      password: { required: true, min: 8, max: 128 },
+    },
+    req.body
+  );
+  if (err) return res.status(400).json({ error: err });
+
+  const { token, password } = req.body;
+
+  const stored = await prisma.passwordResetToken.findUnique({
+    where: { tokenHash: hashToken(token) },
+  });
+  if (!stored || stored.expiresAt < new Date()) {
+    return res.status(401).json({ error: "Lien de réinitialisation invalide ou expiré" });
+  }
+
+  const passwordHash = await bcrypt.hash(password, 12);
+
+  await prisma.$transaction([
+    prisma.user.update({ where: { id: stored.userId }, data: { passwordHash } }),
+    // Token à usage unique — supprimé après utilisation
+    prisma.passwordResetToken.deleteMany({ where: { userId: stored.userId } }),
+    // Déconnexion de toutes les sessions existantes par sécurité
+    prisma.refreshToken.deleteMany({ where: { userId: stored.userId } }),
+  ]);
+
+  const user = await prisma.user.findUnique({ where: { id: stored.userId } });
+  sendPasswordChangedEmail(user.email);
+
+  res.json({ message: "Mot de passe réinitialisé avec succès" });
 });
 
 // ─── 2FA ──────────────────────────────────────────────────────────────────────
