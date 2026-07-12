@@ -4,11 +4,11 @@
 
       <div class="flex items-center justify-between mb-10">
         <div>
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-xs text-red-400 mb-3">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-[13px] text-red-400 mb-3">
             🛡 Super Admin
           </div>
           <h1 class="text-3xl font-bold">Gestion des utilisateurs</h1>
-          <p class="text-gray-500 text-sm mt-1">Promouvoir ou rétrograder des comptes en administrateur.</p>
+          <p class="text-white text-sm mt-1">Promouvoir ou rétrograder des comptes en administrateur.</p>
         </div>
         <NuxtLink to="/admin" class="btn-secondary text-sm">← Dashboard</NuxtLink>
       </div>
@@ -20,7 +20,7 @@
       <div class="card overflow-hidden">
         <table class="w-full text-sm">
           <thead>
-            <tr class="border-b border-white/5 text-xs text-gray-500 uppercase tracking-wider">
+            <tr class="border-b border-white/5 text-[13px] text-white uppercase tracking-wider">
               <th class="text-left px-5 py-3">Utilisateur</th>
               <th class="text-left px-5 py-3">Email</th>
               <th class="text-left px-5 py-3">Rôle</th>
@@ -35,23 +35,23 @@
               class="border-b border-white/5 last:border-0 hover:bg-white/2 transition"
             >
               <td class="px-5 py-3 font-medium">{{ u.username }}</td>
-              <td class="px-5 py-3 text-gray-400">{{ u.email }}</td>
+              <td class="px-5 py-3 text-white">{{ u.email }}</td>
               <td class="px-5 py-3">
                 <span
                   :class="{
                     'bg-red-500/15 text-red-400 border-red-500/20': u.role === 'SUPER_ADMIN',
                     'bg-amber-500/15 text-amber-400 border-amber-500/20': u.role === 'ADMIN',
-                    'bg-gray-500/15 text-gray-400 border-gray-500/20': u.role === 'USER',
+                    'bg-gray-500/15 text-white border-gray-500/20': u.role === 'USER',
                   }"
-                  class="text-xs font-medium px-2 py-0.5 rounded-full border"
+                  class="text-[13px] font-medium px-2 py-0.5 rounded-full border"
                 >
                   {{ u.role }}
                 </span>
               </td>
               <td class="px-5 py-3">
                 <span
-                  :class="u.totpEnabled ? 'text-green-400' : 'text-gray-600'"
-                  class="text-xs"
+                  :class="u.totpEnabled ? 'text-green-400' : 'text-white'"
+                  class="text-[13px]"
                 >
                   {{ u.totpEnabled ? '✓ Activée' : '✗ Désactivée' }}
                 </span>
@@ -61,7 +61,7 @@
                   v-if="u.role === 'USER'"
                   @click="setRole(u, 'ADMIN')"
                   :disabled="loadingId === u.id"
-                  class="text-xs px-3 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 transition disabled:opacity-50"
+                  class="text-[13px] px-3 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 transition disabled:opacity-50"
                 >
                   Promouvoir admin
                 </button>
@@ -69,20 +69,20 @@
                   v-else-if="u.role === 'ADMIN'"
                   @click="setRole(u, 'USER')"
                   :disabled="loadingId === u.id"
-                  class="text-xs px-3 py-1.5 rounded-lg bg-gray-500/10 hover:bg-gray-500/20 text-gray-400 border border-gray-500/20 transition disabled:opacity-50"
+                  class="text-[13px] px-3 py-1.5 rounded-lg bg-gray-500/10 hover:bg-gray-500/20 text-white border border-gray-500/20 transition disabled:opacity-50"
                 >
                   Rétrograder
                 </button>
-                <span v-else class="text-xs text-gray-600">—</span>
+                <span v-else class="text-[13px] text-white">—</span>
               </td>
             </tr>
           </tbody>
         </table>
 
-        <div v-if="loading && users.length === 0" class="py-16 text-center text-gray-600 text-sm">
+        <div v-if="loading && users.length === 0" class="py-16 text-center text-white text-sm">
           Chargement…
         </div>
-        <div v-else-if="!loading && users.length === 0" class="py-16 text-center text-gray-600 text-sm">
+        <div v-else-if="!loading && users.length === 0" class="py-16 text-center text-white text-sm">
           Aucun utilisateur trouvé.
         </div>
       </div>

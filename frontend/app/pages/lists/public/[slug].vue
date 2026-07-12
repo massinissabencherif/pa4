@@ -5,7 +5,7 @@
       <BackButton to="/feed" label="Retour" />
 
       <!-- Loading -->
-      <div v-if="pending" class="flex items-center gap-3 text-gray-500 py-16">
+      <div v-if="pending" class="flex items-center gap-3 text-white py-16">
         <svg class="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
@@ -15,13 +15,13 @@
 
       <div v-else-if="fetchError" class="text-center py-24">
         <div class="text-5xl mb-4">🔒</div>
-        <p class="text-gray-400 font-medium">{{ fetchError }}</p>
+        <p class="text-white font-medium">{{ fetchError }}</p>
         <NuxtLink to="/" class="btn-ghost !px-6 mt-6 inline-block">Retour à l'accueil</NuxtLink>
       </div>
 
       <template v-else-if="list">
         <!-- Badge public -->
-        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass text-xs text-green-400 mb-8">
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass text-[13px] text-green-400 mb-8">
           <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
           Liste publique
         </div>
@@ -29,17 +29,17 @@
         <!-- En-tête -->
         <div class="mb-10">
           <h1 class="text-3xl font-bold mb-2">{{ list.name }}</h1>
-          <p class="text-gray-500 text-sm mb-3">
-            Par <span class="text-gray-300 font-medium">{{ list.user.username }}</span>
+          <p class="text-white text-sm mb-3">
+            Par <span class="text-white font-medium">{{ list.user.username }}</span>
             · {{ list.items.length }} comic{{ list.items.length !== 1 ? 's' : '' }}
           </p>
-          <p v-if="list.description" class="text-gray-400 text-sm leading-relaxed max-w-xl">{{ list.description }}</p>
+          <p v-if="list.description" class="text-white text-sm leading-relaxed max-w-xl">{{ list.description }}</p>
         </div>
 
         <!-- Vide -->
         <div v-if="!list.items.length" class="text-center py-20">
           <div class="text-5xl mb-4">📭</div>
-          <p class="text-gray-500">Cette liste est vide pour l'instant.</p>
+          <p class="text-white">Cette liste est vide pour l'instant.</p>
         </div>
 
         <!-- Grille -->
@@ -58,7 +58,7 @@
                 loading="lazy"
               />
             </div>
-            <p class="text-sm font-medium text-gray-200 line-clamp-2 leading-snug group-hover:text-white transition-colors">
+            <p class="text-sm font-medium text-white line-clamp-2 leading-snug group-hover:text-white transition-colors">
               {{ item.comic.title }}
             </p>
           </NuxtLink>
@@ -68,7 +68,7 @@
         <div v-if="!isLoggedIn" class="mt-16 card p-6 flex flex-col sm:flex-row items-center gap-5">
           <div class="flex-1">
             <p class="font-semibold mb-1">Tu aimes ces comics ?</p>
-            <p class="text-sm text-gray-500">Crée ton compte pour suivre tes lectures et créer tes propres listes.</p>
+            <p class="text-sm text-white">Crée ton compte pour suivre tes lectures et créer tes propres listes.</p>
           </div>
           <div class="flex gap-3 shrink-0">
             <NuxtLink to="/auth/register" class="btn-primary !py-2 !px-5 text-sm">S'inscrire</NuxtLink>

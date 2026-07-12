@@ -13,7 +13,7 @@
             </div>
             <span style="font-family:impact,sans-serif;font-size:15px;letter-spacing:4px;color:#fff;text-transform:uppercase;">COMICSTER</span>
           </NuxtLink>
-          <span style="font-family:'Courier New',monospace;font-size:8px;letter-spacing:3px;color:#333;">№ 002</span>
+          <span style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:3px;color:#fff;">№ 002</span>
         </div>
 
         <!-- Body -->
@@ -22,7 +22,7 @@
           <!-- 2FA step -->
           <template v-if="step === '2fa'">
             <div style="font-family:impact,sans-serif;font-size:28px;letter-spacing:2px;text-transform:uppercase;color:#fff;margin-bottom:4px;">VÉRIFICATION</div>
-            <div style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:3px;color:#555;text-transform:uppercase;margin-bottom:28px;">Code de ton application 2FA</div>
+            <div style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:3px;color:#fff;text-transform:uppercase;margin-bottom:28px;">Code de ton application 2FA</div>
 
             <form @submit.prevent="submit2FA" aria-label="Vérification 2FA">
               <div style="margin-bottom:24px;">
@@ -38,10 +38,10 @@
                   autocomplete="one-time-code"
                   style="width:100%;background:transparent;border:none;border-bottom:2px solid #e02020;color:#fff;font-family:impact,sans-serif;font-size:28px;letter-spacing:12px;text-align:center;padding:10px 0;outline:none;"
                 />
-                <div style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:2px;color:#555;text-transform:uppercase;text-align:center;margin-top:8px;">Code à 6 chiffres — expire dans 30s</div>
+                <div style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:2px;color:#fff;text-transform:uppercase;text-align:center;margin-top:8px;">Code à 6 chiffres — expire dans 30s</div>
               </div>
 
-              <div v-if="error" role="alert" style="display:flex;align-items:center;gap:8px;background:rgba(224,32,32,0.08);border:1px solid rgba(224,32,32,0.2);padding:10px 12px;font-family:'Courier New',monospace;font-size:11px;color:#e02020;margin-bottom:16px;">
+              <div v-if="error" role="alert" style="display:flex;align-items:center;gap:8px;background:rgba(224,32,32,0.08);border:1px solid rgba(224,32,32,0.2);padding:10px 12px;font-family:'Courier New',monospace;font-size:12px;color:#e02020;margin-bottom:16px;">
                 <span aria-hidden="true">⚠</span>{{ error }}
               </div>
 
@@ -49,7 +49,7 @@
                 <span v-if="loading">Vérification…</span>
                 <span v-else>VÉRIFIER ▶</span>
               </button>
-              <button type="button" @click="step = 'credentials'; error = ''" style="width:100%;text-align:center;font-family:'Courier New',monospace;font-size:9px;letter-spacing:2px;color:#555;text-transform:uppercase;background:none;border:none;cursor:pointer;">
+              <button type="button" @click="step = 'credentials'; error = ''" style="width:100%;text-align:center;font-family:'Courier New',monospace;font-size:10px;letter-spacing:2px;color:#fff;text-transform:uppercase;background:none;border:none;cursor:pointer;">
                 ← Retour
               </button>
             </form>
@@ -58,22 +58,22 @@
           <!-- Credentials step -->
           <template v-else>
             <h1 style="font-family:impact,sans-serif;font-size:28px;letter-spacing:2px;text-transform:uppercase;color:#fff;margin-bottom:4px;font-weight:normal;">CONNEXION</h1>
-            <p style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:3px;color:#555;text-transform:uppercase;margin-bottom:28px;">Ton univers comics t'attend</p>
+            <p style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:3px;color:#fff;text-transform:uppercase;margin-bottom:28px;">Ton univers comics t'attend</p>
 
             <form @submit.prevent="submit" class="space-y-5" aria-label="Connexion par email">
               <div>
-                <label for="login-email" style="display:block;font-family:'Courier New',monospace;font-size:9px;letter-spacing:4px;color:#888;text-transform:uppercase;margin-bottom:8px;">Email</label>
+                <label for="login-email" style="display:block;font-family:'Courier New',monospace;font-size:10px;letter-spacing:4px;color:#fff;text-transform:uppercase;margin-bottom:8px;">Email</label>
                 <input id="login-email" v-model="form.email" type="email" required placeholder="toi@example.com" class="input" autocomplete="email" />
               </div>
               <div>
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-                  <label for="login-password" style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:4px;color:#888;text-transform:uppercase;">Mot de passe</label>
-                  <NuxtLink to="/auth/forgot-password" style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:1px;color:#e02020;text-decoration:none;">Oublié ?</NuxtLink>
+                  <label for="login-password" style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:4px;color:#fff;text-transform:uppercase;">Mot de passe</label>
+                  <NuxtLink to="/auth/forgot-password" style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:1px;color:#e02020;text-decoration:none;">Oublié ?</NuxtLink>
                 </div>
                 <input id="login-password" v-model="form.password" type="password" required placeholder="••••••••" class="input" autocomplete="current-password" />
               </div>
 
-              <div v-if="error" role="alert" style="display:flex;align-items:center;gap:8px;background:rgba(224,32,32,0.08);border:1px solid rgba(224,32,32,0.2);padding:10px 12px;font-family:'Courier New',monospace;font-size:11px;color:#e02020;">
+              <div v-if="error" role="alert" style="display:flex;align-items:center;gap:8px;background:rgba(224,32,32,0.08);border:1px solid rgba(224,32,32,0.2);padding:10px 12px;font-family:'Courier New',monospace;font-size:12px;color:#e02020;">
                 <span aria-hidden="true">⚠</span>{{ error }}
               </div>
 
@@ -92,7 +92,7 @@
             <!-- Divider -->
             <div class="flex items-center gap-3 my-6">
               <div style="flex:1;height:1px;background:#1e1e1e;"></div>
-              <span style="font-family:'Courier New',monospace;font-size:8px;letter-spacing:3px;color:#333;text-transform:uppercase;">ou</span>
+              <span style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:3px;color:#fff;text-transform:uppercase;">ou</span>
               <div style="flex:1;height:1px;background:#1e1e1e;"></div>
             </div>
 
@@ -119,7 +119,7 @@
         </div>
 
         <!-- Footer -->
-        <div style="padding:14px 28px;border-top:1px solid #1e1e1e;text-align:center;font-family:'Courier New',monospace;font-size:11px;color:#555;display:flex;align-items:center;justify-content:center;gap:6px;">
+        <div style="padding:14px 28px;border-top:1px solid #1e1e1e;text-align:center;font-family:'Courier New',monospace;font-size:12px;color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;">
           Pas de compte ?
           <NuxtLink to="/auth/register" style="color:#e02020;text-decoration:none;letter-spacing:1px;">S'inscrire →</NuxtLink>
         </div>

@@ -4,7 +4,7 @@
     <!-- Page header -->
     <div style="border-bottom:1px solid #2a2a2a;">
       <div class="max-w-[1100px] mx-auto px-6 pt-9 pb-0">
-        <div style="font-family:'Courier New',monospace;font-size:8px;letter-spacing:5px;color:#e02020;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:10px;">
+        <div style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:5px;color:#e02020;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:10px;">
           <div style="width:16px;height:2px;background:#e02020;flex-shrink:0;"></div>
           Suivi de lecture
         </div>
@@ -15,7 +15,7 @@
     <div class="max-w-[1100px] mx-auto px-6 py-8">
 
       <!-- Loading -->
-      <div v-if="pending" style="display:flex;align-items:center;gap:10px;font-family:'Courier New',monospace;font-size:11px;letter-spacing:2px;color:#888;text-transform:uppercase;padding:80px 0;" role="status" aria-label="Chargement du journal">
+      <div v-if="pending" style="display:flex;align-items:center;gap:10px;font-family:'Courier New',monospace;font-size:12px;letter-spacing:2px;color:#fff;text-transform:uppercase;padding:80px 0;" role="status" aria-label="Chargement du journal">
         <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
@@ -32,10 +32,10 @@
             :key="f.value"
             @click="activeFilter = f.value"
             :aria-pressed="activeFilter === f.value"
-            style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;padding:10px 20px;border:none;cursor:pointer;transition:background 0.15s,color 0.15s;"
+            style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;padding:10px 20px;border:none;cursor:pointer;transition:background 0.15s,color 0.15s;"
             :style="activeFilter === f.value
               ? 'background:#e02020;color:#fff;'
-              : 'background:#111;color:#aaa;'"
+              : 'background:#111;color:#fff;'"
             class="hover:bg-[#1a1a1a]"
           >
             {{ f.label }}
@@ -46,10 +46,10 @@
         <!-- Liste vide -->
         <div v-if="!filtered.length" style="text-align:center;padding:80px 0;">
           <div style="font-family:impact,sans-serif;font-size:48px;letter-spacing:2px;text-transform:uppercase;color:#2a2a2a;margin-bottom:12px;">📖</div>
-          <p style="font-family:impact,sans-serif;font-size:18px;letter-spacing:2px;text-transform:uppercase;color:#555;margin-bottom:8px;">
+          <p style="font-family:impact,sans-serif;font-size:18px;letter-spacing:2px;text-transform:uppercase;color:#fff;margin-bottom:8px;">
             {{ activeFilter === 'ALL' ? 'Journal vide' : 'Aucun comic dans cette catégorie' }}
           </p>
-          <p v-if="activeFilter === 'ALL'" style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:2px;color:#444;text-transform:uppercase;margin-bottom:24px;">
+          <p v-if="activeFilter === 'ALL'" style="font-family:'Courier New',monospace;font-size:12px;letter-spacing:2px;color:#fff;text-transform:uppercase;margin-bottom:24px;">
             Commence par explorer des comics.
           </p>
           <NuxtLink v-if="activeFilter === 'ALL'" to="/comics/search" class="btn-primary">
@@ -91,7 +91,7 @@
                 :id="`status-${entry.id}`"
                 v-model="entry.status"
                 @change="updateStatus(entry)"
-                style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:5px 8px;background:#1a1a1a;border:1px solid #2a2a2a;color:#d4d4d4;cursor:pointer;margin-bottom:8px;width:100%;outline:none;"
+                style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:5px 8px;background:#1a1a1a;border:1px solid #2a2a2a;color:#fff;cursor:pointer;margin-bottom:8px;width:100%;outline:none;"
               >
                 <option value="TO_READ" style="background:#111;">📌 À lire</option>
                 <option value="IN_PROGRESS" style="background:#111;">📖 En cours</option>
@@ -100,11 +100,11 @@
 
               <!-- Note existante -->
               <div v-if="reviewMap[entry.comicId]" style="display:flex;align-items:center;gap:2px;margin-bottom:6px;">
-                <span style="font-family:'Courier New',monospace;font-size:10px;color:#fbbf24;">{{ reviewMap[entry.comicId].rating }} ★</span>
+                <span style="font-family:'Courier New',monospace;font-size:11px;color:#fbbf24;">{{ reviewMap[entry.comicId].rating }} ★</span>
               </div>
 
               <!-- Dates -->
-              <div style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:1px;color:#888;line-height:1.6;">
+              <div style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:1px;color:#fff;line-height:1.6;">
                 <div v-if="entry.startedAt">Commencé {{ fmt(entry.startedAt) }}</div>
                 <div v-if="entry.finishedAt">Terminé {{ fmt(entry.finishedAt) }}</div>
                 <div v-if="entry.lastReadAt && entry.status === 'IN_PROGRESS'">Lu {{ fmt(entry.lastReadAt) }}</div>
@@ -114,7 +114,7 @@
             <!-- Supprimer -->
             <button
               @click="removeEntry(entry)"
-              style="flex-shrink:0;align-self:flex-start;color:#555;background:none;border:none;cursor:pointer;padding:4px;transition:color 0.15s;"
+              style="flex-shrink:0;align-self:flex-start;color:#fff;background:none;border:none;cursor:pointer;padding:4px;transition:color 0.15s;"
               class="hover:text-[#e02020]"
               :aria-label="`Retirer ${entry.comic.title} du journal`"
             >

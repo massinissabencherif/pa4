@@ -13,12 +13,12 @@
             </div>
             <span style="font-family:impact,sans-serif;font-size:15px;letter-spacing:4px;color:#fff;text-transform:uppercase;">COMICSTER</span>
           </NuxtLink>
-          <span style="font-family:'Courier New',monospace;font-size:8px;letter-spacing:3px;color:#333;">№ 003</span>
+          <span style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:3px;color:#fff;">№ 003</span>
         </div>
 
         <!-- Marketing strip -->
         <div style="padding:20px 28px;border-bottom:1px solid #1e1e1e;">
-          <div style="font-family:'Courier New',monospace;font-size:8px;letter-spacing:4px;color:#e02020;text-transform:uppercase;margin-bottom:14px;">Pourquoi Comicster ?</div>
+          <div style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:4px;color:#e02020;text-transform:uppercase;margin-bottom:14px;">Pourquoi Comicster ?</div>
           <div
             v-for="(f, i) in features"
             :key="f.title"
@@ -28,7 +28,7 @@
             <div style="font-family:impact,sans-serif;font-size:22px;color:#e02020;line-height:1;flex-shrink:0;width:28px;">{{ String(i + 1).padStart(2, '0') }}</div>
             <div>
               <div style="font-family:impact,sans-serif;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#fff;margin-bottom:3px;">{{ f.title }}</div>
-              <div style="font-family:'Courier New',monospace;font-size:12px;line-height:1.6;color:#d4d4d4;">{{ f.desc }}</div>
+              <div style="font-family:'Courier New',monospace;font-size:13px;line-height:1.6;color:#fff;">{{ f.desc }}</div>
             </div>
           </div>
         </div>
@@ -36,16 +36,16 @@
         <!-- Form body -->
         <div style="padding:28px;">
           <h1 style="font-family:impact,sans-serif;font-size:28px;letter-spacing:2px;text-transform:uppercase;color:#fff;margin-bottom:4px;font-weight:normal;">CRÉER UN COMPTE</h1>
-          <div style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:3px;color:#555;text-transform:uppercase;margin-bottom:28px;">Gratuit · Sans carte bancaire</div>
+          <div style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:3px;color:#fff;text-transform:uppercase;margin-bottom:28px;">Gratuit · Sans carte bancaire</div>
 
           <form @submit.prevent="submit" class="space-y-5">
             <div>
-              <label style="display:block;font-family:'Courier New',monospace;font-size:9px;letter-spacing:4px;color:#888;text-transform:uppercase;margin-bottom:8px;">Email</label>
+              <label style="display:block;font-family:'Courier New',monospace;font-size:10px;letter-spacing:4px;color:#fff;text-transform:uppercase;margin-bottom:8px;">Email</label>
               <input v-model="form.email" type="email" required placeholder="toi@example.com" class="input" />
             </div>
 
             <div>
-              <label style="display:block;font-family:'Courier New',monospace;font-size:9px;letter-spacing:4px;color:#888;text-transform:uppercase;margin-bottom:8px;">Nom d'utilisateur</label>
+              <label style="display:block;font-family:'Courier New',monospace;font-size:10px;letter-spacing:4px;color:#fff;text-transform:uppercase;margin-bottom:8px;">Nom d'utilisateur</label>
               <input
                 v-model="form.username"
                 type="text"
@@ -55,11 +55,11 @@
                 class="input"
                 :style="usernameReserved ? 'border-bottom-color:#e02020;' : ''"
               />
-              <p v-if="usernameReserved" style="font-family:'Courier New',monospace;font-size:11px;color:#e02020;margin-top:4px;">Ce nom d'utilisateur est réservé.</p>
+              <p v-if="usernameReserved" style="font-family:'Courier New',monospace;font-size:12px;color:#e02020;margin-top:4px;">Ce nom d'utilisateur est réservé.</p>
             </div>
 
             <div>
-              <label style="display:block;font-family:'Courier New',monospace;font-size:9px;letter-spacing:4px;color:#888;text-transform:uppercase;margin-bottom:8px;">Mot de passe</label>
+              <label style="display:block;font-family:'Courier New',monospace;font-size:10px;letter-spacing:4px;color:#fff;text-transform:uppercase;margin-bottom:8px;">Mot de passe</label>
               <input v-model="form.password" type="password" required minlength="8" placeholder="Au moins 8 caractères" class="input" />
               <div v-if="form.password.length > 0" style="display:flex;gap:3px;margin-top:6px;">
                 <div
@@ -72,7 +72,7 @@
             </div>
 
             <div>
-              <label style="display:block;font-family:'Courier New',monospace;font-size:9px;letter-spacing:4px;color:#888;text-transform:uppercase;margin-bottom:8px;">Confirmer le mot de passe</label>
+              <label style="display:block;font-family:'Courier New',monospace;font-size:10px;letter-spacing:4px;color:#fff;text-transform:uppercase;margin-bottom:8px;">Confirmer le mot de passe</label>
               <input
                 v-model="form.passwordConfirm"
                 type="password"
@@ -81,10 +81,10 @@
                 class="input"
                 :style="passwordMismatch ? 'border-bottom-color:#e02020;' : ''"
               />
-              <p v-if="passwordMismatch" style="font-family:'Courier New',monospace;font-size:11px;color:#e02020;margin-top:4px;">Les mots de passe ne correspondent pas.</p>
+              <p v-if="passwordMismatch" style="font-family:'Courier New',monospace;font-size:12px;color:#e02020;margin-top:4px;">Les mots de passe ne correspondent pas.</p>
             </div>
 
-            <div v-if="error" role="alert" style="display:flex;align-items:center;gap:8px;background:rgba(224,32,32,0.08);border:1px solid rgba(224,32,32,0.2);padding:10px 12px;font-family:'Courier New',monospace;font-size:11px;color:#e02020;">
+            <div v-if="error" role="alert" style="display:flex;align-items:center;gap:8px;background:rgba(224,32,32,0.08);border:1px solid rgba(224,32,32,0.2);padding:10px 12px;font-family:'Courier New',monospace;font-size:12px;color:#e02020;">
               <span aria-hidden="true">⚠</span> {{ error }}
             </div>
 
@@ -102,7 +102,7 @@
         </div>
 
         <!-- Footer -->
-        <div style="padding:14px 28px;border-top:1px solid #1e1e1e;text-align:center;font-family:'Courier New',monospace;font-size:11px;color:#555;display:flex;align-items:center;justify-content:center;gap:6px;">
+        <div style="padding:14px 28px;border-top:1px solid #1e1e1e;text-align:center;font-family:'Courier New',monospace;font-size:12px;color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;">
           Déjà un compte ?
           <NuxtLink to="/auth/login" style="color:#e02020;text-decoration:none;letter-spacing:1px;">Se connecter →</NuxtLink>
         </div>

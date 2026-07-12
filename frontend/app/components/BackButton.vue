@@ -1,7 +1,7 @@
 <template>
   <button
     @click="goBack"
-    class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-300 transition mb-6"
+    class="inline-flex items-center gap-1.5 text-sm text-white hover:text-white transition mb-6"
     :aria-label="label"
   >
     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
