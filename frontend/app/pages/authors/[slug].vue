@@ -4,11 +4,11 @@
 
       <BackButton to="/authors" label="Tous les auteurs" />
 
-      <div v-if="pending" class="flex justify-center py-20 text-gray-500">Chargement…</div>
+      <div v-if="pending" class="flex justify-center py-20 text-white">Chargement…</div>
 
       <div v-else-if="error || !author" class="text-center py-20">
         <div class="text-4xl mb-3">🔍</div>
-        <p class="text-gray-400">Auteur introuvable.</p>
+        <p class="text-white">Auteur introuvable.</p>
       </div>
 
       <template v-else>
@@ -19,8 +19,8 @@
           </div>
           <div>
             <h1 class="text-3xl font-bold mb-2">{{ author.name }}</h1>
-            <p class="text-gray-400 text-sm leading-relaxed max-w-2xl">{{ author.bio }}</p>
-            <p class="text-xs text-gray-400 mt-3">{{ author.comics.length }} comic{{ author.comics.length > 1 ? 's' : '' }} associé{{ author.comics.length > 1 ? 's' : '' }}</p>
+            <p class="text-white text-sm leading-relaxed max-w-2xl">{{ author.bio }}</p>
+            <p class="text-[13px] text-white mt-3">{{ author.comics.length }} comic{{ author.comics.length > 1 ? 's' : '' }} associé{{ author.comics.length > 1 ? 's' : '' }}</p>
           </div>
         </div>
 
@@ -43,21 +43,21 @@
                   loading="lazy"
                 />
                 <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
-                  <span class="text-xs text-white font-medium">Voir →</span>
+                  <span class="text-[13px] text-white font-medium">Voir →</span>
                 </div>
                 <!-- Note -->
-                <div v-if="comic.avgRating" class="absolute top-2 right-2 bg-black/70 rounded-md px-1.5 py-0.5 text-xs font-semibold text-yellow-400">
+                <div v-if="comic.avgRating" class="absolute top-2 right-2 bg-black/70 rounded-md px-1.5 py-0.5 text-[13px] font-semibold text-yellow-400">
                   {{ comic.avgRating }} ★
                 </div>
               </div>
-              <p class="text-sm font-medium text-gray-200 line-clamp-2 leading-snug group-hover:text-white transition-colors">
+              <p class="text-sm font-medium text-white line-clamp-2 leading-snug group-hover:text-white transition-colors">
                 {{ comic.title }}
               </p>
-              <p class="text-xs text-gray-400 mt-0.5">{{ comic.reviewCount }} avis</p>
+              <p class="text-[13px] text-white mt-0.5">{{ comic.reviewCount }} avis</p>
             </NuxtLink>
           </div>
 
-          <div v-else class="text-gray-400 text-sm py-8">Aucun comic associé pour l'instant.</div>
+          <div v-else class="text-white text-sm py-8">Aucun comic associé pour l'instant.</div>
         </div>
       </template>
     </div>

@@ -10,15 +10,15 @@
       <!-- Meta -->
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
         <div style="width:26px;height:26px;background:#252525;border:1px solid #2e2e2e;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-          <span style="font-family:impact,sans-serif;font-size:12px;color:#999;">{{ reply.author.username[0].toUpperCase() }}</span>
+          <span style="font-family:impact,sans-serif;font-size:13px;color:#fff;">{{ reply.author.username[0].toUpperCase() }}</span>
         </div>
-        <span style="font-family:'Courier New',monospace;font-size:11px;color:#c0c0c0;">{{ reply.author.username }}</span>
-        <span style="font-family:'Courier New',monospace;font-size:10px;color:#555;">{{ fmtRelative(reply.createdAt) }}</span>
-        <span v-if="isFirst && depth === 0 && !inModal" style="font-family:'Courier New',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:#e02020;background:rgba(224,32,32,0.1);border:1px solid rgba(224,32,32,0.2);padding:1px 5px;">1er</span>
+        <span style="font-family:'Courier New',monospace;font-size:12px;color:#fff;">{{ reply.author.username }}</span>
+        <span style="font-family:'Courier New',monospace;font-size:11px;color:#fff;">{{ fmtRelative(reply.createdAt) }}</span>
+        <span v-if="isFirst && depth === 0 && !inModal" style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#e02020;background:rgba(224,32,32,0.1);border:1px solid rgba(224,32,32,0.2);padding:1px 5px;">1er</span>
       </div>
 
       <!-- Contenu -->
-      <p v-if="reply.content" style="font-family:'Courier New',monospace;font-size:12px;line-height:1.8;color:#c0c0c0;white-space:pre-wrap;margin-bottom:10px;">{{ reply.content }}</p>
+      <p v-if="reply.content" style="font-family:'Courier New',monospace;font-size:13px;line-height:1.8;color:#fff;white-space:pre-wrap;margin-bottom:10px;">{{ reply.content }}</p>
 
       <!-- GIF -->
       <div v-if="reply.imageUrl" style="margin-bottom:10px;">
@@ -38,7 +38,7 @@
         <button
           v-if="isLoggedIn && !inModal"
           @click="showReply = !showReply"
-          style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;background:none;border:none;color:#555;cursor:pointer;display:flex;align-items:center;gap:5px;padding:0;transition:color 0.15s;"
+          style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;background:none;border:none;color:#fff;cursor:pointer;display:flex;align-items:center;gap:5px;padding:0;transition:color 0.15s;"
           class="hover:text-[#e02020]"
         >
           <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-3 3V4z"/></svg>
@@ -49,13 +49,13 @@
         <button
           v-if="reply.children?.length && !inModal"
           @click="threadModal = true"
-          style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;background:none;border:none;color:#555;cursor:pointer;display:flex;align-items:center;gap:5px;padding:0;transition:color 0.15s;"
+          style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;background:none;border:none;color:#fff;cursor:pointer;display:flex;align-items:center;gap:5px;padding:0;transition:color 0.15s;"
           class="hover:text-[#888]"
         >
           <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-3 3V4z"/></svg>
           {{ reply.children.length }} réponse{{ reply.children.length !== 1 ? 's' : '' }} · voir le thread
         </button>
-        <span v-else-if="reply.children?.length && inModal" style="font-family:'Courier New',monospace;font-size:10px;color:#555;">
+        <span v-else-if="reply.children?.length && inModal" style="font-family:'Courier New',monospace;font-size:11px;color:#fff;">
           {{ reply.children.length }} réponse{{ reply.children.length !== 1 ? 's' : '' }}
         </span>
 
@@ -64,7 +64,7 @@
           v-if="currentUsername && currentUsername === reply.author.username"
           @click="handleDelete"
           :disabled="deleting"
-          style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;background:none;border:none;color:#555;cursor:pointer;display:flex;align-items:center;gap:4px;padding:0;transition:color 0.15s;margin-left:auto;"
+          style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;background:none;border:none;color:#fff;cursor:pointer;display:flex;align-items:center;gap:4px;padding:0;transition:color 0.15s;margin-left:auto;"
           class="hover:text-[#e02020]"
         >
           <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor"><path d="M6 2a1 1 0 00-.894.553L4.382 4H2a1 1 0 000 2v7a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-2.382l-.724-1.447A1 1 0 0010 2H6zm0 5a1 1 0 112 0v3a1 1 0 11-2 0V7zm4 0a1 1 0 112 0v3a1 1 0 11-2 0V7z"/></svg>
@@ -78,20 +78,20 @@
           v-model="replyText"
           rows="3"
           :placeholder="`Répondre à ${reply.author.username}…`"
-          style="width:100%;background:#1a1a1a;border:1px solid #333;color:#d8d8d8;font-family:'Courier New',monospace;font-size:12px;line-height:1.6;padding:8px 10px;resize:vertical;outline:none;transition:border-color 0.15s;margin-bottom:8px;"
+          style="width:100%;background:#1a1a1a;border:1px solid #333;color:#fff;font-family:'Courier New',monospace;font-size:13px;line-height:1.6;padding:8px 10px;resize:vertical;outline:none;transition:border-color 0.15s;margin-bottom:8px;"
           class="focus:border-[#e02020]"
         />
         <div v-if="selectedGifUrl" style="margin-bottom:8px;position:relative;display:inline-block;">
           <img :src="selectedGifUrl" style="max-height:120px;max-width:240px;object-fit:contain;border:1px solid #333;display:block;" />
-          <button @click="selectedGifUrl = null" style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;background:#e02020;border:none;color:#fff;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">×</button>
+          <button @click="selectedGifUrl = null" style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;background:#e02020;border:none;color:#fff;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">×</button>
         </div>
-        <div v-if="replyError" style="font-family:'Courier New',monospace;font-size:11px;color:#e02020;margin-bottom:8px;">{{ replyError }}</div>
+        <div v-if="replyError" style="font-family:'Courier New',monospace;font-size:12px;color:#e02020;margin-bottom:8px;">{{ replyError }}</div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-          <button @click="submitReply" :disabled="replySaving || (!replyText.trim() && !selectedGifUrl)" class="btn-primary" style="font-size:10px;padding:6px 16px;">
+          <button @click="submitReply" :disabled="replySaving || (!replyText.trim() && !selectedGifUrl)" class="btn-primary" style="font-size:11px;padding:6px 16px;">
             {{ replySaving ? '…' : 'Publier' }}
           </button>
           <GifPicker @select="selectedGifUrl = $event" />
-          <button @click="cancelReply" style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;background:none;border:none;color:#555;cursor:pointer;transition:color 0.15s;" class="hover:text-[#888]">Annuler</button>
+          <button @click="cancelReply" style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;background:none;border:none;color:#fff;cursor:pointer;transition:color 0.15s;" class="hover:text-[#888]">Annuler</button>
         </div>
       </div>
     </div>
@@ -131,9 +131,9 @@
             <div style="display:flex;align-items:center;gap:8px;">
               <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" style="color:#e02020;"><path d="M2 4a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6l-3 3V4z"/></svg>
               <span style="font-family:impact,sans-serif;font-size:14px;letter-spacing:1px;text-transform:uppercase;color:#fff;">Thread</span>
-              <span style="font-family:'Courier New',monospace;font-size:10px;color:#555;">{{ countAll([reply]) }} commentaire{{ countAll([reply]) !== 1 ? 's' : '' }}</span>
+              <span style="font-family:'Courier New',monospace;font-size:11px;color:#fff;">{{ countAll([reply]) }} commentaire{{ countAll([reply]) !== 1 ? 's' : '' }}</span>
             </div>
-            <button @click="threadModal = false" style="background:none;border:none;color:#555;cursor:pointer;font-size:20px;line-height:1;" class="hover:text-[#fff]">×</button>
+            <button @click="threadModal = false" style="background:none;border:none;color:#fff;cursor:pointer;font-size:20px;line-height:1;" class="hover:text-[#fff]">×</button>
           </div>
 
           <!-- Contenu scrollable -->
@@ -141,27 +141,27 @@
 
             <!-- Post original (topic) si disponible -->
             <div v-if="topicContext" style="background:#131313;border-bottom:1px solid #2a2a2a;padding:14px 20px;">
-              <div style="font-family:'Courier New',monospace;font-size:8px;letter-spacing:3px;text-transform:uppercase;color:#e02020;margin-bottom:8px;">Post original</div>
+              <div style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#e02020;margin-bottom:8px;">Post original</div>
               <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
                 <div style="width:24px;height:24px;background:#222;border:1px solid #2e2e2e;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                  <span style="font-family:impact,sans-serif;font-size:11px;color:#888;">{{ topicContext.author.username[0].toUpperCase() }}</span>
+                  <span style="font-family:impact,sans-serif;font-size:12px;color:#fff;">{{ topicContext.author.username[0].toUpperCase() }}</span>
                 </div>
-                <span style="font-family:'Courier New',monospace;font-size:10px;color:#999;">{{ topicContext.author.username }}</span>
+                <span style="font-family:'Courier New',monospace;font-size:11px;color:#fff;">{{ topicContext.author.username }}</span>
               </div>
-              <p style="font-family:impact,sans-serif;font-size:15px;letter-spacing:0.5px;text-transform:uppercase;color:#d8d8d8;line-height:1.2;margin-bottom:6px;">{{ topicContext.title }}</p>
-              <p v-if="topicContext.content" style="font-family:'Courier New',monospace;font-size:11px;line-height:1.7;color:#888;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">{{ topicContext.content }}</p>
+              <p style="font-family:impact,sans-serif;font-size:15px;letter-spacing:0.5px;text-transform:uppercase;color:#fff;line-height:1.2;margin-bottom:6px;">{{ topicContext.title }}</p>
+              <p v-if="topicContext.content" style="font-family:'Courier New',monospace;font-size:12px;line-height:1.7;color:#fff;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">{{ topicContext.content }}</p>
             </div>
 
             <!-- Commentaire racine du thread (le cliqué) -->
             <div style="background:#1f1f1f;border-bottom:2px solid #252525;border-left:3px solid #e02020;padding:16px 20px;">
               <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
                 <div style="width:30px;height:30px;background:#2a2a2a;border:1px solid #333;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                  <span style="font-family:impact,sans-serif;font-size:13px;color:#aaa;">{{ reply.author.username[0].toUpperCase() }}</span>
+                  <span style="font-family:impact,sans-serif;font-size:13px;color:#fff;">{{ reply.author.username[0].toUpperCase() }}</span>
                 </div>
-                <span style="font-family:'Courier New',monospace;font-size:12px;color:#d0d0d0;font-weight:600;">{{ reply.author.username }}</span>
-                <span style="font-family:'Courier New',monospace;font-size:10px;color:#555;">{{ fmtRelative(reply.createdAt) }}</span>
+                <span style="font-family:'Courier New',monospace;font-size:13px;color:#fff;font-weight:600;">{{ reply.author.username }}</span>
+                <span style="font-family:'Courier New',monospace;font-size:11px;color:#fff;">{{ fmtRelative(reply.createdAt) }}</span>
               </div>
-              <p v-if="reply.content" style="font-family:'Courier New',monospace;font-size:13px;line-height:1.8;color:#d8d8d8;white-space:pre-wrap;margin-bottom:10px;">{{ reply.content }}</p>
+              <p v-if="reply.content" style="font-family:'Courier New',monospace;font-size:13px;line-height:1.8;color:#fff;white-space:pre-wrap;margin-bottom:10px;">{{ reply.content }}</p>
               <div v-if="reply.imageUrl">
                 <img :src="reply.imageUrl" alt="GIF" style="max-width:100%;max-height:280px;object-fit:contain;display:block;border:1px solid #2a2a2a;" />
               </div>

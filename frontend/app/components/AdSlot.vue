@@ -1,7 +1,7 @@
 <template>
   <div v-if="status !== 'hidden'" style="border:1px solid #2a2a2a;border-top:2px solid #e02020;">
     <div v-if="ad" style="padding:6px 16px;border-bottom:1px solid #1e1e1e;">
-      <span style="font-family:'Courier New',monospace;font-size:8px;letter-spacing:3px;color:#555;text-transform:uppercase;">Publicité</span>
+      <span style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:3px;color:#fff;text-transform:uppercase;">Publicité</span>
     </div>
     <a
       v-if="ad?.linkUrl"

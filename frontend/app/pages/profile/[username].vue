@@ -4,7 +4,7 @@
 
       <BackButton to="/feed" label="Retour" />
 
-      <div v-if="pending" class="flex items-center gap-3 text-gray-500 py-16">
+      <div v-if="pending" class="flex items-center gap-3 text-white py-16">
         <svg class="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
@@ -14,7 +14,7 @@
 
       <div v-else-if="!profile" class="text-center py-24">
         <div class="text-5xl mb-4">👤</div>
-        <p class="text-gray-400">Utilisateur introuvable</p>
+        <p class="text-white">Utilisateur introuvable</p>
         <NuxtLink to="/" class="btn-ghost !px-6 mt-6 inline-block">Retour</NuxtLink>
       </div>
 
@@ -27,7 +27,7 @@
           </div>
           <div class="flex-1">
             <h1 class="text-2xl font-bold mb-1">{{ profile.username }}</h1>
-            <p class="text-xs text-gray-400">Membre depuis {{ fmt(profile.createdAt) }}</p>
+            <p class="text-[13px] text-white">Membre depuis {{ fmt(profile.createdAt) }}</p>
           </div>
           <div v-if="isLoggedIn && !isSelf" class="shrink-0">
             <button
@@ -47,25 +47,25 @@
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
             <div class="card p-5 text-center">
               <p class="text-3xl font-bold text-green-400">{{ stats.counts.finished }}</p>
-              <p class="text-xs text-gray-400 mt-1">Terminés</p>
+              <p class="text-[13px] text-white mt-1">Terminés</p>
             </div>
             <div class="card p-5 text-center">
               <p class="text-3xl font-bold text-blue-400">{{ stats.counts.inProgress }}</p>
-              <p class="text-xs text-gray-400 mt-1">En cours</p>
+              <p class="text-[13px] text-white mt-1">En cours</p>
             </div>
             <div class="card p-5 text-center">
-              <p class="text-3xl font-bold text-gray-400">{{ stats.counts.toRead }}</p>
-              <p class="text-xs text-gray-400 mt-1">À lire</p>
+              <p class="text-3xl font-bold text-white">{{ stats.counts.toRead }}</p>
+              <p class="text-[13px] text-white mt-1">À lire</p>
             </div>
             <div class="card p-5 text-center">
               <p class="text-3xl font-bold text-yellow-400">{{ stats.counts.reviews }}</p>
-              <p class="text-xs text-gray-400 mt-1">Avis postés</p>
+              <p class="text-[13px] text-white mt-1">Avis postés</p>
             </div>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
             <div class="card p-6">
-              <h2 class="text-sm font-semibold text-gray-300 mb-4">Activité des 12 derniers mois</h2>
+              <h2 class="text-sm font-semibold text-white mb-4">Activité des 12 derniers mois</h2>
               <div class="flex items-end gap-1 h-24">
                 <div v-for="m in stats.monthlyActivity" :key="m.label" class="flex-1 flex flex-col items-center gap-1">
                   <div
@@ -73,28 +73,28 @@
                     :style="{ height: maxMonthly > 0 ? `${(m.count / maxMonthly) * 80}px` : '2px' }"
                     :title="`${m.count} comic(s) terminé(s)`"
                   />
-                  <span class="text-[9px] text-gray-400 rotate-45 origin-left">{{ m.label }}</span>
+                  <span class="text-[11px] text-white rotate-45 origin-left">{{ m.label }}</span>
                 </div>
               </div>
             </div>
             <div class="card p-6 flex flex-col gap-5">
               <div>
-                <h2 class="text-sm font-semibold text-gray-300 mb-2">Note moyenne donnée</h2>
+                <h2 class="text-sm font-semibold text-white mb-2">Note moyenne donnée</h2>
                 <p v-if="stats.avgRatingGiven" class="text-4xl font-bold text-yellow-400">
                   {{ stats.avgRatingGiven }} ★
                 </p>
-                <p v-else class="text-gray-400 text-sm">Aucun avis posté</p>
+                <p v-else class="text-white text-sm">Aucun avis posté</p>
               </div>
               <div>
-                <h2 class="text-sm font-semibold text-gray-300 mb-2">Communauté</h2>
+                <h2 class="text-sm font-semibold text-white mb-2">Communauté</h2>
                 <div class="flex gap-6 text-sm">
                   <div>
-                    <span class="text-xl font-semibold text-gray-200">{{ stats.counts.following }}</span>
-                    <span class="text-gray-500 ml-1">suivis</span>
+                    <span class="text-xl font-semibold text-white">{{ stats.counts.following }}</span>
+                    <span class="text-white ml-1">suivis</span>
                   </div>
                   <div>
-                    <span class="text-xl font-semibold text-gray-200">{{ stats.counts.followers }}</span>
-                    <span class="text-gray-500 ml-1">abonnés</span>
+                    <span class="text-xl font-semibold text-white">{{ stats.counts.followers }}</span>
+                    <span class="text-white ml-1">abonnés</span>
                   </div>
                 </div>
               </div>
@@ -103,13 +103,13 @@
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
             <div class="card p-6">
-              <h2 class="text-sm font-semibold text-gray-300 mb-4">Genres préférés</h2>
+              <h2 class="text-sm font-semibold text-white mb-4">Genres préférés</h2>
               <div v-if="stats.topGenres.length" class="space-y-3">
                 <div v-for="g in stats.topGenres" :key="g.genre" class="flex items-center gap-3">
                   <div class="flex-1 min-w-0">
-                    <div class="flex justify-between text-xs mb-1">
-                      <span class="text-gray-300 truncate">{{ g.genre }}</span>
-                      <span class="text-gray-500 ml-2">{{ g.count }}</span>
+                    <div class="flex justify-between text-[13px] mb-1">
+                      <span class="text-white truncate">{{ g.genre }}</span>
+                      <span class="text-white ml-2">{{ g.count }}</span>
                     </div>
                     <div class="h-1.5 rounded-full bg-white/10 overflow-hidden">
                       <div class="h-full rounded-full bg-red-500/70" :style="{ width: `${(g.count / stats.topGenres[0].count) * 100}%` }" />
@@ -117,16 +117,16 @@
                   </div>
                 </div>
               </div>
-              <p v-else class="text-gray-400 text-sm">Lis des comics pour voir tes genres préférés.</p>
+              <p v-else class="text-white text-sm">Lis des comics pour voir tes genres préférés.</p>
             </div>
             <div class="card p-6">
-              <h2 class="text-sm font-semibold text-gray-300 mb-4">Auteurs préférés</h2>
+              <h2 class="text-sm font-semibold text-white mb-4">Auteurs préférés</h2>
               <div v-if="stats.topAuthors.length" class="space-y-3">
                 <div v-for="a in stats.topAuthors" :key="a.author" class="flex items-center gap-3">
                   <div class="flex-1 min-w-0">
-                    <div class="flex justify-between text-xs mb-1">
-                      <span class="text-gray-300 truncate">{{ a.author }}</span>
-                      <span class="text-gray-500 ml-2">{{ a.count }}</span>
+                    <div class="flex justify-between text-[13px] mb-1">
+                      <span class="text-white truncate">{{ a.author }}</span>
+                      <span class="text-white ml-2">{{ a.count }}</span>
                     </div>
                     <div class="h-1.5 rounded-full bg-white/10 overflow-hidden">
                       <div class="h-full rounded-full bg-blue-500/70" :style="{ width: `${(a.count / stats.topAuthors[0].count) * 100}%` }" />
@@ -134,13 +134,13 @@
                   </div>
                 </div>
               </div>
-              <p v-else class="text-gray-400 text-sm">Lis des comics pour voir tes auteurs préférés.</p>
+              <p v-else class="text-white text-sm">Lis des comics pour voir tes auteurs préférés.</p>
             </div>
           </div>
 
           <div class="card p-6 mb-10">
-            <h2 class="text-sm font-semibold text-gray-300 mb-4">
-              Badges <span class="text-gray-400 font-normal">({{ stats.badges.length }}/10)</span>
+            <h2 class="text-sm font-semibold text-white mb-4">
+              Badges <span class="text-white font-normal">({{ stats.badges.length }}/10)</span>
             </h2>
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
               <div
@@ -150,8 +150,8 @@
                 :title="badge.description"
               >
                 <span class="text-2xl">{{ badge.icon }}</span>
-                <span class="text-xs font-medium text-gray-300">{{ badge.name }}</span>
-                <span class="text-[10px] text-gray-400">{{ new Date(badge.earnedAt).toLocaleDateString('fr-FR') }}</span>
+                <span class="text-[13px] font-medium text-white">{{ badge.name }}</span>
+                <span class="text-[11px] text-white">{{ new Date(badge.earnedAt).toLocaleDateString('fr-FR') }}</span>
               </div>
               <div
                 v-for="i in (10 - stats.badges.length)"
@@ -159,7 +159,7 @@
                 class="flex flex-col items-center gap-1 p-3 rounded-xl bg-white/5 border border-white/10 text-center opacity-30"
               >
                 <span class="text-2xl grayscale">🏅</span>
-                <span class="text-xs text-gray-400">???</span>
+                <span class="text-[13px] text-white">???</span>
               </div>
             </div>
           </div>
@@ -170,16 +170,16 @@
         <template v-else>
 
           <div v-if="badges.length" class="mb-8">
-            <h2 class="text-sm font-semibold text-gray-500 mb-3">Badges</h2>
+            <h2 class="text-sm font-semibold text-white mb-3">Badges</h2>
             <div class="flex flex-wrap gap-2">
               <div
                 v-for="badge in badges"
                 :key="badge.badgeKey"
-                class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/8 border border-white/15 text-xs"
+                class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/8 border border-white/15 text-[13px]"
                 :title="badge.description"
               >
                 <span>{{ badge.icon }}</span>
-                <span class="text-gray-300">{{ badge.name }}</span>
+                <span class="text-white">{{ badge.name }}</span>
               </div>
             </div>
           </div>
@@ -187,19 +187,19 @@
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-10">
             <div class="card px-4 py-4 text-center">
               <div class="text-xl font-black text-white mb-0.5">{{ profile._count.readingEntries }}</div>
-              <div class="text-xs text-gray-400">Comics suivis</div>
+              <div class="text-[13px] text-white">Comics suivis</div>
             </div>
             <div class="card px-4 py-4 text-center">
               <div class="text-xl font-black text-white mb-0.5">{{ profile._count.reviews }}</div>
-              <div class="text-xs text-gray-400">Avis</div>
+              <div class="text-[13px] text-white">Avis</div>
             </div>
             <div class="card px-4 py-4 text-center">
               <div class="text-xl font-black text-white mb-0.5">{{ profile._count.followers }}</div>
-              <div class="text-xs text-gray-400">Abonnés</div>
+              <div class="text-[13px] text-white">Abonnés</div>
             </div>
             <div class="card px-4 py-4 text-center">
               <div class="text-xl font-black text-white mb-0.5">{{ profile._count.following }}</div>
-              <div class="text-xs text-gray-400">Abonnements</div>
+              <div class="text-[13px] text-white">Abonnements</div>
             </div>
           </div>
 
@@ -207,7 +207,7 @@
 
         <!-- Avis (commun) -->
         <div v-if="allReviews.length" class="mb-10">
-          <h2 class="text-lg font-bold mb-5">Avis <span class="text-gray-400 text-sm font-normal">({{ allReviews.length }})</span></h2>
+          <h2 class="text-lg font-bold mb-5">Avis <span class="text-white text-sm font-normal">({{ allReviews.length }})</span></h2>
           <div class="space-y-3">
             <div v-for="review in displayedReviews" :key="review.id" class="card p-4 flex gap-4">
               <NuxtLink :to="`/comics/${review.comic.externalId}`" class="shrink-0">
@@ -216,20 +216,20 @@
                 </div>
               </NuxtLink>
               <div class="flex-1 min-w-0">
-                <NuxtLink :to="`/comics/${review.comic.externalId}`" class="font-medium text-sm text-gray-200 hover:text-white transition line-clamp-1">
+                <NuxtLink :to="`/comics/${review.comic.externalId}`" class="font-medium text-sm text-white hover:text-white transition line-clamp-1">
                   {{ review.comic.title }}
                 </NuxtLink>
                 <div class="flex gap-0.5 my-1">
-                  <span style="font-family:'Courier New',monospace;font-size:12px;color:#fbbf24;">{{ review.rating }} ★</span>
+                  <span style="font-family:'Courier New',monospace;font-size:13px;color:#fbbf24;">{{ review.rating }} ★</span>
                 </div>
-                <p v-if="review.content" class="text-xs text-gray-400 line-clamp-2 leading-relaxed">{{ review.content }}</p>
+                <p v-if="review.content" class="text-[13px] text-white line-clamp-2 leading-relaxed">{{ review.content }}</p>
               </div>
             </div>
           </div>
           <button
             v-if="allReviews.length > reviewLimit"
             @click="reviewLimit = reviewLimit === 5 ? allReviews.length : 5"
-            class="mt-4 text-sm text-gray-500 hover:text-white transition"
+            class="mt-4 text-sm text-white hover:text-white transition"
           >
             {{ reviewLimit === 5 ? `Voir tous les avis (${allReviews.length})` : 'Voir moins' }}
           </button>
@@ -247,7 +247,7 @@
             >
               <div class="flex items-center justify-between">
                 <p class="font-medium text-sm group-hover:text-white transition-colors">{{ list.name }}</p>
-                <span class="text-xs text-gray-400">{{ list._count.items }} comics</span>
+                <span class="text-[13px] text-white">{{ list._count.items }} comics</span>
               </div>
             </NuxtLink>
           </div>

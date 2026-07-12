@@ -4,10 +4,10 @@
 
       <div class="mb-10">
         <h1 class="text-3xl font-bold mb-1">Auteurs</h1>
-        <p class="text-gray-500 text-sm">Découvrez les créateurs derrière vos comics préférés</p>
+        <p class="text-white text-sm">Découvrez les créateurs derrière vos comics préférés</p>
       </div>
 
-      <div v-if="pending" class="flex justify-center py-20 text-gray-500">Chargement…</div>
+      <div v-if="pending" class="flex justify-center py-20 text-white">Chargement…</div>
 
       <div v-else-if="authors.length" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
         <NuxtLink
@@ -20,13 +20,13 @@
             ✍️
           </div>
           <div class="min-w-0">
-            <p class="font-semibold text-gray-100 group-hover:text-white transition truncate">{{ author.name }}</p>
-            <p class="text-xs text-gray-500 mt-0.5">{{ author.comicCount }} comic{{ author.comicCount > 1 ? 's' : '' }}</p>
+            <p class="font-semibold text-white group-hover:text-white transition truncate">{{ author.name }}</p>
+            <p class="text-[13px] text-white mt-0.5">{{ author.comicCount }} comic{{ author.comicCount > 1 ? 's' : '' }}</p>
           </div>
         </NuxtLink>
       </div>
 
-      <div v-else class="text-center py-24 text-gray-400">
+      <div v-else class="text-center py-24 text-white">
         <div class="text-4xl mb-3">✍️</div>
         <p>Aucun auteur disponible pour l'instant.</p>
       </div>

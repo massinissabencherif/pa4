@@ -5,7 +5,7 @@
       <BackButton to="/comics/search" label="Retour à la recherche" />
 
       <!-- Loading -->
-      <div v-if="pending" class="flex items-center gap-3 text-gray-500">
+      <div v-if="pending" class="flex items-center gap-3 text-white">
         <svg class="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
@@ -48,12 +48,12 @@
               </NuxtLink>
             </template>
             <!-- Auteurs texte libres -->
-            <span v-else-if="comic.authors?.length" class="text-sm text-gray-300">{{ comic.authors.join(', ') }}</span>
+            <span v-else-if="comic.authors?.length" class="text-sm text-white">{{ comic.authors.join(', ') }}</span>
             <!-- Éditeur -->
-            <span v-if="comic.publisher" class="text-sm text-gray-400">{{ comic.publisher }}</span>
+            <span v-if="comic.publisher" class="text-sm text-white">{{ comic.publisher }}</span>
             <!-- Note moyenne -->
-            <div v-if="avgRating" style="font-family:'Courier New',monospace;font-size:12px;color:#fbbf24;">
-              {{ avgRating }} ★ <span style="color:#888;font-size:10px;">({{ communityReviews.length }})</span>
+            <div v-if="avgRating" style="font-family:'Courier New',monospace;font-size:13px;color:#fbbf24;">
+              {{ avgRating }} ★ <span style="color:#fff;font-size:11px;">({{ communityReviews.length }})</span>
             </div>
           </div>
 
@@ -62,19 +62,19 @@
             <span
               v-for="genre in comic.genres"
               :key="genre"
-              class="px-3 py-1 rounded-full bg-white/10 border border-white/20 text-xs text-gray-300"
+              class="px-3 py-1 rounded-full bg-white/10 border border-white/20 text-[13px] text-white"
             >
               {{ genre }}
             </span>
           </div>
 
           <!-- Description -->
-          <p v-if="comic.description" class="text-gray-300 text-sm leading-relaxed mb-6">
+          <p v-if="comic.description" class="text-white text-sm leading-relaxed mb-6">
             {{ comic.description }}
           </p>
 
           <!-- Date -->
-          <div v-if="comic.publishedAt" class="flex items-center gap-2 text-xs text-gray-600 mb-8">
+          <div v-if="comic.publishedAt" class="flex items-center gap-2 text-[13px] text-white mb-8">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
             </svg>
@@ -118,7 +118,7 @@
               <template v-else>
                 <!-- Sélecteur de statut -->
                 <div class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm">
-                  <span class="text-gray-400">Statut :</span>
+                  <span class="text-white">Statut :</span>
                   <select
                     v-model="entry.status"
                     @change="updateStatus(entry.status)"
@@ -143,7 +143,7 @@
             <!-- Ajouter à une liste -->
             <div class="card p-5 max-w-md mb-4">
               <h3 class="font-semibold mb-3">Ajouter à une liste</h3>
-              <div v-if="!userLists.length" class="text-sm text-gray-400">
+              <div v-if="!userLists.length" class="text-sm text-white">
                 Aucune liste.
                 <NuxtLink to="/lists" class="text-red-400 hover:text-red-300">Créer une liste →</NuxtLink>
               </div>
@@ -159,8 +159,8 @@
                     @change="toggleList(l, $event.target.checked)"
                     class="accent-red-500 w-4 h-4"
                   />
-                  <span class="text-sm text-gray-300 group-hover:text-white transition-colors">{{ l.name }}</span>
-                  <span class="ml-auto text-xs text-gray-500">{{ l._count?.items ?? 0 }}</span>
+                  <span class="text-sm text-white group-hover:text-white transition-colors">{{ l.name }}</span>
+                  <span class="ml-auto text-[13px] text-white">{{ l._count?.items ?? 0 }}</span>
                 </label>
               </div>
             </div>
@@ -176,7 +176,7 @@
                   :key="star"
                   @click="reviewForm.rating = star"
                   class="text-2xl transition-transform hover:scale-110"
-                  :class="star <= reviewForm.rating ? 'text-yellow-400' : 'text-gray-700'"
+                  :class="star <= reviewForm.rating ? 'text-yellow-400' : 'text-white'"
                 >
                   ★
                 </button>
@@ -207,7 +207,7 @@
                 </button>
               </div>
 
-              <p v-if="reviewMsg" class="text-xs mt-3" :class="reviewError ? 'text-red-400' : 'text-green-400'">
+              <p v-if="reviewMsg" class="text-[13px] mt-3" :class="reviewError ? 'text-red-400' : 'text-green-400'">
                 {{ reviewMsg }}
               </p>
             </div>
@@ -215,7 +215,7 @@
 
           <!-- Actions non connecté -->
           <div v-else class="card p-5 max-w-sm">
-            <p class="text-sm text-gray-400 mb-3">
+            <p class="text-sm text-white mb-3">
               Connecte-toi pour ajouter ce comic à ta liste et laisser un avis.
             </p>
             <div class="flex gap-3">
@@ -237,13 +237,13 @@
           <div v-for="r in communityReviews" :key="r.id" class="card p-5">
             <div class="flex items-start justify-between gap-3 mb-2">
               <div class="flex items-center gap-3">
-                <NuxtLink :to="`/profile/${r.user.username}`" class="font-medium text-sm text-gray-300 hover:text-red-400 transition">{{ r.user.username }}</NuxtLink>
-                <span style="font-family:'Courier New',monospace;font-size:12px;color:#fbbf24;">{{ r.rating }} ★</span>
+                <NuxtLink :to="`/profile/${r.user.username}`" class="font-medium text-sm text-white hover:text-red-400 transition">{{ r.user.username }}</NuxtLink>
+                <span style="font-family:'Courier New',monospace;font-size:13px;color:#fbbf24;">{{ r.rating }} ★</span>
               </div>
               <button
                 @click="toggleReviewLike(r)"
-                class="flex items-center gap-1.5 text-xs transition shrink-0"
-                :class="r.likedByMe ? 'text-red-400' : 'text-gray-600 hover:text-red-400'"
+                class="flex items-center gap-1.5 text-[13px] transition shrink-0"
+                :class="r.likedByMe ? 'text-red-400' : 'text-white hover:text-red-400'"
                 :aria-label="r.likedByMe ? 'Retirer le like' : 'Liker cet avis'"
               >
                 <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
@@ -252,20 +252,20 @@
                 <span>{{ r.likeCount }}</span>
               </button>
             </div>
-            <p v-if="r.content" class="text-sm text-gray-300 leading-relaxed mb-4">{{ r.content }}</p>
+            <p v-if="r.content" class="text-sm text-white leading-relaxed mb-4">{{ r.content }}</p>
 
             <!-- Commentaires sur l'avis -->
             <div class="border-t border-white/15 pt-3 mt-3 space-y-3">
               <div v-for="c in r.comments" :key="c.id" class="flex items-start gap-3">
                 <div class="flex-1 min-w-0">
-                  <span class="text-xs font-medium text-gray-400">{{ c.user.username }}</span>
-                  <p class="text-xs text-gray-400 leading-relaxed mt-0.5">{{ c.content }}</p>
+                  <span class="text-[13px] font-medium text-white">{{ c.user.username }}</span>
+                  <p class="text-[13px] text-white leading-relaxed mt-0.5">{{ c.content }}</p>
                 </div>
                 <div class="flex items-center gap-2 shrink-0 mt-0.5">
                   <button
                     @click.stop="toggleCommentLike(c)"
-                    class="flex items-center gap-1 text-xs transition"
-                    :class="c.likedByMe ? 'text-red-400' : 'text-gray-600 hover:text-red-400'"
+                    class="flex items-center gap-1 text-[13px] transition"
+                    :class="c.likedByMe ? 'text-red-400' : 'text-white hover:text-red-400'"
                     :aria-label="c.likedByMe ? 'Retirer le like' : 'Liker'"
                   >
                     <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
@@ -276,7 +276,7 @@
                   <button
                     v-if="isLoggedIn && c.user.id === currentUserId"
                     @click.stop="deleteComment(r, c)"
-                    class="text-xs text-gray-700 hover:text-red-400 transition"
+                    class="text-[13px] text-white hover:text-red-400 transition"
                     aria-label="Supprimer ce commentaire"
                   >✕</button>
                 </div>
@@ -289,9 +289,9 @@
                   type="text"
                   placeholder="Ajouter un commentaire…"
                   maxlength="1000"
-                  class="input flex-1 text-xs !py-1.5"
+                  class="input flex-1 text-[13px] !py-1.5"
                 />
-                <button type="submit" class="btn-primary !py-1.5 !px-3 text-xs">Envoyer</button>
+                <button type="submit" class="btn-primary !py-1.5 !px-3 text-[13px]">Envoyer</button>
               </form>
             </div>
           </div>

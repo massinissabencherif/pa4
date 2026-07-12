@@ -2,7 +2,7 @@
   <div>
 
     <!-- Loading -->
-    <div v-if="pending" style="display:flex;align-items:center;gap:10px;font-family:'Courier New',monospace;font-size:11px;letter-spacing:2px;color:#888;text-transform:uppercase;padding:80px 24px;">
+    <div v-if="pending" style="display:flex;align-items:center;gap:10px;font-family:'Courier New',monospace;font-size:12px;letter-spacing:2px;color:#fff;text-transform:uppercase;padding:80px 24px;">
       <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
@@ -26,15 +26,15 @@
         />
         <div style="position:absolute;inset:0;background:linear-gradient(to right,rgba(0,0,0,0.95) 40%,transparent 100%);"></div>
         <div class="max-w-[1100px] mx-auto px-6 py-12" style="position:relative;">
-          <NuxtLink to="/recommendations" style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:3px;color:#555;text-transform:uppercase;text-decoration:none;display:inline-flex;align-items:center;gap:8px;margin-bottom:20px;transition:color 0.15s;" class="hover:text-[#888]">
+          <NuxtLink to="/recommendations" style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:3px;color:#fff;text-transform:uppercase;text-decoration:none;display:inline-flex;align-items:center;gap:8px;margin-bottom:20px;transition:color 0.15s;" class="hover:text-[#888]">
             <span>←</span> Tous les parcours
           </NuxtLink>
-          <div style="font-family:'Courier New',monospace;font-size:8px;letter-spacing:5px;color:#e02020;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:10px;">
+          <div style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:5px;color:#e02020;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:10px;">
             <div style="width:16px;height:2px;background:#e02020;flex-shrink:0;"></div>
             Guide de lecture
           </div>
           <h1 style="font-family:impact,sans-serif;font-size:64px;letter-spacing:2px;color:#fff;text-transform:uppercase;line-height:1;margin-bottom:20px;">{{ guide.character }}</h1>
-          <p style="font-family:'Courier New',monospace;font-size:12px;line-height:1.8;color:#aaa;max-width:600px;">{{ guide.story }}</p>
+          <p style="font-family:'Courier New',monospace;font-size:13px;line-height:1.8;color:#fff;max-width:600px;">{{ guide.story }}</p>
         </div>
       </div>
 
@@ -42,7 +42,7 @@
 
         <!-- ─── LISTE DE LECTURE ──────────────────────────────────────────── -->
         <div style="padding:48px 0;border-bottom:1px solid #2a2a2a;">
-          <div style="font-family:'Courier New',monospace;font-size:8px;letter-spacing:5px;color:#e02020;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:10px;">
+          <div style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:5px;color:#e02020;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:10px;">
             <div style="width:16px;height:2px;background:#e02020;flex-shrink:0;"></div>
             Liste de lecture
           </div>
@@ -72,9 +72,9 @@
                   :to="comic.comicUrl"
                   style="font-family:impact,sans-serif;font-size:16px;letter-spacing:0.5px;text-transform:uppercase;color:#fff;margin-bottom:8px;line-height:1.2;display:block;text-decoration:none;transition:color 0.15s;"
                   class="hover:text-[#e02020]"
-                >{{ comic.title }} <span style="font-size:11px;opacity:0.5;">↗</span></NuxtLink>
+                >{{ comic.title }} <span style="font-size:12px;opacity:0.5;">↗</span></NuxtLink>
                 <div v-else style="font-family:impact,sans-serif;font-size:16px;letter-spacing:0.5px;text-transform:uppercase;color:#fff;margin-bottom:8px;line-height:1.2;">{{ comic.title }}</div>
-                <p style="font-family:'Courier New',monospace;font-size:11px;line-height:1.7;color:#888;">{{ comic.note }}</p>
+                <p style="font-family:'Courier New',monospace;font-size:12px;line-height:1.7;color:#fff;">{{ comic.note }}</p>
               </div>
             </div>
           </div>
@@ -86,7 +86,7 @@
 
         <!-- ─── DISCUSSION ────────────────────────────────────────────────── -->
         <div style="padding:48px 0;border-bottom:1px solid #2a2a2a;">
-          <div style="font-family:'Courier New',monospace;font-size:8px;letter-spacing:5px;color:#e02020;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:10px;">
+          <div style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:5px;color:#e02020;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:10px;">
             <div style="width:16px;height:2px;background:#e02020;flex-shrink:0;"></div>
             Communauté
           </div>
@@ -95,50 +95,50 @@
           <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
             <div style="font-family:impact,sans-serif;font-size:28px;letter-spacing:1px;color:#fff;text-transform:uppercase;">
               Discussion
-              <span style="font-family:'Courier New',monospace;font-size:12px;font-weight:normal;letter-spacing:1px;color:#555;margin-left:10px;text-transform:none;">{{ guide.topics.length }} sujet{{ guide.topics.length !== 1 ? 's' : '' }}</span>
+              <span style="font-family:'Courier New',monospace;font-size:13px;font-weight:normal;letter-spacing:1px;color:#fff;margin-left:10px;text-transform:none;">{{ guide.topics.length }} sujet{{ guide.topics.length !== 1 ? 's' : '' }}</span>
             </div>
             <button
               v-if="isLoggedIn"
               @click="showNewTopic = !showNewTopic"
-              style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;background:transparent;border:1px solid #e02020;color:#e02020;padding:8px 18px;cursor:pointer;transition:background 0.15s,color 0.15s;"
+              style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;background:transparent;border:1px solid #e02020;color:#e02020;padding:8px 18px;cursor:pointer;transition:background 0.15s,color 0.15s;"
               class="hover:bg-[#e02020] hover:text-white"
             >+ Nouveau sujet</button>
-            <NuxtLink v-else to="/auth/login" style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;border:1px solid #333;color:#666;padding:8px 18px;text-decoration:none;transition:border-color 0.15s;" class="hover:border-[#e02020] hover:text-[#e02020]">
+            <NuxtLink v-else to="/auth/login" style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;border:1px solid #333;color:#fff;padding:8px 18px;text-decoration:none;transition:border-color 0.15s;" class="hover:border-[#e02020] hover:text-[#e02020]">
               Connexion pour participer
             </NuxtLink>
           </div>
 
           <!-- Formulaire nouveau sujet -->
           <div v-if="showNewTopic" style="background:#1c1c1c;border:1px solid #333;border-left:2px solid #e02020;padding:20px;margin-bottom:16px;">
-            <div style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#e02020;margin-bottom:14px;">Nouveau sujet</div>
+            <div style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#e02020;margin-bottom:14px;">Nouveau sujet</div>
             <input
               v-model="newTopic.title"
               type="text"
               placeholder="Titre du sujet"
               class="input mb-3"
-              style="font-size:13px;background:#252525;border-color:#3a3a3a;color:#e8e8e8;"
+              style="font-size:13px;background:#252525;border-color:#3a3a3a;color:#fff;"
             />
             <textarea
               v-model="newTopic.content"
               rows="4"
               placeholder="Développe ta question ou ton point de vue…"
               class="input resize-none mb-3"
-              style="font-size:12px;background:#252525;border-color:#3a3a3a;color:#e8e8e8;"
+              style="font-size:13px;background:#252525;border-color:#3a3a3a;color:#fff;"
             />
 
             <!-- GIF pour le post -->
             <div v-if="newTopicGifUrl" style="margin-bottom:12px;position:relative;display:inline-block;">
               <img :src="newTopicGifUrl" style="max-height:140px;max-width:260px;object-fit:contain;border:1px solid #2a2a2a;" />
-              <button @click="newTopicGifUrl = null" style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;background:#e02020;border:none;color:#fff;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">×</button>
+              <button @click="newTopicGifUrl = null" style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;background:#e02020;border:none;color:#fff;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">×</button>
             </div>
 
-            <div v-if="topicError" style="font-family:'Courier New',monospace;font-size:11px;color:#e02020;margin-bottom:10px;">{{ topicError }}</div>
+            <div v-if="topicError" style="font-family:'Courier New',monospace;font-size:12px;color:#e02020;margin-bottom:10px;">{{ topicError }}</div>
             <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-              <button @click="submitTopic" :disabled="topicSaving" class="btn-primary" style="font-size:11px;padding:8px 20px;">
+              <button @click="submitTopic" :disabled="topicSaving" class="btn-primary" style="font-size:12px;padding:8px 20px;">
                 {{ topicSaving ? 'Publication…' : 'Publier' }}
               </button>
               <GifPicker @select="newTopicGifUrl = $event" />
-              <button @click="cancelNewTopic" style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;background:none;border:none;color:#666;cursor:pointer;transition:color 0.15s;" class="hover:text-[#aaa]">
+              <button @click="cancelNewTopic" style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;background:none;border:none;color:#fff;cursor:pointer;transition:color 0.15s;" class="hover:text-[#aaa]">
                 Annuler
               </button>
             </div>
@@ -149,7 +149,7 @@
 
             <!-- Barre de recherche -->
             <div style="padding:14px 16px;border-bottom:1px solid #2e2e2e;display:flex;align-items:center;gap:10px;">
-              <svg width="14" height="14" viewBox="0 0 20 20" fill="none" style="color:#666;flex-shrink:0;">
+              <svg width="14" height="14" viewBox="0 0 20 20" fill="none" style="color:#fff;flex-shrink:0;">
                 <circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.5"/>
                 <path d="M13.5 13.5L17 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
               </svg>
@@ -157,10 +157,10 @@
                 v-model="topicSearch"
                 type="text"
                 placeholder="Rechercher dans les discussions…"
-                style="flex:1;background:transparent;border:none;outline:none;font-family:'Courier New',monospace;font-size:12px;color:#d0d0d0;letter-spacing:0.5px;"
-                :style="{ '::placeholder': 'color:#555' }"
+                style="flex:1;background:transparent;border:none;outline:none;font-family:'Courier New',monospace;font-size:13px;color:#fff;letter-spacing:0.5px;"
+                :style="{ '::placeholder': 'color:#fff' }"
               />
-              <span v-if="topicSearch" style="font-family:'Courier New',monospace;font-size:10px;color:#555;">
+              <span v-if="topicSearch" style="font-family:'Courier New',monospace;font-size:11px;color:#fff;">
                 {{ filteredTopics.length }} résultat{{ filteredTopics.length !== 1 ? 's' : '' }}
               </span>
             </div>
@@ -176,19 +176,19 @@
               >
                 <!-- Avatar lettre -->
                 <div style="flex-shrink:0;width:32px;height:32px;background:#252525;border:1px solid #333;display:flex;align-items:center;justify-content:center;margin-top:2px;">
-                  <span style="font-family:impact,sans-serif;font-size:14px;color:#888;">{{ topic.author.username[0].toUpperCase() }}</span>
+                  <span style="font-family:impact,sans-serif;font-size:14px;color:#fff;">{{ topic.author.username[0].toUpperCase() }}</span>
                 </div>
 
                 <!-- Contenu -->
                 <div style="flex:1;min-width:0;">
-                  <div style="font-family:impact,sans-serif;font-size:15px;letter-spacing:0.5px;text-transform:uppercase;color:#e8e8e8;margin-bottom:5px;line-height:1.2;" class="topic-title">
+                  <div style="font-family:impact,sans-serif;font-size:15px;letter-spacing:0.5px;text-transform:uppercase;color:#fff;margin-bottom:5px;line-height:1.2;" class="topic-title">
                     {{ topic.title }}
                   </div>
-                  <p style="font-family:'Courier New',monospace;font-size:11px;line-height:1.6;color:#888;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:8px;">
+                  <p style="font-family:'Courier New',monospace;font-size:12px;line-height:1.6;color:#fff;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:8px;">
                     {{ topic.content }}
                   </p>
-                  <div style="display:flex;align-items:center;gap:12px;font-family:'Courier New',monospace;font-size:9px;letter-spacing:1px;color:#555;">
-                    <span style="color:#777;">{{ topic.author.username }}</span>
+                  <div style="display:flex;align-items:center;gap:12px;font-family:'Courier New',monospace;font-size:10px;letter-spacing:1px;color:#fff;">
+                    <span style="color:#fff;">{{ topic.author.username }}</span>
                     <span>·</span>
                     <span>{{ fmtDate(topic.createdAt) }}</span>
                     <span>·</span>
@@ -200,26 +200,26 @@
                 </div>
 
                 <!-- Flèche -->
-                <div style="flex-shrink:0;color:#333;font-size:16px;margin-top:8px;transition:color 0.15s;" class="topic-arrow">→</div>
+                <div style="flex-shrink:0;color:#fff;font-size:16px;margin-top:8px;transition:color 0.15s;" class="topic-arrow">→</div>
               </NuxtLink>
             </div>
 
             <!-- Aucun résultat de recherche -->
-            <div v-else-if="topicSearch" style="padding:32px 16px;text-align:center;font-family:'Courier New',monospace;font-size:11px;letter-spacing:2px;color:#444;text-transform:uppercase;">
+            <div v-else-if="topicSearch" style="padding:32px 16px;text-align:center;font-family:'Courier New',monospace;font-size:12px;letter-spacing:2px;color:#fff;text-transform:uppercase;">
               Aucun sujet correspondant à « {{ topicSearch }} »
             </div>
 
             <!-- Aucune discussion du tout -->
             <div v-else style="padding:40px 16px;text-align:center;">
-              <div style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:2px;color:#444;text-transform:uppercase;margin-bottom:8px;">Aucune discussion pour l'instant.</div>
-              <div v-if="isLoggedIn" style="font-family:'Courier New',monospace;font-size:10px;color:#555;">Sois le premier à lancer le débat ↑</div>
+              <div style="font-family:'Courier New',monospace;font-size:12px;letter-spacing:2px;color:#fff;text-transform:uppercase;margin-bottom:8px;">Aucune discussion pour l'instant.</div>
+              <div v-if="isLoggedIn" style="font-family:'Courier New',monospace;font-size:11px;color:#fff;">Sois le premier à lancer le débat ↑</div>
             </div>
           </div>
         </div>
 
         <!-- ─── DÉCOUVRE AUSSI ────────────────────────────────────────────── -->
         <div v-if="guide.related?.length" style="padding:48px 0;">
-          <div style="font-family:'Courier New',monospace;font-size:8px;letter-spacing:5px;color:#e02020;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:10px;">
+          <div style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:5px;color:#e02020;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:10px;">
             <div style="width:16px;height:2px;background:#e02020;flex-shrink:0;"></div>
             Pour continuer
           </div>
@@ -241,7 +241,7 @@
               </div>
               <div style="flex:1;min-width:0;">
                 <div style="font-family:impact,sans-serif;font-size:14px;letter-spacing:0.5px;text-transform:uppercase;color:#fff;margin-bottom:4px;line-height:1.2;" class="group-hover:text-[#e02020] transition-colors">{{ rel.character }}</div>
-                <p style="font-family:'Courier New',monospace;font-size:10px;line-height:1.5;color:#666;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ rel.teaser }}</p>
+                <p style="font-family:'Courier New',monospace;font-size:11px;line-height:1.5;color:#fff;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ rel.teaser }}</p>
               </div>
             </NuxtLink>
           </div>
