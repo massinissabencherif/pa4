@@ -707,8 +707,36 @@ router.patch("/admin/ads/:id", requireAdmin, (req, res) => {
   });
 });
 
-// Pas de suppression pour les encarts — désactiver via isActive (PATCH) plutôt
-// que supprimer définitivement, pour éviter les pertes accidentelles.
+// Pas de suppression pour les encarts — "réinitialiser" vide le contenu
+// (image, texte, lien, dates) et désactive, sans supprimer la ligne.
+router.post("/admin/ads/:id/reset", requireAdmin, async (req, res) => {
+  const ad = await prisma.adBanner.findUnique({ where: { id: req.params.id } });
+  if (!ad) return res.status(404).json({ error: "Encart introuvable" });
+
+  if (ad.imageUrl) {
+    const filename = ad.imageUrl.split("/uploads/")[1];
+    if (filename) {
+      try {
+        await fs.promises.unlink(path.join(uploadDir, filename));
+      } catch {
+        console.warn(`[WARN] Fichier d'encart introuvable lors de la réinitialisation`);
+      }
+    }
+  }
+
+  const reset = await prisma.adBanner.update({
+    where: { id: req.params.id },
+    data: {
+      imageUrl: null,
+      altText: null,
+      linkUrl: null,
+      startAt: null,
+      endAt: null,
+      isActive: false,
+    },
+  });
+  res.json(reset);
+});
 
 // ─── Stats ────────────────────────────────────────────────────────────────────
 

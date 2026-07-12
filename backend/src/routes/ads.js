@@ -17,6 +17,7 @@ router.get("/", async (req, res) => {
     where: {
       placement,
       isActive: true,
+      imageUrl: { not: null },
       AND: [
         { OR: [{ startAt: null }, { startAt: { lte: now } }] },
         { OR: [{ endAt: null }, { endAt: { gte: now } }] },
