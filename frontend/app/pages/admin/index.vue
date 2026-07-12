@@ -881,6 +881,7 @@
                 <td class="px-5 py-4 text-right">
                   <div class="flex items-center justify-end gap-3">
                     <button @click="startEditAd(ad)" class="text-xs text-gray-500 hover:text-yellow-400 transition">Modifier</button>
+                    <button v-if="ad.isActive" @click="resetAd(ad)" class="text-xs text-gray-500 hover:text-red-400 transition">Réinitialiser</button>
                   </div>
                 </td>
               </tr>
@@ -1688,6 +1689,17 @@ async function submitAd() {
   }
 }
 
-// Pas de suppression pour les encarts — décocher "Actif" dans le formulaire
-// d'édition pour désactiver un encart sans le perdre définitivement.
+// Pas de suppression pour les encarts — "Réinitialiser" désactive l'encart
+// (le slot public retombe sur l'affiche générique) sans perdre sa config.
+async function resetAd(ad) {
+  try {
+    const updated = await $fetch(`${base}/admin/ads/${ad.id}`, {
+      method: 'PATCH',
+      body: { isActive: false },
+      headers: authHeaders(),
+    })
+    const idx = ads.value.findIndex(a => a.id === ad.id)
+    if (idx !== -1) ads.value[idx] = updated
+  } catch {}
+}
 </script>
