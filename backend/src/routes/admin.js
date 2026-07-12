@@ -708,7 +708,8 @@ router.patch("/admin/ads/:id", requireAdmin, (req, res) => {
 });
 
 // Pas de suppression pour les encarts — "réinitialiser" vide le contenu
-// (image, texte, lien, dates) et désactive, sans supprimer la ligne.
+// (image, texte, lien, dates) et repasse à l'état de base (actif, affiche
+// générique) — ce n'est pas pareil que "désactiver" qui masque le bloc.
 router.post("/admin/ads/:id/reset", requireAdmin, async (req, res) => {
   const ad = await prisma.adBanner.findUnique({ where: { id: req.params.id } });
   if (!ad) return res.status(404).json({ error: "Encart introuvable" });
@@ -732,7 +733,7 @@ router.post("/admin/ads/:id/reset", requireAdmin, async (req, res) => {
       linkUrl: null,
       startAt: null,
       endAt: null,
-      isActive: false,
+      isActive: true,
     },
   });
   res.json(reset);

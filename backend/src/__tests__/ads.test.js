@@ -1,15 +1,15 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import { describe, it, expect, beforeEach, afterAll } from 'vitest'
 import request from 'supertest'
 import { app } from '../server.js'
 import prisma from '../lib/prisma.js'
 
-const MARK = 'ads_test_'
+const PLACEMENTS = ['HOME', 'COMIC_DETAIL', 'GUIDES_LIST', 'GUIDE_DETAIL']
 
 async function cleanup() {
-  await prisma.adBanner.deleteMany({ where: { altText: { startsWith: MARK } } })
+  await prisma.adBanner.deleteMany({ where: { placement: { in: PLACEMENTS } } })
 }
 
-beforeAll(cleanup)
+beforeEach(cleanup)
 afterAll(async () => {
   await cleanup()
   await prisma.$disconnect()
@@ -26,91 +26,87 @@ describe('GET /ads', () => {
     expect(res.status).toBe(400)
   })
 
-  it("renvoie ad: null s'il n'y a aucun encart actif", async () => {
+  it("status generic si aucune ligne n'existe pour l'emplacement (jamais configuré)", async () => {
     const res = await request(app).get('/ads?placement=HOME')
     expect(res.status).toBe(200)
-    expect(res.body.ad).toBeNull()
+    expect(res.body.status).toBe('generic')
   })
 
-  it('renvoie un encart actif sans dates (diffusion illimitée)', async () => {
+  it('status hidden si une ligne existe mais est explicitement désactivée', async () => {
     await prisma.adBanner.create({
-      data: {
-        imageUrl: 'https://example.com/ad1.png',
-        altText: `${MARK}sans_dates`,
-        placement: 'COMIC_DETAIL',
-        isActive: true,
-      },
+      data: { placement: 'HOME', isActive: false },
     })
+    const res = await request(app).get('/ads?placement=HOME')
+    expect(res.body.status).toBe('hidden')
+  })
 
+  it('status generic si active mais sans image (encart réinitialisé)', async () => {
+    await prisma.adBanner.create({
+      data: { placement: 'HOME', isActive: true },
+    })
+    const res = await request(app).get('/ads?placement=HOME')
+    expect(res.body.status).toBe('generic')
+  })
+
+  it('status ad avec le bon encart si active avec image, sans dates', async () => {
+    await prisma.adBanner.create({
+      data: { placement: 'COMIC_DETAIL', isActive: true, imageUrl: 'https://example.com/ad1.png', altText: 'ad1' },
+    })
     const res = await request(app).get('/ads?placement=COMIC_DETAIL')
-    expect(res.status).toBe(200)
-    expect(res.body.ad).not.toBeNull()
-    expect(res.body.ad.altText).toBe(`${MARK}sans_dates`)
+    expect(res.body.status).toBe('ad')
+    expect(res.body.ad.altText).toBe('ad1')
   })
 
-  it('exclut un encart inactif', async () => {
-    await prisma.adBanner.deleteMany({ where: { placement: 'GUIDES_LIST', altText: { startsWith: MARK } } })
+  it('status generic (pas hidden) si active+image mais fenêtre de diffusion passée', async () => {
     await prisma.adBanner.create({
       data: {
-        imageUrl: 'https://example.com/ad2.png',
-        altText: `${MARK}inactif`,
-        placement: 'GUIDES_LIST',
-        isActive: false,
-      },
-    })
-
-    const res = await request(app).get('/ads?placement=GUIDES_LIST')
-    expect(res.body.ad).toBeNull()
-  })
-
-  it('exclut un encart dont la fenêtre de diffusion est passée', async () => {
-    await prisma.adBanner.deleteMany({ where: { placement: 'GUIDE_DETAIL', altText: { startsWith: MARK } } })
-    await prisma.adBanner.create({
-      data: {
-        imageUrl: 'https://example.com/ad3.png',
-        altText: `${MARK}expire`,
         placement: 'GUIDE_DETAIL',
         isActive: true,
+        imageUrl: 'https://example.com/ad3.png',
         startAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
         endAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
       },
     })
-
     const res = await request(app).get('/ads?placement=GUIDE_DETAIL')
-    expect(res.body.ad).toBeNull()
+    expect(res.body.status).toBe('generic')
   })
 
-  it("exclut un encart qui n'a pas encore commencé", async () => {
-    await prisma.adBanner.deleteMany({ where: { placement: 'HOME', altText: { startsWith: MARK } } })
+  it("status generic si active+image mais n'a pas encore commencé", async () => {
     await prisma.adBanner.create({
       data: {
-        imageUrl: 'https://example.com/ad4.png',
-        altText: `${MARK}pas_commence`,
         placement: 'HOME',
         isActive: true,
+        imageUrl: 'https://example.com/ad4.png',
         startAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
       },
     })
-
     const res = await request(app).get('/ads?placement=HOME')
-    expect(res.body.ad).toBeNull()
+    expect(res.body.status).toBe('generic')
   })
 
-  it('inclut un encart dont la fenêtre de diffusion est en cours', async () => {
-    await prisma.adBanner.deleteMany({ where: { placement: 'HOME', altText: { startsWith: MARK } } })
+  it('status ad si la fenêtre de diffusion est en cours', async () => {
     await prisma.adBanner.create({
       data: {
-        imageUrl: 'https://example.com/ad5.png',
-        altText: `${MARK}en_cours`,
         placement: 'HOME',
         isActive: true,
+        imageUrl: 'https://example.com/ad5.png',
+        altText: 'en_cours',
         startAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
         endAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
       },
     })
-
     const res = await request(app).get('/ads?placement=HOME')
-    expect(res.body.ad).not.toBeNull()
-    expect(res.body.ad.altText).toBe(`${MARK}en_cours`)
+    expect(res.body.status).toBe('ad')
+    expect(res.body.ad.altText).toBe('en_cours')
+  })
+
+  it("une ligne désactivée n'empêche pas une autre ligne active de s'afficher", async () => {
+    await prisma.adBanner.create({ data: { placement: 'HOME', isActive: false } })
+    await prisma.adBanner.create({
+      data: { placement: 'HOME', isActive: true, imageUrl: 'https://example.com/ad6.png', altText: 'active_row' },
+    })
+    const res = await request(app).get('/ads?placement=HOME')
+    expect(res.body.status).toBe('ad')
+    expect(res.body.ad.altText).toBe('active_row')
   })
 })
