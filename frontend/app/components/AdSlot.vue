@@ -8,12 +8,12 @@
       :href="ad.linkUrl"
       target="_blank"
       rel="sponsored noopener noreferrer"
-      style="display:block;height:160px;overflow:hidden;"
+      style="display:block;height:160px;overflow:hidden;background:#0a0a0a;"
     >
-      <img :src="displayImage" :alt="displayAlt" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block;" />
+      <img :src="displayImage" :alt="displayAlt" style="width:100%;height:100%;object-fit:contain;object-position:center;display:block;" />
     </a>
-    <div v-else style="height:160px;overflow:hidden;">
-      <img :src="displayImage" :alt="displayAlt" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block;" />
+    <div v-else style="height:160px;overflow:hidden;background:#0a0a0a;">
+      <img :src="displayImage" :alt="displayAlt" style="width:100%;height:100%;object-fit:contain;object-position:center;display:block;" />
     </div>
   </div>
 </template>
