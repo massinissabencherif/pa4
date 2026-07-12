@@ -37,6 +37,9 @@ coverage/
 backend/uploads/
 uploads/
 
+# Backups DB (dumps locaux générés par scripts/backup-db.sh — ne pas versionner)
+backups/
+
 # Artefacts de tests et outils locaux
 audit/
 test-results/
