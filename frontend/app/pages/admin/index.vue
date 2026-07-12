@@ -865,7 +865,8 @@
             <tbody>
               <tr v-for="ad in ads" :key="ad.id" class="border-b border-white/5 last:border-0 hover:bg-white/3 transition-colors">
                 <td class="px-5 py-4">
-                  <img :src="ad.imageUrl" :alt="ad.altText" class="h-10 w-16 rounded object-cover" />
+                  <img v-if="ad.imageUrl" :src="ad.imageUrl" :alt="ad.altText" class="h-10 w-16 rounded object-cover" />
+                  <div v-else class="h-10 w-16 rounded border border-dashed border-white/15 flex items-center justify-center text-[9px] text-gray-600">vide</div>
                 </td>
                 <td class="px-5 py-4 text-gray-100">{{ placementLabels[ad.placement] }}</td>
                 <td class="px-5 py-4 hidden sm:table-cell text-gray-400 text-xs">
@@ -881,7 +882,7 @@
                 <td class="px-5 py-4 text-right">
                   <div class="flex items-center justify-end gap-3">
                     <button @click="startEditAd(ad)" class="text-xs text-gray-500 hover:text-yellow-400 transition">Modifier</button>
-                    <button v-if="ad.isActive" @click="resetAd(ad)" class="text-xs text-gray-500 hover:text-red-400 transition">Réinitialiser</button>
+                    <button v-if="ad.imageUrl" @click="resetAd(ad)" class="text-xs text-gray-500 hover:text-red-400 transition">Réinitialiser</button>
                   </div>
                 </td>
               </tr>
@@ -1638,7 +1639,7 @@ function startEditAd(ad) {
   editingAd.value = ad
   Object.assign(adForm, {
     placement: ad.placement,
-    altText: ad.altText,
+    altText: ad.altText || '',
     linkUrl: ad.linkUrl || '',
     startAt: ad.startAt ? ad.startAt.split('T')[0] : '',
     endAt: ad.endAt ? ad.endAt.split('T')[0] : '',
@@ -1648,7 +1649,7 @@ function startEditAd(ad) {
 }
 
 async function submitAd() {
-  if (!editingAd.value && !adImageFile.value) {
+  if (!editingAd.value?.imageUrl && !adImageFile.value) {
     adError.value = "L'image est requise"
     return
   }
@@ -1689,13 +1690,13 @@ async function submitAd() {
   }
 }
 
-// Pas de suppression pour les encarts — "Réinitialiser" désactive l'encart
-// (le slot public retombe sur l'affiche générique) sans perdre sa config.
+// Pas de suppression pour les encarts — "Réinitialiser" vide le contenu
+// (image, texte, lien, dates) et désactive, sans supprimer la ligne.
 async function resetAd(ad) {
+  if (!confirm('Vider cet encart ? Il redeviendra vide (affiche générique affichée à sa place).')) return
   try {
-    const updated = await $fetch(`${base}/admin/ads/${ad.id}`, {
-      method: 'PATCH',
-      body: { isActive: false },
+    const updated = await $fetch(`${base}/admin/ads/${ad.id}/reset`, {
+      method: 'POST',
       headers: authHeaders(),
     })
     const idx = ads.value.findIndex(a => a.id === ad.id)

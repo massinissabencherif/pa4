@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "AdBanner" ALTER COLUMN "imageUrl" DROP NOT NULL,
+ALTER COLUMN "altText" DROP NOT NULL;

@@ -328,9 +328,9 @@ model GuideReply {
 
 model AdBanner {
   id        String      @id @default(cuid())
-  imageUrl  String
+  imageUrl  String?
   linkUrl   String?
-  altText   String
+  altText   String?
   placement AdPlacement
   isActive  Boolean     @default(true)
   startAt   DateTime?
