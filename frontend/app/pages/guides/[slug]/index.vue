@@ -80,6 +80,10 @@
           </div>
         </div>
 
+        <div style="padding:32px 0 0;">
+          <AdSlot placement="GUIDE_DETAIL" />
+        </div>
+
         <!-- ─── DISCUSSION ────────────────────────────────────────────────── -->
         <div style="padding:48px 0;border-bottom:1px solid #2a2a2a;">
           <div style="font-family:'Courier New',monospace;font-size:8px;letter-spacing:5px;color:#e02020;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:10px;">
