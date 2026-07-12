@@ -629,35 +629,40 @@ router.post("/admin/ads", requireAdmin, (req, res) => {
   adImageUpload(req, res, async (err) => {
     if (err) return res.status(400).json({ error: err.message });
 
-    const { linkUrl, altText, placement, isActive, startAt, endAt, order } = req.body;
+    try {
+      const { linkUrl, altText, placement, isActive, startAt, endAt, order } = req.body;
 
-    const altErr = maxLen(altText, "altText", 300);
-    if (altErr) return res.status(400).json({ error: altErr });
+      const altErr = maxLen(altText, "altText", 300);
+      if (altErr) return res.status(400).json({ error: altErr });
 
-    if (!placement || !VALID_AD_PLACEMENTS.includes(placement)) {
-      return res.status(400).json({ error: `placement doit être l'un de : ${VALID_AD_PLACEMENTS.join(", ")}` });
+      if (!placement || !VALID_AD_PLACEMENTS.includes(placement)) {
+        return res.status(400).json({ error: `placement doit être l'un de : ${VALID_AD_PLACEMENTS.join(", ")}` });
+      }
+      if (!req.file) {
+        return res.status(400).json({ error: "L'image est requise" });
+      }
+
+      const protocol = req.get("x-forwarded-proto") || req.protocol;
+      const baseUrl = `${protocol}://${req.get("host")}`;
+      const imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
+
+      const ad = await prisma.adBanner.create({
+        data: {
+          imageUrl,
+          linkUrl: linkUrl?.trim() || null,
+          altText: altText?.trim() || null,
+          placement,
+          isActive: isActive === undefined ? true : isActive === "true" || isActive === true,
+          startAt: startAt ? new Date(startAt) : null,
+          endAt: endAt ? new Date(endAt) : null,
+          order: order ? Number(order) : 0,
+        },
+      });
+      res.status(201).json(ad);
+    } catch (e) {
+      console.error("[admin/ads POST]", e);
+      res.status(500).json({ error: "Erreur serveur" });
     }
-    if (!req.file) {
-      return res.status(400).json({ error: "L'image est requise" });
-    }
-
-    const protocol = req.get("x-forwarded-proto") || req.protocol;
-    const baseUrl = `${protocol}://${req.get("host")}`;
-    const imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
-
-    const ad = await prisma.adBanner.create({
-      data: {
-        imageUrl,
-        linkUrl: linkUrl?.trim() || null,
-        altText: altText?.trim() || null,
-        placement,
-        isActive: isActive === undefined ? true : isActive === "true" || isActive === true,
-        startAt: startAt ? new Date(startAt) : null,
-        endAt: endAt ? new Date(endAt) : null,
-        order: order ? Number(order) : 0,
-      },
-    });
-    res.status(201).json(ad);
   });
 });
 
@@ -665,45 +670,50 @@ router.patch("/admin/ads/:id", requireAdmin, (req, res) => {
   adImageUpload(req, res, async (err) => {
     if (err) return res.status(400).json({ error: err.message });
 
-    const ad = await prisma.adBanner.findUnique({ where: { id: req.params.id } });
-    if (!ad) return res.status(404).json({ error: "Encart introuvable" });
+    try {
+      const ad = await prisma.adBanner.findUnique({ where: { id: req.params.id } });
+      if (!ad) return res.status(404).json({ error: "Encart introuvable" });
 
-    const { linkUrl, altText, placement, isActive, startAt, endAt, order } = req.body;
+      const { linkUrl, altText, placement, isActive, startAt, endAt, order } = req.body;
 
-    if (placement !== undefined && !VALID_AD_PLACEMENTS.includes(placement)) {
-      return res.status(400).json({ error: `placement doit être l'un de : ${VALID_AD_PLACEMENTS.join(", ")}` });
-    }
-    if (altText !== undefined) {
-      const altErr = maxLen(altText, "altText", 300);
-      if (altErr) return res.status(400).json({ error: altErr });
-    }
+      if (placement !== undefined && !VALID_AD_PLACEMENTS.includes(placement)) {
+        return res.status(400).json({ error: `placement doit être l'un de : ${VALID_AD_PLACEMENTS.join(", ")}` });
+      }
+      if (altText !== undefined) {
+        const altErr = maxLen(altText, "altText", 300);
+        if (altErr) return res.status(400).json({ error: altErr });
+      }
 
-    const updates = {};
-    if (linkUrl !== undefined) updates.linkUrl = linkUrl?.trim() || null;
-    if (altText !== undefined) updates.altText = altText?.trim() || null;
-    if (placement !== undefined) updates.placement = placement;
-    if (isActive !== undefined) updates.isActive = isActive === "true" || isActive === true;
-    if (startAt !== undefined) updates.startAt = startAt ? new Date(startAt) : null;
-    if (endAt !== undefined) updates.endAt = endAt ? new Date(endAt) : null;
-    if (order !== undefined) updates.order = Number(order);
+      const updates = {};
+      if (linkUrl !== undefined) updates.linkUrl = linkUrl?.trim() || null;
+      if (altText !== undefined) updates.altText = altText?.trim() || null;
+      if (placement !== undefined) updates.placement = placement;
+      if (isActive !== undefined) updates.isActive = isActive === "true" || isActive === true;
+      if (startAt !== undefined) updates.startAt = startAt ? new Date(startAt) : null;
+      if (endAt !== undefined) updates.endAt = endAt ? new Date(endAt) : null;
+      if (order !== undefined) updates.order = Number(order);
 
-    if (req.file) {
-      const protocol = req.get("x-forwarded-proto") || req.protocol;
-      const baseUrl = `${protocol}://${req.get("host")}`;
-      updates.imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
+      if (req.file) {
+        const protocol = req.get("x-forwarded-proto") || req.protocol;
+        const baseUrl = `${protocol}://${req.get("host")}`;
+        updates.imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
 
-      const oldFilename = ad.imageUrl.split("/uploads/")[1];
-      if (oldFilename) {
-        try {
-          await fs.promises.unlink(path.join(uploadDir, oldFilename));
-        } catch {
-          console.warn(`[WARN] Ancienne image d'encart introuvable lors du remplacement`);
+        const oldFilename = ad.imageUrl?.split("/uploads/")[1];
+        if (oldFilename) {
+          try {
+            await fs.promises.unlink(path.join(uploadDir, oldFilename));
+          } catch {
+            console.warn(`[WARN] Ancienne image d'encart introuvable lors du remplacement`);
+          }
         }
       }
-    }
 
-    const updated = await prisma.adBanner.update({ where: { id: req.params.id }, data: updates });
-    res.json(updated);
+      const updated = await prisma.adBanner.update({ where: { id: req.params.id }, data: updates });
+      res.json(updated);
+    } catch (e) {
+      console.error("[admin/ads PATCH]", e);
+      res.status(500).json({ error: "Erreur serveur" });
+    }
   });
 });
 
