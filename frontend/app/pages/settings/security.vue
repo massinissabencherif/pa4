@@ -3,7 +3,7 @@
     <BackButton to="/dashboard" label="Tableau de bord" />
     <div>
       <h1 class="text-2xl font-bold">Sécurité</h1>
-      <p class="text-gray-500 text-sm mt-1">Gérer la double authentification de ton compte.</p>
+      <p class="text-white text-sm mt-1">Gérer la double authentification de ton compte.</p>
     </div>
 
     <!-- 2FA Card -->
@@ -11,11 +11,11 @@
       <div class="flex items-start justify-between gap-4">
         <div>
           <h2 class="font-semibold">Double authentification (2FA)</h2>
-          <p class="text-sm text-gray-30000 mt-1">Ajoute une couche de sécurité avec une application comme Google Authenticator ou Authy.</p>
+          <p class="text-sm text-white mt-1">Ajoute une couche de sécurité avec une application comme Google Authenticator ou Authy.</p>
         </div>
         <span
-          :class="totpEnabled ? 'bg-green-500/15 text-green-400 border-green-500/20' : 'bg-gray-500/15 text-gray-400 border-gray-500/20'"
-          class="text-xs font-medium px-2.5 py-1 rounded-full border whitespace-nowrap"
+          :class="totpEnabled ? 'bg-green-500/15 text-green-400 border-green-500/20' : 'bg-gray-500/15 text-white border-gray-500/20'"
+          class="text-[13px] font-medium px-2.5 py-1 rounded-full border whitespace-nowrap"
         >
           {{ totpEnabled ? 'Activé' : 'Désactivé' }}
         </span>
@@ -29,15 +29,15 @@
       </div>
 
       <div v-if="step === 'setup'" class="space-y-5">
-        <p class="text-sm text-gray-30000">
+        <p class="text-sm text-white">
           Scanne ce QR code avec ton application d'authentification, puis entre le code à 6 chiffres pour confirmer.
         </p>
         <div class="flex justify-center">
           <img :src="qrCode" alt="QR Code 2FA" class="w-48 h-48 rounded-xl bg-white p-2" />
         </div>
         <div>
-          <p class="text-xs text-gray-400 mb-1">Clé manuelle (si le scan ne fonctionne pas)</p>
-          <code class="text-xs font-mono bg-white/5 rounded px-2 py-1 select-all">{{ secret }}</code>
+          <p class="text-[13px] text-white mb-1">Clé manuelle (si le scan ne fonctionne pas)</p>
+          <code class="text-[13px] font-mono bg-white/5 rounded px-2 py-1 select-all">{{ secret }}</code>
         </div>
         <form @submit.prevent="verifyAndActivate" class="space-y-3">
           <input
@@ -54,7 +54,7 @@
             <button type="submit" :disabled="loading || verifyCode.length !== 6" class="btn-primary flex-1">
               {{ loading ? 'Vérification…' : 'Confirmer' }}
             </button>
-            <button type="button" @click="cancelSetup" class="px-4 py-2 rounded-xl border border-white/20 text-sm text-gray-300 hover:bg-white/5 transition">
+            <button type="button" @click="cancelSetup" class="px-4 py-2 rounded-xl border border-white/20 text-sm text-white hover:bg-white/5 transition">
               Annuler
             </button>
           </div>
@@ -69,7 +69,7 @@
           </button>
         </div>
         <form v-else @submit.prevent="disable2FA" class="space-y-3">
-          <p class="text-sm text-gray-30000">Entre un code valide pour désactiver la 2FA.</p>
+          <p class="text-sm text-white">Entre un code valide pour désactiver la 2FA.</p>
           <input
             v-model="disableCode"
             type="text"
@@ -84,7 +84,7 @@
             <button type="submit" :disabled="loading || disableCode.length !== 6" class="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 transition text-white text-sm font-medium flex-1">
               {{ loading ? 'Désactivation…' : 'Désactiver' }}
             </button>
-            <button type="button" @click="showDisableForm = false; error = ''" class="px-4 py-2 rounded-xl border border-white/20 text-sm text-gray-300 hover:bg-white/5 transition">
+            <button type="button" @click="showDisableForm = false; error = ''" class="px-4 py-2 rounded-xl border border-white/20 text-sm text-white hover:bg-white/5 transition">
               Annuler
             </button>
           </div>

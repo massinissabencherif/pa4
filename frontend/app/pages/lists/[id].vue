@@ -5,7 +5,7 @@
       <BackButton to="/lists" label="Mes listes" />
 
       <!-- Loading -->
-      <div v-if="pending" class="flex items-center gap-3 text-gray-500">
+      <div v-if="pending" class="flex items-center gap-3 text-white">
         <svg class="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
@@ -20,7 +20,7 @@
           <div class="flex-1">
             <div v-if="!editingName" class="flex items-center gap-3">
               <h1 class="text-3xl font-bold">{{ list.name }}</h1>
-              <button @click="startEditName" class="text-gray-400 hover:text-gray-300 transition p-1">
+              <button @click="startEditName" class="text-white hover:text-white transition p-1">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                 </svg>
@@ -40,7 +40,7 @@
               class="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm transition-all border"
               :class="list.isPublic
                 ? 'border-green-500/30 bg-green-500/10 text-green-400 hover:bg-green-500/20'
-                : 'border-white/20 bg-white/10 text-gray-500 hover:border-white/20'"
+                : 'border-white/20 bg-white/10 text-white hover:border-white/20'"
             >
               {{ list.isPublic ? '🌐 Publique' : '🔒 Privée' }}
             </button>
@@ -55,15 +55,15 @@
         </div>
 
         <!-- Info count -->
-        <p class="text-sm text-gray-400 mb-8">
+        <p class="text-sm text-white mb-8">
           {{ list.items.length }} comic{{ list.items.length !== 1 ? 's' : '' }} dans cette liste
         </p>
 
         <!-- Vide -->
         <div v-if="!list.items.length" class="text-center py-20">
           <div class="text-5xl mb-4">📭</div>
-          <p class="text-gray-400 mb-2">Cette liste est vide</p>
-          <p class="text-gray-400 text-sm">Ajoute des comics depuis la page de recherche ou les pages détail.</p>
+          <p class="text-white mb-2">Cette liste est vide</p>
+          <p class="text-white text-sm">Ajoute des comics depuis la page de recherche ou les pages détail.</p>
           <NuxtLink to="/comics/search" class="btn-ghost !px-6 mt-6 inline-block">Explorer les comics</NuxtLink>
         </div>
 
@@ -77,7 +77,7 @@
             <!-- Bouton retirer -->
             <button
               @click="removeComic(item.comicId)"
-              class="absolute top-2 right-2 z-10 w-6 h-6 rounded-full bg-black/60 text-gray-400 hover:text-red-400 hover:bg-black/80 transition flex items-center justify-center opacity-0 group-hover:opacity-100"
+              class="absolute top-2 right-2 z-10 w-6 h-6 rounded-full bg-black/60 text-white hover:text-red-400 hover:bg-black/80 transition flex items-center justify-center opacity-0 group-hover:opacity-100"
             >
               <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -93,7 +93,7 @@
                   loading="lazy"
                 />
               </div>
-              <p class="text-sm font-medium text-gray-200 line-clamp-2 leading-snug group-hover:text-white transition-colors">
+              <p class="text-sm font-medium text-white line-clamp-2 leading-snug group-hover:text-white transition-colors">
                 {{ item.comic.title }}
               </p>
             </NuxtLink>

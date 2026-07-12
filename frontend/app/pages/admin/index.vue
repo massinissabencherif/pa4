@@ -5,7 +5,7 @@
       <!-- En-tête -->
       <div class="flex items-center justify-between mb-6">
         <div>
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-xs text-red-400 mb-3">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-[13px] text-red-400 mb-3">
             🛡 Dashboard Admin
           </div>
           <h1 class="text-3xl font-bold">Administration</h1>
@@ -51,7 +51,7 @@
           :key="tab.key"
           @click="activeTab = tab.key"
           class="px-5 py-2.5 text-sm font-medium transition border-b-2 -mb-px"
-          :class="activeTab === tab.key ? 'text-white border-red-500' : 'text-gray-500 border-transparent hover:text-gray-300'"
+          :class="activeTab === tab.key ? 'text-white border-red-500' : 'text-white border-transparent hover:text-white'"
         >
           {{ tab.label }}
         </button>
@@ -61,7 +61,7 @@
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
         <div v-for="s in stats" :key="s.label" class="card px-5 py-4 text-center">
           <div class="text-2xl font-black text-white mb-0.5">{{ s.value ?? '—' }}</div>
-          <div class="text-xs text-gray-600">{{ s.label }}</div>
+          <div class="text-[13px] text-white">{{ s.label }}</div>
         </div>
       </div>
 
@@ -72,7 +72,7 @@
           <div class="relative w-full max-w-2xl my-auto">
             <div class="card p-7">
               <h2 class="text-xl font-bold mb-1">Import CSV en masse</h2>
-              <p class="text-xs text-gray-500 mb-6">Uploade un CSV + tous les PDFs (et covers optionnelles) en une seule opération.</p>
+              <p class="text-[13px] text-white mb-6">Uploade un CSV + tous les PDFs (et covers optionnelles) en une seule opération.</p>
 
               <!-- Résultat import -->
               <div v-if="csvResult" class="space-y-4">
@@ -81,19 +81,19 @@
                   <span class="text-2xl">{{ csvResult.errors.length ? '⚠' : '✓' }}</span>
                   <div>
                     <p class="font-semibold text-sm">{{ csvResult.success }} comic{{ csvResult.success > 1 ? 's' : '' }} importé{{ csvResult.success > 1 ? 's' : '' }} avec succès</p>
-                    <p v-if="csvResult.errors.length" class="text-xs text-amber-400">{{ csvResult.errors.length }} erreur{{ csvResult.errors.length > 1 ? 's' : '' }} · {{ csvResult.warnings.length }} avertissement{{ csvResult.warnings.length > 1 ? 's' : '' }}</p>
+                    <p v-if="csvResult.errors.length" class="text-[13px] text-amber-400">{{ csvResult.errors.length }} erreur{{ csvResult.errors.length > 1 ? 's' : '' }} · {{ csvResult.warnings.length }} avertissement{{ csvResult.warnings.length > 1 ? 's' : '' }}</p>
                   </div>
                 </div>
                 <div v-if="csvResult.errors.length" class="rounded-xl border border-red-500/20 overflow-hidden">
-                  <div class="px-4 py-2 bg-red-500/10 text-xs font-semibold text-red-400">Erreurs (lignes ignorées)</div>
-                  <div v-for="e in csvResult.errors" :key="e.ligne" class="px-4 py-2 text-xs text-gray-300 border-t border-white/5">
-                    <span class="text-gray-500 mr-2">Ligne {{ e.ligne }}</span>{{ e.raison }}
+                  <div class="px-4 py-2 bg-red-500/10 text-[13px] font-semibold text-red-400">Erreurs (lignes ignorées)</div>
+                  <div v-for="e in csvResult.errors" :key="e.ligne" class="px-4 py-2 text-[13px] text-white border-t border-white/5">
+                    <span class="text-white mr-2">Ligne {{ e.ligne }}</span>{{ e.raison }}
                   </div>
                 </div>
                 <div v-if="csvResult.warnings.length" class="rounded-xl border border-amber-500/20 overflow-hidden">
-                  <div class="px-4 py-2 bg-amber-500/10 text-xs font-semibold text-amber-400">Avertissements</div>
-                  <div v-for="w in csvResult.warnings" :key="w.ligne" class="px-4 py-2 text-xs text-gray-300 border-t border-white/5">
-                    <span class="text-gray-500 mr-2">Ligne {{ w.ligne }}</span>{{ w.raison }}
+                  <div class="px-4 py-2 bg-amber-500/10 text-[13px] font-semibold text-amber-400">Avertissements</div>
+                  <div v-for="w in csvResult.warnings" :key="w.ligne" class="px-4 py-2 text-[13px] text-white border-t border-white/5">
+                    <span class="text-white mr-2">Ligne {{ w.ligne }}</span>{{ w.raison }}
                   </div>
                 </div>
                 <div class="flex gap-3 pt-2">
@@ -109,16 +109,16 @@
                 <div class="flex items-center justify-between px-4 py-3 rounded-xl bg-white/3 border border-white/8">
                   <div>
                     <p class="text-sm font-medium">Template CSV</p>
-                    <p class="text-xs text-gray-500 mt-0.5">Colonnes : titre · auteurs (séparés par |) · editeur · genres (|) · description · date_publication · fichier_pdf · image_couverture</p>
+                    <p class="text-[13px] text-white mt-0.5">Colonnes : titre · auteurs (séparés par |) · editeur · genres (|) · description · date_publication · fichier_pdf · image_couverture</p>
                   </div>
-                  <button @click="downloadTemplate" class="shrink-0 text-xs px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 transition ml-4">
+                  <button @click="downloadTemplate" class="shrink-0 text-[13px] px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-white transition ml-4">
                     Télécharger
                   </button>
                 </div>
 
                 <!-- CSV -->
                 <div>
-                  <label class="block text-xs font-medium text-gray-400 mb-1.5">Fichier CSV *</label>
+                  <label class="block text-[13px] font-medium text-white mb-1.5">Fichier CSV *</label>
                   <div
                     class="border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition-colors"
                     :class="csvFile ? 'border-green-500/40 bg-green-500/5' : 'border-white/10 hover:border-red-500/40'"
@@ -131,13 +131,13 @@
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"/></svg>
                       {{ csvFile.name }}
                     </div>
-                    <div v-else class="text-gray-500 text-sm">Glisse le CSV ici ou <span class="text-red-400">clique pour choisir</span></div>
+                    <div v-else class="text-white text-sm">Glisse le CSV ici ou <span class="text-red-400">clique pour choisir</span></div>
                   </div>
                 </div>
 
                 <!-- PDFs -->
                 <div>
-                  <label class="block text-xs font-medium text-gray-400 mb-1.5">Fichiers PDF * <span class="text-gray-600">(sélection multiple)</span></label>
+                  <label class="block text-[13px] font-medium text-white mb-1.5">Fichiers PDF * <span class="text-white">(sélection multiple)</span></label>
                   <div
                     class="border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition-colors"
                     :class="csvPdfs.length ? 'border-green-500/40 bg-green-500/5' : 'border-white/10 hover:border-red-500/40'"
@@ -147,13 +147,13 @@
                   >
                     <input ref="pdfsInput" type="file" accept=".pdf,application/pdf" multiple class="hidden" @change="e => { csvPdfs = Array.from(e.target.files); refreshPreview() }" />
                     <div v-if="csvPdfs.length" class="text-green-400 text-sm">{{ csvPdfs.length }} PDF{{ csvPdfs.length > 1 ? 's' : '' }} sélectionné{{ csvPdfs.length > 1 ? 's' : '' }}</div>
-                    <div v-else class="text-gray-500 text-sm">Glisse les PDFs ici ou <span class="text-red-400">clique pour choisir</span></div>
+                    <div v-else class="text-white text-sm">Glisse les PDFs ici ou <span class="text-red-400">clique pour choisir</span></div>
                   </div>
                 </div>
 
                 <!-- Covers -->
                 <div>
-                  <label class="block text-xs font-medium text-gray-400 mb-1.5">Images de couverture <span class="text-gray-600">(optionnel — sélection multiple)</span></label>
+                  <label class="block text-[13px] font-medium text-white mb-1.5">Images de couverture <span class="text-white">(optionnel — sélection multiple)</span></label>
                   <div
                     class="border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-colors"
                     :class="csvCovers.length ? 'border-blue-500/40 bg-blue-500/5' : 'border-white/10 hover:border-white/20'"
@@ -163,17 +163,17 @@
                   >
                     <input ref="coversInput" type="file" accept="image/jpeg,image/png,image/webp" multiple class="hidden" @change="e => { csvCovers = Array.from(e.target.files); refreshPreview() }" />
                     <div v-if="csvCovers.length" class="text-blue-400 text-sm">{{ csvCovers.length }} image{{ csvCovers.length > 1 ? 's' : '' }} sélectionnée{{ csvCovers.length > 1 ? 's' : '' }}</div>
-                    <div v-else class="text-gray-500 text-sm">Clique pour ajouter des covers</div>
+                    <div v-else class="text-white text-sm">Clique pour ajouter des covers</div>
                   </div>
                 </div>
 
                 <!-- Prévisualisation -->
                 <div v-if="csvPreviewRows.length">
-                  <p class="text-xs font-medium text-gray-400 mb-2">Aperçu — {{ csvPreviewRows.length }} ligne{{ csvPreviewRows.length > 1 ? 's' : '' }}</p>
+                  <p class="text-[13px] font-medium text-white mb-2">Aperçu — {{ csvPreviewRows.length }} ligne{{ csvPreviewRows.length > 1 ? 's' : '' }}</p>
                   <div class="rounded-xl border border-white/8 overflow-hidden">
-                    <table class="w-full text-xs">
+                    <table class="w-full text-[13px]">
                       <thead>
-                        <tr class="border-b border-white/8 text-gray-500">
+                        <tr class="border-b border-white/8 text-white">
                           <th class="px-3 py-2 text-left font-medium">#</th>
                           <th class="px-3 py-2 text-left font-medium">Titre</th>
                           <th class="px-3 py-2 text-left font-medium hidden sm:table-cell">Auteurs</th>
@@ -186,16 +186,16 @@
                           class="border-b border-white/5 last:border-0"
                           :class="!row.titre || !row._pdfOk ? 'bg-red-500/5' : ''"
                         >
-                          <td class="px-3 py-2 text-gray-600">{{ idx + 2 }}</td>
-                          <td class="px-3 py-2 text-gray-200">{{ row.titre || '—' }}</td>
-                          <td class="px-3 py-2 text-gray-500 hidden sm:table-cell">{{ row.auteurs || '—' }}</td>
+                          <td class="px-3 py-2 text-white">{{ idx + 2 }}</td>
+                          <td class="px-3 py-2 text-white">{{ row.titre || '—' }}</td>
+                          <td class="px-3 py-2 text-white hidden sm:table-cell">{{ row.auteurs || '—' }}</td>
                           <td class="px-3 py-2">
-                            <span v-if="!row.fichier_pdf" class="text-gray-600">—</span>
+                            <span v-if="!row.fichier_pdf" class="text-white">—</span>
                             <span v-else-if="row._pdfOk" class="text-green-400">✓ {{ row.fichier_pdf }}</span>
                             <span v-else class="text-red-400">✗ {{ row.fichier_pdf }}</span>
                           </td>
                           <td class="px-3 py-2 hidden sm:table-cell">
-                            <span v-if="!row.image_couverture" class="text-gray-600">—</span>
+                            <span v-if="!row.image_couverture" class="text-white">—</span>
                             <span v-else-if="row._coverOk" class="text-green-400">✓</span>
                             <span v-else class="text-amber-400">⚠ non trouvée</span>
                           </td>
@@ -203,7 +203,7 @@
                       </tbody>
                     </table>
                   </div>
-                  <p v-if="csvPreviewRows.some(r => !r.titre || !r._pdfOk)" class="text-xs text-red-400 mt-2">
+                  <p v-if="csvPreviewRows.some(r => !r.titre || !r._pdfOk)" class="text-[13px] text-red-400 mt-2">
                     ⚠ Certaines lignes ont des erreurs et seront ignorées à l'import.
                   </p>
                 </div>
@@ -215,7 +215,7 @@
 
                 <!-- Progression -->
                 <div v-if="csvUploading" class="space-y-2">
-                  <div class="flex justify-between text-xs text-gray-400">
+                  <div class="flex justify-between text-[13px] text-white">
                     <span>Upload en cours…</span>
                     <span>{{ csvUploadProgress }}%</span>
                   </div>
@@ -254,19 +254,19 @@
 
                 <!-- Titre -->
                 <div>
-                  <label class="block text-xs font-medium text-gray-400 mb-1.5">Titre *</label>
+                  <label class="block text-[13px] font-medium text-white mb-1.5">Titre *</label>
                   <input v-model="form.title" type="text" required placeholder="Ex: The Amazing Spider-Man #1" class="input" />
                 </div>
 
                 <!-- Auteurs (dropdown avec recherche) -->
                 <div>
-                  <label class="block text-xs font-medium text-gray-400 mb-1.5">Auteur(s)</label>
+                  <label class="block text-[13px] font-medium text-white mb-1.5">Auteur(s)</label>
                   <!-- Tags sélectionnés -->
                   <div v-if="form.authorIds.length" class="flex flex-wrap gap-1.5 mb-2">
                     <span
                       v-for="id in form.authorIds"
                       :key="id"
-                      class="flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-500/10 border border-red-500/20 text-xs text-red-400"
+                      class="flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-500/10 border border-red-500/20 text-[13px] text-red-400"
                     >
                       {{ allAuthors.find(a => a.id === id)?.name }}
                       <button type="button" @click="form.authorIds = form.authorIds.filter(x => x !== id)" class="hover:text-white transition leading-none">×</button>
@@ -291,10 +291,10 @@
                         type="button"
                         @click="toggleAuthorId(author.id); authorSearch = ''"
                         class="w-full text-left px-4 py-2.5 text-sm hover:bg-white/5 transition flex items-center justify-between"
-                        :class="form.authorIds.includes(author.id) ? 'text-red-400' : 'text-gray-300'"
+                        :class="form.authorIds.includes(author.id) ? 'text-red-400' : 'text-white'"
                       >
                         {{ author.name }}
-                        <span v-if="form.authorIds.includes(author.id)" class="text-xs">✓</span>
+                        <span v-if="form.authorIds.includes(author.id)" class="text-[13px]">✓</span>
                       </button>
                     </div>
                   </div>
@@ -302,38 +302,38 @@
 
                 <!-- Éditeur -->
                 <div>
-                  <label class="block text-xs font-medium text-gray-400 mb-1.5">Éditeur</label>
+                  <label class="block text-[13px] font-medium text-white mb-1.5">Éditeur</label>
                   <input v-model="form.publisher" type="text" placeholder="Marvel Comics, DC Comics…" class="input" />
                 </div>
 
                 <!-- Genres -->
                 <div>
-                  <label class="block text-xs font-medium text-gray-400 mb-1.5">Genres <span class="text-gray-600">(séparés par des virgules)</span></label>
+                  <label class="block text-[13px] font-medium text-white mb-1.5">Genres <span class="text-white">(séparés par des virgules)</span></label>
                   <input v-model="form.genres" type="text" placeholder="Super-héros, Action, Science-fiction" class="input" />
                 </div>
 
                 <!-- Description -->
                 <div>
-                  <label class="block text-xs font-medium text-gray-400 mb-1.5">Description</label>
+                  <label class="block text-[13px] font-medium text-white mb-1.5">Description</label>
                   <textarea v-model="form.description" rows="3" placeholder="Synopsis…" class="input resize-none" />
                 </div>
 
                 <!-- Date de publication -->
                 <div>
-                  <label class="block text-xs font-medium text-gray-400 mb-1.5">Date de publication</label>
+                  <label class="block text-[13px] font-medium text-white mb-1.5">Date de publication</label>
                   <input v-model="form.publishedAt" type="date" class="input" />
                 </div>
 
                 <!-- Fichier PDF -->
                 <div>
-                  <label class="block text-xs font-medium text-gray-400 mb-1.5">
+                  <label class="block text-[13px] font-medium text-white mb-1.5">
                     Fichier PDF <span v-if="!editing" class="text-red-400">*</span>
-                    <span v-else class="text-gray-600">(optionnel — remplace le PDF actuel)</span>
+                    <span v-else class="text-white">(optionnel — remplace le PDF actuel)</span>
                   </label>
 
                   <!-- Mode édition : URL texte + lien actuel -->
                   <div v-if="editing" class="space-y-2 mb-2">
-                    <div v-if="form.pdfUrl && !pdfFile" class="flex items-center gap-2 text-xs text-blue-400 bg-blue-500/10 border border-blue-500/20 rounded-lg px-3 py-2">
+                    <div v-if="form.pdfUrl && !pdfFile" class="flex items-center gap-2 text-[13px] text-blue-400 bg-blue-500/10 border border-blue-500/20 rounded-lg px-3 py-2">
                       <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414A1 1 0 0120 9.414V19a2 2 0 01-2 2z"/>
                       </svg>
@@ -355,29 +355,29 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                       </svg>
                       <span class="text-sm font-medium">{{ pdfFile.name }}</span>
-                      <span class="text-xs text-gray-500">({{ (pdfFile.size / 1024 / 1024).toFixed(1) }} Mo)</span>
+                      <span class="text-[13px] text-white">({{ (pdfFile.size / 1024 / 1024).toFixed(1) }} Mo)</span>
                     </div>
-                    <div v-else class="text-gray-500">
+                    <div v-else class="text-white">
                       <svg class="w-8 h-8 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
                       </svg>
                       <p class="text-sm">{{ editing ? 'Uploader un nouveau PDF' : 'Glisse le PDF ici ou' }} <span class="text-red-400">clique pour choisir</span></p>
-                      <p class="text-xs mt-1">100 Mo maximum</p>
+                      <p class="text-[13px] mt-1">100 Mo maximum</p>
                     </div>
                   </div>
                 </div>
 
                 <!-- Image de couverture -->
                 <div>
-                  <label class="block text-xs font-medium text-gray-400 mb-1.5">
-                    Couverture <span class="text-gray-600">(JPG / PNG / WebP — optionnel)</span>
+                  <label class="block text-[13px] font-medium text-white mb-1.5">
+                    Couverture <span class="text-white">(JPG / PNG / WebP — optionnel)</span>
                   </label>
 
                   <!-- Mode édition : URL texte + preview actuelle -->
                   <div v-if="editing" class="space-y-2 mb-2">
                     <div v-if="form.coverUrl && !coverFile" class="flex items-center gap-3 bg-white/5 border border-white/10 rounded-lg px-3 py-2">
                       <img :src="form.coverUrl" class="w-8 h-11 object-cover rounded shrink-0" @error="e => e.target.style.display='none'" />
-                      <span class="text-xs text-gray-400 truncate">{{ form.coverUrl }}</span>
+                      <span class="text-[13px] text-white truncate">{{ form.coverUrl }}</span>
                     </div>
                     <input v-model="form.coverUrl" type="text" placeholder="/covers/defaults/… ou https://…" class="input text-sm" />
                   </div>
@@ -392,7 +392,7 @@
                       <img :src="coverPreview" class="w-10 h-14 object-cover rounded" />
                       <span class="text-sm text-green-400">{{ coverFile.name }}</span>
                     </div>
-                    <div v-else class="text-gray-500 text-sm">
+                    <div v-else class="text-white text-sm">
                       {{ editing ? 'Uploader une nouvelle couverture' : 'Clique pour ajouter une couverture' }}
                     </div>
                   </div>
@@ -400,7 +400,7 @@
 
                 <!-- Progression upload -->
                 <div v-if="uploading" class="space-y-2">
-                  <div class="flex justify-between text-xs text-gray-400">
+                  <div class="flex justify-between text-[13px] text-white">
                     <span>Upload en cours…</span>
                     <span>{{ uploadProgress }}%</span>
                   </div>
@@ -437,7 +437,7 @@
       <template v-if="activeTab === 'comics'">
 
       <!-- Liste des comics -->
-      <div v-if="loadingComics" class="flex items-center gap-3 text-gray-500 py-16">
+      <div v-if="loadingComics" class="flex items-center gap-3 text-white py-16">
         <svg class="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
@@ -447,13 +447,13 @@
 
       <div v-else-if="!comics.length" class="text-center py-24">
         <div class="text-5xl mb-4">📚</div>
-        <p class="text-gray-400">Aucun comic. Commence par en uploader un.</p>
+        <p class="text-white">Aucun comic. Commence par en uploader un.</p>
       </div>
 
       <div v-else class="overflow-hidden rounded-2xl border border-white/8">
         <table class="w-full text-sm">
           <thead>
-            <tr class="border-b border-white/8 text-left text-xs text-gray-500">
+            <tr class="border-b border-white/8 text-left text-[13px] text-white">
               <th class="px-5 py-3.5 font-medium">Comic</th>
               <th class="px-5 py-3.5 font-medium hidden sm:table-cell">Auteur / Éditeur</th>
               <th class="px-5 py-3.5 font-medium hidden md:table-cell">Genres</th>
@@ -466,32 +466,32 @@
                 <div class="flex items-center gap-3">
                   <div class="w-9 h-12 rounded-lg overflow-hidden bg-white/5 shrink-0">
                     <img v-if="comic.coverUrl" :src="comic.coverUrl" class="w-full h-full object-cover" />
-                    <div v-else class="w-full h-full flex items-center justify-center text-gray-700 text-lg">📚</div>
+                    <div v-else class="w-full h-full flex items-center justify-center text-white text-lg">📚</div>
                   </div>
                   <div>
-                    <p class="font-medium text-gray-100 line-clamp-1">{{ comic.title }}</p>
+                    <p class="font-medium text-white line-clamp-1">{{ comic.title }}</p>
                     <div class="flex items-center gap-2 mt-0.5">
-                      <span class="text-xs text-gray-600">{{ comic._count.readingEntries }} lectures · {{ comic._count.reviews }} avis</span>
-                      <a v-if="comic.pdfUrl" :href="comic.pdfUrl" target="_blank" class="text-xs text-blue-400 hover:text-blue-300 transition">PDF ↗</a>
+                      <span class="text-[13px] text-white">{{ comic._count.readingEntries }} lectures · {{ comic._count.reviews }} avis</span>
+                      <a v-if="comic.pdfUrl" :href="comic.pdfUrl" target="_blank" class="text-[13px] text-blue-400 hover:text-blue-300 transition">PDF ↗</a>
                     </div>
                   </div>
                 </div>
               </td>
-              <td class="px-5 py-4 hidden sm:table-cell text-gray-400 text-xs">
+              <td class="px-5 py-4 hidden sm:table-cell text-white text-[13px]">
                 <span v-if="comic.authors?.length">{{ comic.authors.join(', ') }}</span>
-                <span v-if="comic.publisher" class="text-gray-600 ml-1">{{ comic.authors?.length ? '·' : '' }} {{ comic.publisher }}</span>
+                <span v-if="comic.publisher" class="text-white ml-1">{{ comic.authors?.length ? '·' : '' }} {{ comic.publisher }}</span>
                 <span v-if="!comic.authors?.length && !comic.publisher">—</span>
               </td>
               <td class="px-5 py-4 hidden md:table-cell">
                 <div class="flex flex-wrap gap-1">
-                  <span v-for="g in comic.genres.slice(0, 3)" :key="g" class="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-xs text-gray-500">{{ g }}</span>
+                  <span v-for="g in comic.genres.slice(0, 3)" :key="g" class="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[13px] text-white">{{ g }}</span>
                 </div>
               </td>
               <td class="px-5 py-4 text-right">
                 <div class="flex items-center justify-end gap-3">
-                  <NuxtLink :to="`/comics/${comic.externalId}`" class="text-xs text-gray-500 hover:text-gray-300 transition">Voir</NuxtLink>
-                  <button @click="startEdit(comic)" class="text-xs text-gray-500 hover:text-yellow-400 transition">Modifier</button>
-                  <button @click="deleteComic(comic)" class="text-xs text-gray-500 hover:text-red-400 transition">Supprimer</button>
+                  <NuxtLink :to="`/comics/${comic.externalId}`" class="text-[13px] text-white hover:text-white transition">Voir</NuxtLink>
+                  <button @click="startEdit(comic)" class="text-[13px] text-white hover:text-yellow-400 transition">Modifier</button>
+                  <button @click="deleteComic(comic)" class="text-[13px] text-white hover:text-red-400 transition">Supprimer</button>
                 </div>
               </td>
             </tr>
@@ -513,15 +513,15 @@
                 <h2 class="text-xl font-bold mb-6">{{ editingAuthor ? 'Modifier l\'auteur' : 'Créer un auteur' }}</h2>
                 <form @submit.prevent="submitAuthor" class="space-y-4">
                   <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Nom complet *</label>
+                    <label class="block text-[13px] font-medium text-white mb-1.5">Nom complet *</label>
                     <input v-model="authorForm.name" type="text" required placeholder="Ex: Frank Miller" class="input" />
                   </div>
                   <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Date de naissance</label>
+                    <label class="block text-[13px] font-medium text-white mb-1.5">Date de naissance</label>
                     <input v-model="authorForm.birthDate" type="date" class="input" />
                   </div>
                   <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Biographie</label>
+                    <label class="block text-[13px] font-medium text-white mb-1.5">Biographie</label>
                     <textarea v-model="authorForm.bio" rows="4" placeholder="Présentation de l'auteur…" class="input resize-none" />
                   </div>
                   <div v-if="authorError" class="text-sm text-red-400">{{ authorError }}</div>
@@ -540,12 +540,12 @@
         <!-- Liste des auteurs -->
         <div v-if="!allAuthors.length" class="text-center py-24">
           <div class="text-5xl mb-4">✍️</div>
-          <p class="text-gray-400">Aucun auteur. Crée le premier.</p>
+          <p class="text-white">Aucun auteur. Crée le premier.</p>
         </div>
         <div v-else class="overflow-hidden rounded-2xl border border-white/8">
           <table class="w-full text-sm">
             <thead>
-              <tr class="border-b border-white/8 text-left text-xs text-gray-500">
+              <tr class="border-b border-white/8 text-left text-[13px] text-white">
                 <th class="px-5 py-3.5 font-medium">Auteur</th>
                 <th class="px-5 py-3.5 font-medium hidden sm:table-cell">Naissance</th>
                 <th class="px-5 py-3.5 font-medium hidden md:table-cell">Comics liés</th>
@@ -555,20 +555,20 @@
             <tbody>
               <tr v-for="author in allAuthors" :key="author.id" class="border-b border-white/5 last:border-0 hover:bg-white/3 transition-colors">
                 <td class="px-5 py-4">
-                  <p class="font-medium text-gray-100">{{ author.name }}</p>
-                  <p v-if="author.bio" class="text-xs text-gray-600 line-clamp-1 mt-0.5">{{ author.bio }}</p>
+                  <p class="font-medium text-white">{{ author.name }}</p>
+                  <p v-if="author.bio" class="text-[13px] text-white line-clamp-1 mt-0.5">{{ author.bio }}</p>
                 </td>
-                <td class="px-5 py-4 hidden sm:table-cell text-gray-400 text-xs">
+                <td class="px-5 py-4 hidden sm:table-cell text-white text-[13px]">
                   {{ author.birthDate ? new Date(author.birthDate).toLocaleDateString('fr-FR') : '—' }}
                 </td>
-                <td class="px-5 py-4 hidden md:table-cell text-gray-400 text-xs">
+                <td class="px-5 py-4 hidden md:table-cell text-white text-[13px]">
                   {{ author._count?.comics ?? 0 }} comic{{ (author._count?.comics ?? 0) > 1 ? 's' : '' }}
                 </td>
                 <td class="px-5 py-4 text-right">
                   <div class="flex items-center justify-end gap-3">
-                    <NuxtLink :to="`/authors/${author.slug}`" class="text-xs text-gray-500 hover:text-gray-300 transition">Voir</NuxtLink>
-                    <button @click="startEditAuthor(author)" class="text-xs text-gray-500 hover:text-yellow-400 transition">Modifier</button>
-                    <button @click="deleteAuthor(author)" class="text-xs text-gray-500 hover:text-red-400 transition">Supprimer</button>
+                    <NuxtLink :to="`/authors/${author.slug}`" class="text-[13px] text-white hover:text-white transition">Voir</NuxtLink>
+                    <button @click="startEditAuthor(author)" class="text-[13px] text-white hover:text-yellow-400 transition">Modifier</button>
+                    <button @click="deleteAuthor(author)" class="text-[13px] text-white hover:text-red-400 transition">Supprimer</button>
                   </div>
                 </td>
               </tr>
@@ -592,13 +592,13 @@
 
                   <!-- Nom -->
                   <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Nom du personnage *</label>
+                    <label class="block text-[13px] font-medium text-white mb-1.5">Nom du personnage *</label>
                     <input v-model="guideForm.character" type="text" required placeholder="Ex: Spider-Man" class="input" />
                   </div>
 
                   <!-- Cover URL -->
                   <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Cover (URL ou chemin relatif)</label>
+                    <label class="block text-[13px] font-medium text-white mb-1.5">Cover (URL ou chemin relatif)</label>
                     <input v-model="guideForm.imageUrl" type="text" placeholder="/covers/defaults/hp-spiderman.webp ou https://…" class="input" />
                     <div v-if="guideForm.imageUrl" class="mt-2">
                       <img :src="guideForm.imageUrl" class="h-24 object-cover rounded-lg border border-white/10" @error="e => e.target.style.display='none'" />
@@ -607,43 +607,43 @@
 
                   <!-- Teaser -->
                   <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Teaser * <span class="text-gray-600">(phrase d'accroche courte)</span></label>
+                    <label class="block text-[13px] font-medium text-white mb-1.5">Teaser * <span class="text-white">(phrase d'accroche courte)</span></label>
                     <input v-model="guideForm.teaser" type="text" required placeholder="Le héros de Brooklyn qui porte le masque depuis 10 ans." class="input" />
                   </div>
 
                   <!-- Story -->
                   <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Récit * <span class="text-gray-600">(description longue)</span></label>
+                    <label class="block text-[13px] font-medium text-white mb-1.5">Récit * <span class="text-white">(description longue)</span></label>
                     <textarea v-model="guideForm.story" rows="5" required placeholder="Présentation du personnage, contexte, pourquoi ce parcours…" class="input resize-none" />
                   </div>
 
                   <!-- Découvrir aussi -->
                   <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-2">Découvrir aussi <span class="text-gray-600">(parcours liés)</span></label>
+                    <label class="block text-[13px] font-medium text-white mb-2">Découvrir aussi <span class="text-white">(parcours liés)</span></label>
                     <div v-if="otherGuides.length" class="flex flex-wrap gap-2">
                       <button
                         v-for="g in otherGuides"
                         :key="g.slug"
                         type="button"
                         @click="toggleRelatedSlug(g.slug)"
-                        class="flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs transition"
+                        class="flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[13px] transition"
                         :class="guideForm.relatedSlugs.includes(g.slug)
                           ? 'bg-red-500/15 border-red-500/30 text-red-400'
-                          : 'bg-white/3 border-white/10 text-gray-400 hover:border-white/20'"
+                          : 'bg-white/3 border-white/10 text-white hover:border-white/20'"
                       >
                         <img v-if="g.imageUrl" :src="g.imageUrl" class="w-5 h-5 object-cover rounded" @error="e => e.target.style.display='none'" />
                         <span>{{ g.character }}</span>
                         <span v-if="guideForm.relatedSlugs.includes(g.slug)" class="text-red-400">✓</span>
                       </button>
                     </div>
-                    <p v-else class="text-xs text-gray-600">Aucun autre parcours disponible.</p>
+                    <p v-else class="text-[13px] text-white">Aucun autre parcours disponible.</p>
                   </div>
 
                   <!-- Comics recommandés -->
                   <div>
                     <div class="flex items-center justify-between mb-2">
-                      <label class="block text-xs font-medium text-gray-400">Comics recommandés</label>
-                      <button type="button" @click="addComic" class="text-xs px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 transition">
+                      <label class="block text-[13px] font-medium text-white">Comics recommandés</label>
+                      <button type="button" @click="addComic" class="text-[13px] px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-white transition">
                         + Ajouter un tome
                       </button>
                     </div>
@@ -654,13 +654,13 @@
                         class="rounded-xl border border-white/8 bg-white/2 p-4 space-y-3"
                       >
                         <div class="flex items-center justify-between">
-                          <span class="text-xs font-medium text-gray-500">#{{ idx + 1 }}</span>
-                          <button type="button" @click="removeComic(idx)" class="text-xs text-gray-600 hover:text-red-400 transition">Retirer</button>
+                          <span class="text-[13px] font-medium text-white">#{{ idx + 1 }}</span>
+                          <button type="button" @click="removeComic(idx)" class="text-[13px] text-white hover:text-red-400 transition">Retirer</button>
                         </div>
 
                         <!-- Recherche comic existant -->
                         <div class="relative">
-                          <label class="block text-xs text-gray-500 mb-1">Rechercher un comic du site <span class="text-gray-600">(optionnel — remplit les champs automatiquement)</span></label>
+                          <label class="block text-[13px] text-white mb-1">Rechercher un comic du site <span class="text-white">(optionnel — remplit les champs automatiquement)</span></label>
                           <input
                             v-model="comicSearchQueries[idx]"
                             type="text"
@@ -682,33 +682,33 @@
                               class="w-full text-left px-3 py-2 text-sm hover:bg-white/5 transition flex items-center gap-3"
                             >
                               <img v-if="result.coverUrl" :src="result.coverUrl" class="w-7 h-10 object-cover rounded shrink-0" @error="e => e.target.style.display='none'" />
-                              <div v-else class="w-7 h-10 bg-white/5 rounded shrink-0 flex items-center justify-center text-gray-700 text-xs">📚</div>
-                              <span class="text-gray-300 line-clamp-1">{{ result.title }}</span>
+                              <div v-else class="w-7 h-10 bg-white/5 rounded shrink-0 flex items-center justify-center text-white text-[13px]">📚</div>
+                              <span class="text-white line-clamp-1">{{ result.title }}</span>
                             </button>
                           </div>
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div>
-                            <label class="block text-xs text-gray-500 mb-1">Titre *</label>
+                            <label class="block text-[13px] text-white mb-1">Titre *</label>
                             <input v-model="comic.title" type="text" placeholder="The Amazing Spider-Man #1" class="input text-sm" />
                           </div>
                           <div>
-                            <label class="block text-xs text-gray-500 mb-1">Cover URL</label>
+                            <label class="block text-[13px] text-white mb-1">Cover URL</label>
                             <input v-model="comic.coverUrl" type="text" placeholder="/covers/defaults/… ou https://…" class="input text-sm" />
                           </div>
                         </div>
                         <div>
-                          <label class="block text-xs text-gray-500 mb-1">Lien vers la page du comic</label>
+                          <label class="block text-[13px] text-white mb-1">Lien vers la page du comic</label>
                           <input v-model="comic.comicUrl" type="text" placeholder="Rempli automatiquement ou saisir manuellement" class="input text-sm" />
                         </div>
                         <div>
-                          <label class="block text-xs text-gray-500 mb-1">Note <span class="text-gray-600">(pourquoi lire ce tome)</span></label>
+                          <label class="block text-[13px] text-white mb-1">Note <span class="text-white">(pourquoi lire ce tome)</span></label>
                           <input v-model="comic.note" type="text" placeholder="L'arc incontournable pour débuter." class="input text-sm" />
                         </div>
                       </div>
                     </div>
-                    <p v-else class="text-xs text-gray-600 py-2">Aucun comic ajouté. Clique sur "+ Ajouter un tome".</p>
+                    <p v-else class="text-[13px] text-white py-2">Aucun comic ajouté. Clique sur "+ Ajouter un tome".</p>
                   </div>
 
                   <div v-if="guideError" class="flex items-center gap-2 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-sm text-red-400">
@@ -728,7 +728,7 @@
         </Teleport>
 
         <!-- Liste guides -->
-        <div v-if="loadingGuides" class="flex items-center gap-3 text-gray-500 py-16">
+        <div v-if="loadingGuides" class="flex items-center gap-3 text-white py-16">
           <svg class="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
@@ -738,13 +738,13 @@
 
         <div v-else-if="!guides.length" class="text-center py-24">
           <div class="text-5xl mb-4">🗺</div>
-          <p class="text-gray-400">Aucun parcours. Crée le premier.</p>
+          <p class="text-white">Aucun parcours. Crée le premier.</p>
         </div>
 
         <div v-else class="overflow-hidden rounded-2xl border border-white/8">
           <table class="w-full text-sm">
             <thead>
-              <tr class="border-b border-white/8 text-left text-xs text-gray-500">
+              <tr class="border-b border-white/8 text-left text-[13px] text-white">
                 <th class="px-5 py-3.5 font-medium">Parcours</th>
                 <th class="px-5 py-3.5 font-medium hidden sm:table-cell">Slug</th>
                 <th class="px-5 py-3.5 font-medium">Comics</th>
@@ -758,22 +758,22 @@
                   <div class="flex items-center gap-3">
                     <div class="w-9 h-12 rounded-lg overflow-hidden bg-white/5 shrink-0">
                       <img v-if="guide.imageUrl" :src="guide.imageUrl" class="w-full h-full object-cover" @error="e => e.target.style.display='none'" />
-                      <div v-else class="w-full h-full flex items-center justify-center text-gray-700 text-lg">🦸</div>
+                      <div v-else class="w-full h-full flex items-center justify-center text-white text-lg">🦸</div>
                     </div>
                     <div>
-                      <p class="font-medium text-gray-100">{{ guide.character }}</p>
-                      <p class="text-xs text-gray-600 line-clamp-1 mt-0.5">{{ guide.teaser }}</p>
+                      <p class="font-medium text-white">{{ guide.character }}</p>
+                      <p class="text-[13px] text-white line-clamp-1 mt-0.5">{{ guide.teaser }}</p>
                     </div>
                   </div>
                 </td>
-                <td class="px-5 py-4 hidden sm:table-cell text-gray-500 text-xs font-mono">{{ guide.slug }}</td>
-                <td class="px-5 py-4 text-gray-400 text-xs">{{ guide.comics.length }} tome{{ guide.comics.length !== 1 ? 's' : '' }}</td>
-                <td class="px-5 py-4 hidden md:table-cell text-gray-400 text-xs">{{ guide._count.topics }} sujet{{ guide._count.topics !== 1 ? 's' : '' }}</td>
+                <td class="px-5 py-4 hidden sm:table-cell text-white text-[13px] font-mono">{{ guide.slug }}</td>
+                <td class="px-5 py-4 text-white text-[13px]">{{ guide.comics.length }} tome{{ guide.comics.length !== 1 ? 's' : '' }}</td>
+                <td class="px-5 py-4 hidden md:table-cell text-white text-[13px]">{{ guide._count.topics }} sujet{{ guide._count.topics !== 1 ? 's' : '' }}</td>
                 <td class="px-5 py-4 text-right">
                   <div class="flex items-center justify-end gap-3">
-                    <NuxtLink :to="`/guides/${guide.slug}`" class="text-xs text-gray-500 hover:text-gray-300 transition">Voir</NuxtLink>
-                    <button @click="startEditGuide(guide)" class="text-xs text-gray-500 hover:text-yellow-400 transition">Modifier</button>
-                    <button @click="deleteGuide(guide)" class="text-xs text-gray-500 hover:text-red-400 transition">Supprimer</button>
+                    <NuxtLink :to="`/guides/${guide.slug}`" class="text-[13px] text-white hover:text-white transition">Voir</NuxtLink>
+                    <button @click="startEditGuide(guide)" class="text-[13px] text-white hover:text-yellow-400 transition">Modifier</button>
+                    <button @click="deleteGuide(guide)" class="text-[13px] text-white hover:text-red-400 transition">Supprimer</button>
                   </div>
                 </td>
               </tr>
@@ -795,7 +795,7 @@
                 <h2 class="text-xl font-bold mb-6">{{ editingAd ? "Modifier l'encart" : 'Créer un encart' }}</h2>
                 <form @submit.prevent="submitAd" class="space-y-4">
                   <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Emplacement *</label>
+                    <label class="block text-[13px] font-medium text-white mb-1.5">Emplacement *</label>
                     <select v-model="adForm.placement" required class="input">
                       <option value="HOME">Accueil (/feed)</option>
                       <option value="COMIC_DETAIL">Fiche comic</option>
@@ -804,31 +804,31 @@
                     </select>
                   </div>
                   <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-1.5">
+                    <label class="block text-[13px] font-medium text-white mb-1.5">
                       Image {{ editingAd ? '(laisser vide pour garder l\'actuelle)' : '*' }}
                     </label>
                     <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" @change="e => adImageFile = e.target.files[0]" class="input" />
                     <img v-if="editingAd?.imageUrl" :src="editingAd.imageUrl" class="mt-2 h-20 rounded-lg object-cover" alt="Aperçu actuel" />
                   </div>
                   <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Texte alternatif</label>
+                    <label class="block text-[13px] font-medium text-white mb-1.5">Texte alternatif</label>
                     <input v-model="adForm.altText" type="text" placeholder="Ex: Publicité — Nom annonceur" class="input" />
                   </div>
                   <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Lien de destination</label>
+                    <label class="block text-[13px] font-medium text-white mb-1.5">Lien de destination</label>
                     <input v-model="adForm.linkUrl" type="url" placeholder="https://…" class="input" />
                   </div>
                   <div class="grid grid-cols-2 gap-3">
                     <div>
-                      <label class="block text-xs font-medium text-gray-400 mb-1.5">Début</label>
+                      <label class="block text-[13px] font-medium text-white mb-1.5">Début</label>
                       <input v-model="adForm.startAt" type="date" class="input" />
                     </div>
                     <div>
-                      <label class="block text-xs font-medium text-gray-400 mb-1.5">Fin</label>
+                      <label class="block text-[13px] font-medium text-white mb-1.5">Fin</label>
                       <input v-model="adForm.endAt" type="date" class="input" />
                     </div>
                   </div>
-                  <label class="flex items-center gap-2 text-sm text-gray-300">
+                  <label class="flex items-center gap-2 text-sm text-white">
                     <input v-model="adForm.isActive" type="checkbox" class="rounded" />
                     Actif
                   </label>
@@ -846,15 +846,15 @@
         </Teleport>
 
         <!-- Liste des encarts -->
-        <div v-if="loadingAds" class="text-center py-24 text-gray-500">Chargement…</div>
+        <div v-if="loadingAds" class="text-center py-24 text-white">Chargement…</div>
         <div v-else-if="!ads.length" class="text-center py-24">
           <div class="text-5xl mb-4">📢</div>
-          <p class="text-gray-400">Aucun encart. Crée le premier.</p>
+          <p class="text-white">Aucun encart. Crée le premier.</p>
         </div>
         <div v-else class="overflow-hidden rounded-2xl border border-white/8">
           <table class="w-full text-sm">
             <thead>
-              <tr class="border-b border-white/8 text-left text-xs text-gray-500">
+              <tr class="border-b border-white/8 text-left text-[13px] text-white">
                 <th class="px-5 py-3.5 font-medium">Image</th>
                 <th class="px-5 py-3.5 font-medium">Emplacement</th>
                 <th class="px-5 py-3.5 font-medium hidden sm:table-cell">Période</th>
@@ -866,23 +866,23 @@
               <tr v-for="ad in ads" :key="ad.id" class="border-b border-white/5 last:border-0 hover:bg-white/3 transition-colors">
                 <td class="px-5 py-4">
                   <img v-if="ad.imageUrl" :src="ad.imageUrl" :alt="ad.altText" class="h-10 w-16 rounded object-cover" />
-                  <div v-else class="h-10 w-16 rounded border border-dashed border-white/15 flex items-center justify-center text-[9px] text-gray-600">vide</div>
+                  <div v-else class="h-10 w-16 rounded border border-dashed border-white/15 flex items-center justify-center text-[11px] text-white">vide</div>
                 </td>
-                <td class="px-5 py-4 text-gray-100">{{ placementLabels[ad.placement] }}</td>
-                <td class="px-5 py-4 hidden sm:table-cell text-gray-400 text-xs">
+                <td class="px-5 py-4 text-white">{{ placementLabels[ad.placement] }}</td>
+                <td class="px-5 py-4 hidden sm:table-cell text-white text-[13px]">
                   {{ ad.startAt ? new Date(ad.startAt).toLocaleDateString('fr-FR') : '—' }}
                   →
                   {{ ad.endAt ? new Date(ad.endAt).toLocaleDateString('fr-FR') : '—' }}
                 </td>
                 <td class="px-5 py-4">
-                  <span :class="ad.isActive ? 'text-green-400' : 'text-gray-600'" class="text-xs">
+                  <span :class="ad.isActive ? 'text-green-400' : 'text-white'" class="text-[13px]">
                     {{ ad.isActive ? 'Actif' : 'Inactif' }}
                   </span>
                 </td>
                 <td class="px-5 py-4 text-right">
                   <div class="flex items-center justify-end gap-3">
-                    <button @click="startEditAd(ad)" class="text-xs text-gray-500 hover:text-yellow-400 transition">Modifier</button>
-                    <button v-if="ad.imageUrl" @click="resetAd(ad)" class="text-xs text-gray-500 hover:text-red-400 transition">Réinitialiser</button>
+                    <button @click="startEditAd(ad)" class="text-[13px] text-white hover:text-yellow-400 transition">Modifier</button>
+                    <button v-if="ad.imageUrl" @click="resetAd(ad)" class="text-[13px] text-white hover:text-red-400 transition">Réinitialiser</button>
                   </div>
                 </td>
               </tr>
@@ -899,7 +899,7 @@
           ⚠ {{ usersError }}
         </div>
 
-        <div v-if="loadingUsers && !users.length" class="flex items-center gap-3 text-gray-500 py-16">
+        <div v-if="loadingUsers && !users.length" class="flex items-center gap-3 text-white py-16">
           <svg class="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
@@ -909,13 +909,13 @@
 
         <div v-else-if="!loadingUsers && !users.length && !usersError" class="text-center py-24">
           <div class="text-5xl mb-4">👤</div>
-          <p class="text-gray-400">Aucun utilisateur trouvé.</p>
+          <p class="text-white">Aucun utilisateur trouvé.</p>
         </div>
 
         <div v-else-if="users.length" class="overflow-hidden rounded-2xl border border-white/8">
           <table class="w-full text-sm">
             <thead>
-              <tr class="border-b border-white/8 text-left text-xs text-gray-500">
+              <tr class="border-b border-white/8 text-left text-[13px] text-white">
                 <th class="px-5 py-3.5 font-medium">Utilisateur</th>
                 <th class="px-5 py-3.5 font-medium hidden sm:table-cell">Email</th>
                 <th class="px-5 py-3.5 font-medium">Rôle</th>
@@ -925,19 +925,19 @@
             </thead>
             <tbody>
               <tr v-for="u in users" :key="u.id" class="border-b border-white/5 last:border-0 hover:bg-white/3 transition-colors">
-                <td class="px-5 py-4 font-medium text-gray-100">{{ u.username }}</td>
-                <td class="px-5 py-4 hidden sm:table-cell text-gray-400 text-xs">{{ u.email }}</td>
+                <td class="px-5 py-4 font-medium text-white">{{ u.username }}</td>
+                <td class="px-5 py-4 hidden sm:table-cell text-white text-[13px]">{{ u.email }}</td>
                 <td class="px-5 py-4">
-                  <span class="text-xs font-medium px-2 py-0.5 rounded-full border"
+                  <span class="text-[13px] font-medium px-2 py-0.5 rounded-full border"
                     :class="{
                       'bg-red-500/15 text-red-400 border-red-500/20': u.role === 'SUPER_ADMIN',
                       'bg-amber-500/15 text-amber-400 border-amber-500/20': u.role === 'ADMIN',
-                      'bg-gray-500/15 text-gray-400 border-gray-500/20': u.role === 'USER',
+                      'bg-gray-500/15 text-white border-gray-500/20': u.role === 'USER',
                     }"
                   >{{ u.role }}</span>
                 </td>
                 <td class="px-5 py-4 hidden md:table-cell">
-                  <span class="text-xs" :class="u.totpEnabled ? 'text-green-400' : 'text-gray-600'">
+                  <span class="text-[13px]" :class="u.totpEnabled ? 'text-green-400' : 'text-white'">
                     {{ u.totpEnabled ? '✓ Activée' : '✗ Désactivée' }}
                   </span>
                 </td>
@@ -946,15 +946,15 @@
                     v-if="u.role === 'USER'"
                     @click="setUserRole(u, 'ADMIN')"
                     :disabled="userRoleLoadingId === u.id"
-                    class="text-xs px-3 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 transition disabled:opacity-50"
+                    class="text-[13px] px-3 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 transition disabled:opacity-50"
                   >Promouvoir admin</button>
                   <button
                     v-else-if="u.role === 'ADMIN'"
                     @click="setUserRole(u, 'USER')"
                     :disabled="userRoleLoadingId === u.id"
-                    class="text-xs px-3 py-1.5 rounded-lg bg-gray-500/10 hover:bg-gray-500/20 text-gray-400 border border-gray-500/20 transition disabled:opacity-50"
+                    class="text-[13px] px-3 py-1.5 rounded-lg bg-gray-500/10 hover:bg-gray-500/20 text-white border border-gray-500/20 transition disabled:opacity-50"
                   >Rétrograder</button>
-                  <span v-else class="text-xs text-gray-600">—</span>
+                  <span v-else class="text-[13px] text-white">—</span>
                 </td>
               </tr>
             </tbody>

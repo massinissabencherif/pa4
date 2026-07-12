@@ -7,11 +7,11 @@
           <span class="text-white text-xl">🛡</span>
         </div>
         <h1 class="text-2xl font-bold mb-1">Setup Super Admin</h1>
-        <p class="text-gray-500 text-sm">Promouvoir ton compte en super administrateur.<br>Nécessite qu'aucun admin n'existe encore.</p>
+        <p class="text-white text-sm">Promouvoir ton compte en super administrateur.<br>Nécessite qu'aucun admin n'existe encore.</p>
       </div>
 
       <div class="card p-7">
-        <div v-if="!isLoggedIn" class="text-center text-sm text-gray-400">
+        <div v-if="!isLoggedIn" class="text-center text-sm text-white">
           <p class="mb-4">Tu dois être connecté pour effectuer cette action.</p>
           <NuxtLink to="/auth/login" class="btn-primary w-full justify-center block text-center">Se connecter</NuxtLink>
         </div>
@@ -19,12 +19,12 @@
         <div v-else-if="done" class="text-center">
           <div class="text-4xl mb-3">✅</div>
           <p class="font-semibold text-green-400 mb-1">Compte promu super administrateur</p>
-          <p class="text-sm text-gray-500 mb-5">Configure maintenant ta 2FA pour accéder au dashboard.</p>
+          <p class="text-sm text-white mb-5">Configure maintenant ta 2FA pour accéder au dashboard.</p>
           <NuxtLink to="/settings/security" class="btn-primary w-full justify-center block text-center">Configurer la 2FA</NuxtLink>
         </div>
 
         <div v-else>
-          <p class="text-sm text-gray-400 mb-5">
+          <p class="text-sm text-white mb-5">
             Connecté en tant que <span class="text-white font-medium">{{ user?.username }}</span>.<br>
             Clique pour promouvoir ce compte en super administrateur.
           </p>

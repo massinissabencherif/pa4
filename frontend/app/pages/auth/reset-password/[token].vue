@@ -13,14 +13,14 @@
             </div>
             <span style="font-family:impact,sans-serif;font-size:15px;letter-spacing:4px;color:#fff;text-transform:uppercase;">COMICSTER</span>
           </NuxtLink>
-          <span style="font-family:'Courier New',monospace;font-size:8px;letter-spacing:3px;color:#333;">№ 002</span>
+          <span style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:3px;color:#fff;">№ 002</span>
         </div>
 
         <!-- Body -->
         <div style="padding:28px;">
           <template v-if="done">
             <h1 style="font-family:impact,sans-serif;font-size:24px;letter-spacing:2px;text-transform:uppercase;color:#fff;margin-bottom:4px;font-weight:normal;">MOT DE PASSE RÉINITIALISÉ</h1>
-            <p style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:1px;color:#888;line-height:1.6;margin:16px 0 24px;">
+            <p style="font-family:'Courier New',monospace;font-size:12px;letter-spacing:1px;color:#fff;line-height:1.6;margin:16px 0 24px;">
               Ton mot de passe a bien été changé. Tes anciennes sessions ont été déconnectées.
             </p>
             <NuxtLink to="/auth/login" class="btn-primary" style="width:100%;justify-content:center;display:flex;">SE CONNECTER ▶</NuxtLink>
@@ -28,11 +28,11 @@
 
           <template v-else>
             <h1 style="font-family:impact,sans-serif;font-size:28px;letter-spacing:2px;text-transform:uppercase;color:#fff;margin-bottom:4px;font-weight:normal;">NOUVEAU MOT DE PASSE</h1>
-            <p style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:3px;color:#555;text-transform:uppercase;margin-bottom:28px;">Choisis un mot de passe solide</p>
+            <p style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:3px;color:#fff;text-transform:uppercase;margin-bottom:28px;">Choisis un mot de passe solide</p>
 
             <form @submit.prevent="submit" class="space-y-5" aria-label="Réinitialisation du mot de passe">
               <div>
-                <label style="display:block;font-family:'Courier New',monospace;font-size:9px;letter-spacing:4px;color:#888;text-transform:uppercase;margin-bottom:8px;">Nouveau mot de passe</label>
+                <label style="display:block;font-family:'Courier New',monospace;font-size:10px;letter-spacing:4px;color:#fff;text-transform:uppercase;margin-bottom:8px;">Nouveau mot de passe</label>
                 <input v-model="form.password" type="password" required minlength="8" placeholder="Au moins 8 caractères" class="input" autofocus />
                 <div v-if="form.password.length > 0" style="display:flex;gap:3px;margin-top:6px;">
                   <div
@@ -45,7 +45,7 @@
               </div>
 
               <div>
-                <label style="display:block;font-family:'Courier New',monospace;font-size:9px;letter-spacing:4px;color:#888;text-transform:uppercase;margin-bottom:8px;">Confirmer le mot de passe</label>
+                <label style="display:block;font-family:'Courier New',monospace;font-size:10px;letter-spacing:4px;color:#fff;text-transform:uppercase;margin-bottom:8px;">Confirmer le mot de passe</label>
                 <input
                   v-model="form.passwordConfirm"
                   type="password"
@@ -54,10 +54,10 @@
                   class="input"
                   :style="passwordMismatch ? 'border-bottom-color:#e02020;' : ''"
                 />
-                <p v-if="passwordMismatch" style="font-family:'Courier New',monospace;font-size:11px;color:#e02020;margin-top:4px;">Les mots de passe ne correspondent pas.</p>
+                <p v-if="passwordMismatch" style="font-family:'Courier New',monospace;font-size:12px;color:#e02020;margin-top:4px;">Les mots de passe ne correspondent pas.</p>
               </div>
 
-              <div v-if="error" role="alert" style="display:flex;align-items:center;gap:8px;background:rgba(224,32,32,0.08);border:1px solid rgba(224,32,32,0.2);padding:10px 12px;font-family:'Courier New',monospace;font-size:11px;color:#e02020;">
+              <div v-if="error" role="alert" style="display:flex;align-items:center;gap:8px;background:rgba(224,32,32,0.08);border:1px solid rgba(224,32,32,0.2);padding:10px 12px;font-family:'Courier New',monospace;font-size:12px;color:#e02020;">
                 <span aria-hidden="true">⚠</span> {{ error }}
               </div>
 
@@ -70,7 +70,7 @@
         </div>
 
         <!-- Footer -->
-        <div style="padding:14px 28px;border-top:1px solid #1e1e1e;text-align:center;font-family:'Courier New',monospace;font-size:11px;color:#555;">
+        <div style="padding:14px 28px;border-top:1px solid #1e1e1e;text-align:center;font-family:'Courier New',monospace;font-size:12px;color:#fff;">
           <NuxtLink to="/auth/login" style="color:#e02020;text-decoration:none;letter-spacing:1px;">← Retour à la connexion</NuxtLink>
         </div>
 
