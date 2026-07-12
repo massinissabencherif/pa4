@@ -19,43 +19,43 @@
           <NuxtLink
             v-if="isLoggedIn"
             to="/feed"
-            style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#fff;padding:0 14px;height:52px;display:flex;align-items:center;border-left:1px solid #2a2a2a;border-right:1px solid #2a2a2a;text-decoration:none;transition:color 0.15s;"
+            style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#fff;padding:0 14px;height:52px;display:flex;align-items:center;border-left:1px solid #2a2a2a;border-right:1px solid #2a2a2a;text-decoration:none;transition:color 0.15s;"
             active-class="!text-[#e02020]"
           >Feed</NuxtLink>
           <NuxtLink
             v-if="isLoggedIn"
             to="/comics/search"
-            style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#fff;padding:0 14px;height:52px;display:flex;align-items:center;border-right:1px solid #2a2a2a;text-decoration:none;transition:color 0.15s;"
+            style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#fff;padding:0 14px;height:52px;display:flex;align-items:center;border-right:1px solid #2a2a2a;text-decoration:none;transition:color 0.15s;"
             active-class="!text-[#e02020]"
           >Explorer</NuxtLink>
           <NuxtLink
             v-if="isLoggedIn"
             to="/journal"
-            style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#fff;padding:0 14px;height:52px;display:flex;align-items:center;border-right:1px solid #2a2a2a;text-decoration:none;transition:color 0.15s;"
+            style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#fff;padding:0 14px;height:52px;display:flex;align-items:center;border-right:1px solid #2a2a2a;text-decoration:none;transition:color 0.15s;"
             active-class="!text-[#e02020]"
           >Journal</NuxtLink>
           <NuxtLink
             v-if="isLoggedIn"
             to="/lists"
-            style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#fff;padding:0 14px;height:52px;display:flex;align-items:center;border-right:1px solid #2a2a2a;text-decoration:none;transition:color 0.15s;"
+            style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#fff;padding:0 14px;height:52px;display:flex;align-items:center;border-right:1px solid #2a2a2a;text-decoration:none;transition:color 0.15s;"
             active-class="!text-[#e02020]"
           >Listes</NuxtLink>
           <NuxtLink
             v-if="isLoggedIn"
             to="/reviews"
-            style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#fff;padding:0 14px;height:52px;display:flex;align-items:center;border-right:1px solid #2a2a2a;text-decoration:none;transition:color 0.15s;"
+            style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#fff;padding:0 14px;height:52px;display:flex;align-items:center;border-right:1px solid #2a2a2a;text-decoration:none;transition:color 0.15s;"
             active-class="!text-[#e02020]"
           >Avis</NuxtLink>
           <NuxtLink
             v-if="isLoggedIn"
             to="/recommendations"
-            style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#fff;padding:0 14px;height:52px;display:flex;align-items:center;border-right:1px solid #2a2a2a;text-decoration:none;transition:color 0.15s;"
+            style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#fff;padding:0 14px;height:52px;display:flex;align-items:center;border-right:1px solid #2a2a2a;text-decoration:none;transition:color 0.15s;"
             active-class="!text-[#e02020]"
           >Guide</NuxtLink>
           <NuxtLink
             v-if="isLoggedIn"
             to="/dashboard"
-            style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#fff;padding:0 14px;height:52px;display:flex;align-items:center;border-right:1px solid #2a2a2a;text-decoration:none;transition:color 0.15s;"
+            style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#fff;padding:0 14px;height:52px;display:flex;align-items:center;border-right:1px solid #2a2a2a;text-decoration:none;transition:color 0.15s;"
             active-class="!text-[#e02020]"
           >Stats</NuxtLink>
         </nav>
