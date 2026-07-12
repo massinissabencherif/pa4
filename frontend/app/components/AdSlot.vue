@@ -1,5 +1,5 @@
 <template>
-  <div style="border:1px solid #2a2a2a;border-top:2px solid #e02020;">
+  <div v-if="status !== 'hidden'" style="border:1px solid #2a2a2a;border-top:2px solid #e02020;">
     <div v-if="ad" style="padding:6px 16px;border-bottom:1px solid #1e1e1e;">
       <span style="font-family:'Courier New',monospace;font-size:8px;letter-spacing:3px;color:#555;text-transform:uppercase;">Publicité</span>
     </div>
@@ -28,6 +28,8 @@ const base = config.public.apiBase
 
 const DEFAULT_BANNER = '/ads/default-banner.png'
 
+// "generic" tant que la réponse n'est pas arrivée — évite un flash "hidden"
+const status = ref('generic')
 const ad = ref(null)
 
 const displayImage = computed(() => ad.value?.imageUrl || DEFAULT_BANNER)
@@ -36,8 +38,10 @@ const displayAlt = computed(() => ad.value?.altText || 'Comicster')
 onMounted(async () => {
   try {
     const res = await $fetch(`${base}/ads`, { query: { placement: props.placement } })
+    status.value = res?.status || 'generic'
     ad.value = res?.ad || null
   } catch {
+    status.value = 'generic'
     ad.value = null
   }
 })
