@@ -8,11 +8,13 @@
       :href="ad.linkUrl"
       target="_blank"
       rel="sponsored noopener noreferrer"
-      style="display:block;"
+      style="display:block;height:160px;overflow:hidden;"
     >
-      <img :src="ad.imageUrl" :alt="ad.altText" style="width:100%;display:block;" />
+      <img :src="ad.imageUrl" :alt="ad.altText" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block;" />
     </a>
-    <img v-else :src="ad.imageUrl" :alt="ad.altText" style="width:100%;display:block;" />
+    <div v-else style="height:160px;overflow:hidden;">
+      <img :src="ad.imageUrl" :alt="ad.altText" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block;" />
+    </div>
   </div>
 </template>
 
