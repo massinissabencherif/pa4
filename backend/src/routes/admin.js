@@ -707,23 +707,8 @@ router.patch("/admin/ads/:id", requireAdmin, (req, res) => {
   });
 });
 
-router.delete("/admin/ads/:id", requireAdmin, async (req, res) => {
-  const ad = await prisma.adBanner.findUnique({ where: { id: req.params.id } });
-  if (!ad) return res.status(404).json({ error: "Encart introuvable" });
-
-  await prisma.adBanner.delete({ where: { id: req.params.id } });
-
-  const filename = ad.imageUrl.split("/uploads/")[1];
-  if (filename) {
-    try {
-      await fs.promises.unlink(path.join(uploadDir, filename));
-    } catch {
-      console.warn(`[WARN] Fichier d'encart introuvable lors de la suppression`);
-    }
-  }
-
-  res.status(204).end();
-});
+// Pas de suppression pour les encarts — désactiver via isActive (PATCH) plutôt
+// que supprimer définitivement, pour éviter les pertes accidentelles.
 
 // ─── Stats ────────────────────────────────────────────────────────────────────
 

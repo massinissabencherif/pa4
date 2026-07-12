@@ -881,7 +881,6 @@
                 <td class="px-5 py-4 text-right">
                   <div class="flex items-center justify-end gap-3">
                     <button @click="startEditAd(ad)" class="text-xs text-gray-500 hover:text-yellow-400 transition">Modifier</button>
-                    <button @click="deleteAd(ad)" class="text-xs text-gray-500 hover:text-red-400 transition">Supprimer</button>
                   </div>
                 </td>
               </tr>
@@ -1689,11 +1688,6 @@ async function submitAd() {
   }
 }
 
-async function deleteAd(ad) {
-  if (!confirm(`Supprimer cet encart (${placementLabels[ad.placement]}) ?`)) return
-  try {
-    await $fetch(`${base}/admin/ads/${ad.id}`, { method: 'DELETE', headers: authHeaders() })
-    ads.value = ads.value.filter(a => a.id !== ad.id)
-  } catch {}
-}
+// Pas de suppression pour les encarts — décocher "Actif" dans le formulaire
+// d'édition pour désactiver un encart sans le perdre définitivement.
 </script>
