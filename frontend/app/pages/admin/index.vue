@@ -1649,10 +1649,6 @@ function startEditAd(ad) {
 }
 
 async function submitAd() {
-  if (!editingAd.value?.imageUrl && !adImageFile.value) {
-    adError.value = "L'image est requise"
-    return
-  }
   adSaving.value = true
   adError.value = ''
 
