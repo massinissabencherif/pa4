@@ -631,7 +631,7 @@ router.post("/admin/ads", requireAdmin, (req, res) => {
 
     const { linkUrl, altText, placement, isActive, startAt, endAt, order } = req.body;
 
-    const altErr = requireField(altText, "altText") || maxLen(altText, "altText", 300);
+    const altErr = maxLen(altText, "altText", 300);
     if (altErr) return res.status(400).json({ error: altErr });
 
     if (!placement || !VALID_AD_PLACEMENTS.includes(placement)) {
@@ -649,7 +649,7 @@ router.post("/admin/ads", requireAdmin, (req, res) => {
       data: {
         imageUrl,
         linkUrl: linkUrl?.trim() || null,
-        altText: altText.trim(),
+        altText: altText?.trim() || null,
         placement,
         isActive: isActive === undefined ? true : isActive === "true" || isActive === true,
         startAt: startAt ? new Date(startAt) : null,
@@ -674,13 +674,13 @@ router.patch("/admin/ads/:id", requireAdmin, (req, res) => {
       return res.status(400).json({ error: `placement doit être l'un de : ${VALID_AD_PLACEMENTS.join(", ")}` });
     }
     if (altText !== undefined) {
-      const altErr = requireField(altText, "altText") || maxLen(altText, "altText", 300);
+      const altErr = maxLen(altText, "altText", 300);
       if (altErr) return res.status(400).json({ error: altErr });
     }
 
     const updates = {};
     if (linkUrl !== undefined) updates.linkUrl = linkUrl?.trim() || null;
-    if (altText !== undefined) updates.altText = altText.trim();
+    if (altText !== undefined) updates.altText = altText?.trim() || null;
     if (placement !== undefined) updates.placement = placement;
     if (isActive !== undefined) updates.isActive = isActive === "true" || isActive === true;
     if (startAt !== undefined) updates.startAt = startAt ? new Date(startAt) : null;

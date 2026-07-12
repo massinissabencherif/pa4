@@ -811,8 +811,8 @@
                     <img v-if="editingAd?.imageUrl" :src="editingAd.imageUrl" class="mt-2 h-20 rounded-lg object-cover" alt="Aperçu actuel" />
                   </div>
                   <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Texte alternatif *</label>
-                    <input v-model="adForm.altText" type="text" required placeholder="Ex: Publicité — Nom annonceur" class="input" />
+                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Texte alternatif</label>
+                    <input v-model="adForm.altText" type="text" placeholder="Ex: Publicité — Nom annonceur" class="input" />
                   </div>
                   <div>
                     <label class="block text-xs font-medium text-gray-400 mb-1.5">Lien de destination</label>
