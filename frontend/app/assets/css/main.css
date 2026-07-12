@@ -12,7 +12,7 @@
   body {
     @apply antialiased;
     background-color: #0f0f0f;
-    color: #d4d4d4;
+    color:#fff;
     font-family: 'Courier New', Courier, monospace;
   }
 
@@ -63,7 +63,7 @@
     letter-spacing: 2px;
     text-transform: uppercase;
     border: 1px solid #3a3a3a;
-    color: #d4d4d4;
+    color:#fff;
     padding: 10px 20px;
     border-radius: 0;
     background: transparent;
@@ -79,7 +79,7 @@
     gap: 8px;
     background: #111111;
     border: 1px solid #2a2a2a;
-    color: #d4d4d4;
+    color:#fff;
     font-family: 'Courier New', Courier, monospace;
     font-size: 10px;
     letter-spacing: 2px;
@@ -90,7 +90,7 @@
   }
   .btn-oauth:hover {
     border-color: #e02020;
-    color: #d4d4d4;
+    color:#fff;
   }
 
   /* ── Card ── */
@@ -109,7 +109,7 @@
     background: transparent;
     border: none;
     border-bottom: 1px solid #2a2a2a;
-    color: #d4d4d4;
+    color:#fff;
     padding: 10px 0;
     border-radius: 0;
     letter-spacing: 1px;

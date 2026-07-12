@@ -2,7 +2,7 @@
   <div class="min-h-[calc(100vh-4rem)] flex items-center justify-center">
     <div class="text-center space-y-4">
       <div class="w-12 h-12 mx-auto border-2 border-red-500/30 border-t-red-500 rounded-full animate-spin"></div>
-      <p class="text-gray-400 text-sm">Connexion en cours…</p>
+      <p class="text-white text-sm">Connexion en cours…</p>
       <p v-if="error" class="text-red-400 text-sm">{{ error }}</p>
     </div>
   </div>

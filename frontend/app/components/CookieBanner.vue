@@ -5,7 +5,7 @@
       class="fixed bottom-0 inset-x-0 z-50 p-4 sm:p-6"
     >
       <div class="max-w-3xl mx-auto card p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4 shadow-2xl shadow-black/50">
-        <div class="flex-1 text-sm text-gray-400 leading-relaxed">
+        <div class="flex-1 text-sm text-white leading-relaxed">
           <span class="font-semibold text-white">Comicster utilise des cookies.</span>
           Des cookies strictement nécessaires assurent le fonctionnement du service.
           Avec votre accord, des cookies analytiques anonymes (Umami) mesurent l'audience.
@@ -14,7 +14,7 @@
         <div class="flex gap-3 shrink-0">
           <button
             @click="decline"
-            class="px-4 py-2 text-sm rounded-xl border border-white/10 text-gray-400 hover:bg-white/5 transition"
+            class="px-4 py-2 text-sm rounded-xl border border-white/10 text-white hover:bg-white/5 transition"
           >
             Refuser
           </button>
