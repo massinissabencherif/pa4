@@ -78,6 +78,9 @@
           </div>
         </NuxtLink>
       </div>
+      <div class="mt-8">
+        <AdSlot placement="GUIDES_LIST" />
+      </div>
     </div>
 
     <!-- Vide -->

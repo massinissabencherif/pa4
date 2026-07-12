@@ -36,6 +36,12 @@
           </svg>
           Créer un parcours
         </button>
+        <button v-else-if="activeTab === 'ads'" @click="showAdForm = true" class="btn-primary flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          Créer un encart
+        </button>
       </div>
 
       <!-- Onglets -->
@@ -777,6 +783,114 @@
 
       </template>
 
+      <!-- ─── ONGLET ENCARTS PUB ─── -->
+      <template v-if="activeTab === 'ads'">
+
+        <!-- Modal créer/modifier encart -->
+        <Teleport to="body">
+          <div v-if="showAdForm" class="fixed inset-0 z-50 flex items-start justify-center px-4 py-8 overflow-y-auto">
+            <div class="fixed inset-0 bg-black/70 backdrop-blur-sm" @click="closeAdForm" />
+            <div class="relative w-full max-w-md my-auto">
+              <div class="card p-7">
+                <h2 class="text-xl font-bold mb-6">{{ editingAd ? "Modifier l'encart" : 'Créer un encart' }}</h2>
+                <form @submit.prevent="submitAd" class="space-y-4">
+                  <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Emplacement *</label>
+                    <select v-model="adForm.placement" required class="input">
+                      <option value="HOME">Accueil (/feed)</option>
+                      <option value="COMIC_DETAIL">Fiche comic</option>
+                      <option value="GUIDES_LIST">Liste des parcours</option>
+                      <option value="GUIDE_DETAIL">Détail d'un parcours</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1.5">
+                      Image {{ editingAd ? '(laisser vide pour garder l\'actuelle)' : '*' }}
+                    </label>
+                    <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" @change="e => adImageFile = e.target.files[0]" class="input" />
+                    <img v-if="editingAd?.imageUrl" :src="editingAd.imageUrl" class="mt-2 h-20 rounded-lg object-cover" alt="Aperçu actuel" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Texte alternatif *</label>
+                    <input v-model="adForm.altText" type="text" required placeholder="Ex: Publicité — Nom annonceur" class="input" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Lien de destination</label>
+                    <input v-model="adForm.linkUrl" type="url" placeholder="https://…" class="input" />
+                  </div>
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-xs font-medium text-gray-400 mb-1.5">Début</label>
+                      <input v-model="adForm.startAt" type="date" class="input" />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-medium text-gray-400 mb-1.5">Fin</label>
+                      <input v-model="adForm.endAt" type="date" class="input" />
+                    </div>
+                  </div>
+                  <label class="flex items-center gap-2 text-sm text-gray-300">
+                    <input v-model="adForm.isActive" type="checkbox" class="rounded" />
+                    Actif
+                  </label>
+                  <div v-if="adError" class="text-sm text-red-400">{{ adError }}</div>
+                  <div class="flex gap-3 pt-2">
+                    <button type="submit" :disabled="adSaving" class="btn-primary flex-1 justify-center disabled:opacity-40">
+                      {{ adSaving ? '…' : (editingAd ? 'Enregistrer' : 'Créer') }}
+                    </button>
+                    <button type="button" @click="closeAdForm" class="btn-ghost flex-1 justify-center">Annuler</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </Teleport>
+
+        <!-- Liste des encarts -->
+        <div v-if="loadingAds" class="text-center py-24 text-gray-500">Chargement…</div>
+        <div v-else-if="!ads.length" class="text-center py-24">
+          <div class="text-5xl mb-4">📢</div>
+          <p class="text-gray-400">Aucun encart. Crée le premier.</p>
+        </div>
+        <div v-else class="overflow-hidden rounded-2xl border border-white/8">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-white/8 text-left text-xs text-gray-500">
+                <th class="px-5 py-3.5 font-medium">Image</th>
+                <th class="px-5 py-3.5 font-medium">Emplacement</th>
+                <th class="px-5 py-3.5 font-medium hidden sm:table-cell">Période</th>
+                <th class="px-5 py-3.5 font-medium">Statut</th>
+                <th class="px-5 py-3.5 font-medium text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="ad in ads" :key="ad.id" class="border-b border-white/5 last:border-0 hover:bg-white/3 transition-colors">
+                <td class="px-5 py-4">
+                  <img :src="ad.imageUrl" :alt="ad.altText" class="h-10 w-16 rounded object-cover" />
+                </td>
+                <td class="px-5 py-4 text-gray-100">{{ placementLabels[ad.placement] }}</td>
+                <td class="px-5 py-4 hidden sm:table-cell text-gray-400 text-xs">
+                  {{ ad.startAt ? new Date(ad.startAt).toLocaleDateString('fr-FR') : '—' }}
+                  →
+                  {{ ad.endAt ? new Date(ad.endAt).toLocaleDateString('fr-FR') : '—' }}
+                </td>
+                <td class="px-5 py-4">
+                  <span :class="ad.isActive ? 'text-green-400' : 'text-gray-600'" class="text-xs">
+                    {{ ad.isActive ? 'Actif' : 'Inactif' }}
+                  </span>
+                </td>
+                <td class="px-5 py-4 text-right">
+                  <div class="flex items-center justify-end gap-3">
+                    <button @click="startEditAd(ad)" class="text-xs text-gray-500 hover:text-yellow-400 transition">Modifier</button>
+                    <button @click="deleteAd(ad)" class="text-xs text-gray-500 hover:text-red-400 transition">Supprimer</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </template>
+
       <!-- ─── ONGLET UTILISATEURS ─── -->
       <template v-if="activeTab === 'users'">
 
@@ -911,7 +1025,7 @@ const isSuperAdmin = computed(() => {
 })
 
 const tabs = computed(() => {
-  const t = [{ key: 'comics', label: 'Comics' }, { key: 'authors', label: 'Auteurs' }, { key: 'guides', label: 'Parcours' }]
+  const t = [{ key: 'comics', label: 'Comics' }, { key: 'authors', label: 'Auteurs' }, { key: 'guides', label: 'Parcours' }, { key: 'ads', label: 'Encarts pub' }]
   if (isSuperAdmin.value) t.push({ key: 'users', label: 'Utilisateurs' })
   return t
 })
@@ -1475,5 +1589,111 @@ async function setUserRole(u, role) {
 watch(activeTab, (tab) => {
   if (tab === 'users' && !users.value.length) fetchUsers()
   if (tab === 'guides' && !guides.value.length) loadGuides()
+  if (tab === 'ads' && !ads.value.length) loadAds()
 })
+
+// ─── Gestion des encarts publicitaires ───────────────────────────────────────
+
+const placementLabels = {
+  HOME: 'Accueil (/feed)',
+  COMIC_DETAIL: 'Fiche comic',
+  GUIDES_LIST: 'Liste des parcours',
+  GUIDE_DETAIL: "Détail d'un parcours",
+}
+
+const ads = ref([])
+const loadingAds = ref(false)
+const showAdForm = ref(false)
+const editingAd = ref(null)
+const adSaving = ref(false)
+const adError = ref('')
+const adImageFile = ref(null)
+
+const adForm = reactive({
+  placement: 'HOME',
+  altText: '',
+  linkUrl: '',
+  startAt: '',
+  endAt: '',
+  isActive: true,
+})
+
+async function loadAds() {
+  loadingAds.value = true
+  try {
+    ads.value = await $fetch(`${base}/admin/ads`, { headers: authHeaders() })
+  } catch {}
+  loadingAds.value = false
+}
+
+function closeAdForm() {
+  showAdForm.value = false
+  editingAd.value = null
+  adImageFile.value = null
+  Object.assign(adForm, { placement: 'HOME', altText: '', linkUrl: '', startAt: '', endAt: '', isActive: true })
+  adError.value = ''
+}
+
+function startEditAd(ad) {
+  editingAd.value = ad
+  Object.assign(adForm, {
+    placement: ad.placement,
+    altText: ad.altText,
+    linkUrl: ad.linkUrl || '',
+    startAt: ad.startAt ? ad.startAt.split('T')[0] : '',
+    endAt: ad.endAt ? ad.endAt.split('T')[0] : '',
+    isActive: ad.isActive,
+  })
+  showAdForm.value = true
+}
+
+async function submitAd() {
+  if (!editingAd.value && !adImageFile.value) {
+    adError.value = "L'image est requise"
+    return
+  }
+  adSaving.value = true
+  adError.value = ''
+
+  const fd = new FormData()
+  fd.append('placement', adForm.placement)
+  fd.append('altText', adForm.altText)
+  fd.append('linkUrl', adForm.linkUrl)
+  fd.append('isActive', String(adForm.isActive))
+  if (adForm.startAt) fd.append('startAt', adForm.startAt)
+  if (adForm.endAt) fd.append('endAt', adForm.endAt)
+  if (adImageFile.value) fd.append('image', adImageFile.value)
+
+  try {
+    if (editingAd.value) {
+      const updated = await $fetch(`${base}/admin/ads/${editingAd.value.id}`, {
+        method: 'PATCH',
+        body: fd,
+        headers: authHeaders(),
+      })
+      const idx = ads.value.findIndex(a => a.id === editingAd.value.id)
+      if (idx !== -1) ads.value[idx] = updated
+    } else {
+      const created = await $fetch(`${base}/admin/ads`, {
+        method: 'POST',
+        body: fd,
+        headers: authHeaders(),
+      })
+      ads.value.unshift(created)
+    }
+    closeAdForm()
+  } catch (e) {
+    adError.value = e.data?.error || 'Erreur'
+  } finally {
+    adSaving.value = false
+  }
+}
+
+async function deleteAd(ad) {
+  if (!confirm(`Supprimer cet encart (${placementLabels[ad.placement]}) ?`)) return
+  try {
+    await $fetch(`${base}/admin/ads/${ad.id}`, { method: 'DELETE', headers: authHeaders() })
+    ads.value = ads.value.filter(a => a.id !== ad.id)
+  } catch {}
+}
 </script>

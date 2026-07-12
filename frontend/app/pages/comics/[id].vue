@@ -226,6 +226,10 @@
         </div>
       </div>
 
+      <div v-if="comic" class="mt-12">
+        <AdSlot placement="COMIC_DETAIL" />
+      </div>
+
       <!-- Avis de la communauté -->
       <div v-if="comic && communityReviews.length" class="mt-16">
         <h2 class="text-xl font-bold mb-6">Avis de la communauté</h2>

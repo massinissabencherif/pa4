@@ -129,6 +129,10 @@
         </aside>
       </div>
 
+      <div class="mt-10">
+        <AdSlot placement="HOME" />
+      </div>
+
       <!-- Tendances du jour -->
       <div v-if="trendingData?.comics?.length" class="mt-10">
         <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #2a2a2a;">
