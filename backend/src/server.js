@@ -22,6 +22,7 @@ import commentsRouter from "./routes/comments.js";
 import guidesRouter from "./routes/guides.js";
 import adsRouter from "./routes/ads.js";
 import arcadeRouter from "./routes/arcade.js";
+import arcadeComicdleRouter from "./routes/arcadeComicdle.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -125,6 +126,7 @@ app.use("/authors", authorsRouter);
 app.use("/stats", statsRouter);
 app.use("/ads", adsRouter);
 app.use("/arcade", arcadeRouter);
+app.use("/arcade/comicdle", arcadeComicdleRouter);
 app.use("/comments", writeLimiter, commentsRouter);
 app.use(["/reviews", "/lists", "/guides"], writeLimiter);
 app.use("/", readingRouter);
