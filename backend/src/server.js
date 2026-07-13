@@ -52,6 +52,10 @@ if (isProduction && (!process.env.SESSION_SECRET || process.env.SESSION_SECRET =
 
 const app = express();
 
+// Obligatoire derrière nginx qui termine le SSL : permet à express-session
+// de connaître le proto réel (https) et d'honorer secure: true sur les cookies.
+app.set("trust proxy", 1);
+
 // ─── Sécurité ────────────────────────────────────────────────────────────────
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }, // autorise les uploads servis à d'autres origines
@@ -88,9 +92,10 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: isProduction,   // HTTPS seulement en prod
+    secure: isProduction,
     httpOnly: true,
-    sameSite: isProduction ? "lax" : "lax",
+    // "none" requis pour que le cookie survive au redirect cross-site Google→app
+    sameSite: isProduction ? "none" : "lax",
     maxAge: 10 * 60 * 1000, // 10 min — seulement pour le flux OAuth
   },
 }));
