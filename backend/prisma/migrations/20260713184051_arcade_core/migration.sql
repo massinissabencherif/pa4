@@ -32,4 +32,4 @@ CREATE UNIQUE INDEX "ArcadeRun_userId_game_dateKey_key" ON "ArcadeRun"("userId",
 ALTER TABLE "ArcadeRun" ADD CONSTRAINT "ArcadeRun_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- RenameIndex
-ALTER INDEX "RefreshToken_token_key" RENAME TO "RefreshToken_tokenHash_key";
+ALTER INDEX IF EXISTS "RefreshToken_token_key" RENAME TO "RefreshToken_tokenHash_key";
