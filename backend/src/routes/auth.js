@@ -12,7 +12,7 @@ import { requireAuth } from "../middleware/auth.js";
 import { hashToken, encryptTotp, decryptTotp } from "../lib/crypto.js";
 import { isReservedUsername, normalizeUsername } from "../lib/reservedUsernames.js";
 import {
-  sendWelcomeEmail,
+  sendRegistrationConfirmationEmail,
   sendPasswordResetEmail,
   sendPasswordChangedEmail,
   sendOAuthAccountNotice,
@@ -202,7 +202,7 @@ router.post("/register", async (req, res) => {
     data: { email: email.trim().toLowerCase(), username: username.trim(), passwordHash },
   });
 
-  sendWelcomeEmail(user.email, user.username); // fire-and-forget, ne bloque jamais l'inscription
+  sendRegistrationConfirmationEmail(user.email, user.username); // fire-and-forget, ne bloque jamais l'inscription
 
   const accessToken = signAccessToken(user);
   const refreshToken = await createRefreshToken(user.id);
