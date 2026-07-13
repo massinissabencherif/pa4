@@ -17,4 +17,4 @@ CREATE INDEX "FeaturedComic_startAt_idx" ON "FeaturedComic"("startAt");
 ALTER TABLE "FeaturedComic" ADD CONSTRAINT "FeaturedComic_comicId_fkey" FOREIGN KEY ("comicId") REFERENCES "Comic"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- RenameIndex
-ALTER INDEX "RefreshToken_token_key" RENAME TO "RefreshToken_tokenHash_key";
+ALTER INDEX IF EXISTS "RefreshToken_token_key" RENAME TO "RefreshToken_tokenHash_key";
