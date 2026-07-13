@@ -24,6 +24,7 @@ import adsRouter from "./routes/ads.js";
 import featuredRouter from "./routes/featured.js";
 import arcadeRouter from "./routes/arcade.js";
 import arcadeComicdleRouter from "./routes/arcadeComicdle.js";
+import arcadeCoverMysteryRouter from "./routes/arcadeCoverMystery.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -129,6 +130,7 @@ app.use("/ads", adsRouter);
 app.use("/featured", featuredRouter);
 app.use("/arcade", arcadeRouter);
 app.use("/arcade/comicdle", arcadeComicdleRouter);
+app.use("/arcade/cover-mystery", arcadeCoverMysteryRouter);
 app.use("/comments", writeLimiter, commentsRouter);
 app.use(["/reviews", "/lists", "/guides"], writeLimiter);
 app.use("/", readingRouter);
