@@ -892,6 +892,88 @@
 
       </template>
 
+      <!-- ─── ONGLET À LA UNE (comic de la semaine) ─── -->
+      <template v-if="activeTab === 'featured'">
+
+        <!-- Mise en avant courante -->
+        <div v-if="currentFeatured" class="card p-6 mb-6">
+          <div class="flex items-start justify-between gap-4 flex-wrap">
+            <div class="flex gap-4">
+              <img v-if="currentFeatured.comic.coverUrl" :src="currentFeatured.comic.coverUrl" :alt="currentFeatured.comic.title" class="h-24 w-16 object-cover" />
+              <div>
+                <p class="text-[11px] uppercase tracking-widest text-red-500 mb-1">En avant actuellement</p>
+                <p class="font-bold">{{ currentFeatured.comic.title }}</p>
+                <p class="text-sm text-white mt-1">depuis le {{ new Date(currentFeatured.startAt).toLocaleDateString('fr-FR') }}</p>
+              </div>
+            </div>
+            <button @click="removeFeatured" class="px-4 py-2 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 transition text-sm">
+              Retirer
+            </button>
+          </div>
+        </div>
+        <div v-else class="card p-6 mb-6 text-white text-sm">Aucun comic mis en avant actuellement.</div>
+
+        <!-- Choisir un comic -->
+        <div class="card p-6 space-y-4">
+          <h2 class="font-semibold">Mettre un comic en avant</h2>
+          <input
+            v-model="featuredSearch"
+            type="text"
+            placeholder="Rechercher un comic par titre…"
+            class="input"
+            @input="searchFeaturedComics"
+          />
+          <div v-if="featuredResults.length" class="divide-y divide-white/5 border border-white/8 rounded-xl overflow-hidden">
+            <button
+              v-for="c in featuredResults"
+              :key="c.id"
+              @click="featuredPick = c; featuredResults = []"
+              class="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/5 transition text-left"
+            >
+              <img v-if="c.coverUrl" :src="c.coverUrl" :alt="c.title" class="h-10 w-7 object-cover" />
+              <span class="text-sm">{{ c.title }}</span>
+            </button>
+          </div>
+          <div v-if="featuredPick" class="flex items-center gap-3 text-sm">
+            <span class="text-white">Sélection :</span>
+            <span class="font-medium">{{ featuredPick.title }}</span>
+            <button @click="featuredPick = null" class="text-white hover:text-red-400 text-[13px]">retirer</button>
+          </div>
+          <textarea
+            v-model="featuredBlurb"
+            rows="3"
+            maxlength="500"
+            placeholder="Texte éditorial (optionnel, 500 caractères max) — pourquoi ce comic cette semaine ?"
+            class="input"
+          ></textarea>
+          <div v-if="featuredError" class="text-sm text-red-400">{{ featuredError }}</div>
+          <button @click="submitFeatured" :disabled="!featuredPick || featuredSaving" class="btn-primary disabled:opacity-40">
+            {{ featuredSaving ? '…' : 'Mettre en avant' }}
+          </button>
+        </div>
+
+        <!-- Historique -->
+        <div v-if="featuredHistory.length > 0" class="mt-6">
+          <h3 class="text-sm font-semibold text-white mb-3">Historique</h3>
+          <div class="overflow-hidden rounded-2xl border border-white/8">
+            <table class="w-full text-sm">
+              <tbody>
+                <tr v-for="f in featuredHistory" :key="f.id" class="border-b border-white/5 last:border-0">
+                  <td class="px-5 py-3 text-white">{{ f.comic.title }}</td>
+                  <td class="px-5 py-3 text-white text-[13px] hidden sm:table-cell">
+                    {{ new Date(f.startAt).toLocaleDateString('fr-FR') }} → {{ f.endAt ? new Date(f.endAt).toLocaleDateString('fr-FR') : 'en cours' }}
+                  </td>
+                  <td class="px-5 py-3 text-right">
+                    <span v-if="f.isCurrent" class="text-green-400 text-[13px]">Actif</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </template>
+
       <!-- ─── ONGLET UTILISATEURS ─── -->
       <template v-if="activeTab === 'users'">
 
@@ -1026,7 +1108,7 @@ const isSuperAdmin = computed(() => {
 })
 
 const tabs = computed(() => {
-  const t = [{ key: 'comics', label: 'Comics' }, { key: 'authors', label: 'Auteurs' }, { key: 'guides', label: 'Parcours' }, { key: 'ads', label: 'Encarts pub' }]
+  const t = [{ key: 'comics', label: 'Comics' }, { key: 'authors', label: 'Auteurs' }, { key: 'guides', label: 'Parcours' }, { key: 'ads', label: 'Encarts pub' }, { key: 'featured', label: 'À la une' }]
   if (isSuperAdmin.value) t.push({ key: 'users', label: 'Utilisateurs' })
   return t
 })
@@ -1591,7 +1673,68 @@ watch(activeTab, (tab) => {
   if (tab === 'users' && !users.value.length) fetchUsers()
   if (tab === 'guides' && !guides.value.length) loadGuides()
   if (tab === 'ads' && !ads.value.length) loadAds()
+  if (tab === 'featured' && !featuredHistory.value.length) loadFeatured()
 })
+
+// ─── Curation éditoriale — comic de la semaine ───────────────────────────────
+
+const featuredHistory = ref([])
+const featuredSearch = ref('')
+const featuredResults = ref([])
+const featuredPick = ref(null)
+const featuredBlurb = ref('')
+const featuredSaving = ref(false)
+const featuredError = ref('')
+
+const currentFeatured = computed(() => featuredHistory.value.find((f) => f.isCurrent) || null)
+
+async function loadFeatured() {
+  try {
+    featuredHistory.value = await $fetch(`${base}/admin/featured`, { headers: authHeaders() })
+  } catch {}
+}
+
+let featuredSearchTimer = null
+function searchFeaturedComics() {
+  clearTimeout(featuredSearchTimer)
+  if (featuredSearch.value.trim().length < 2) { featuredResults.value = []; return }
+  featuredSearchTimer = setTimeout(async () => {
+    try {
+      const data = await $fetch(`${base}/comics/search`, { params: { q: featuredSearch.value.trim(), limit: 6 } })
+      featuredResults.value = (data.comics || data.results || data || []).slice(0, 6)
+    } catch { featuredResults.value = [] }
+  }, 300)
+}
+
+async function submitFeatured() {
+  if (!featuredPick.value) return
+  featuredSaving.value = true
+  featuredError.value = ''
+  try {
+    await $fetch(`${base}/admin/featured`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: { comicId: featuredPick.value.id, blurb: featuredBlurb.value || undefined },
+    })
+    featuredPick.value = null
+    featuredBlurb.value = ''
+    featuredSearch.value = ''
+    await loadFeatured()
+  } catch (e) {
+    featuredError.value = e.data?.error || 'Erreur lors de la mise en avant'
+  } finally {
+    featuredSaving.value = false
+  }
+}
+
+async function removeFeatured() {
+  try {
+    await $fetch(`${base}/admin/featured/current`, { method: 'DELETE', headers: authHeaders() })
+    await loadFeatured()
+  } catch (e) {
+    featuredError.value = e.data?.error || 'Erreur'
+  }
+}
 
 // ─── Gestion des encarts publicitaires ───────────────────────────────────────
 

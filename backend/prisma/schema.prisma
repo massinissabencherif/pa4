@@ -108,6 +108,22 @@ model Comic {
   reviews        Review[]
   listItems      ListItem[]
   authorLinks    AuthorOnComic[]
+  featured       FeaturedComic[]
+}
+
+// ─── Curation éditoriale — "Comic de la semaine" ─────────────────────────────
+
+model FeaturedComic {
+  id        String    @id @default(cuid())
+  comicId   String
+  blurb     String?
+  startAt   DateTime  @default(now())
+  endAt     DateTime?
+  createdAt DateTime  @default(now())
+
+  comic Comic @relation(fields: [comicId], references: [id], onDelete: Cascade)
+
+  @@index([startAt])
 }
 
 // ─── Journal de lecture ───────────────────────────────────────────────────────
