@@ -52,11 +52,50 @@
           @change="doSearch"
           style="background:transparent;border:none;border-right:1px solid #1e1e1e;color:#fff;font-family:'Courier New',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:0 32px 0 16px;height:44px;outline:none;cursor:pointer;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2710%27 height=%276%27 fill=%27none%27%3E%3Cpath stroke=%27%23555%27 stroke-width=%271.5%27 d=%27M1 1l4 4 4-4%27/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 12px center;"
         >
-          <option value="" style="background:#111;">Tous les éditeurs</option>
+          <option value="" style="background:#111;">Tous les auteurs</option>
           <option v-for="a in authorNames" :key="a" :value="a" style="background:#111;">{{ a }}</option>
         </select>
+        <select
+          v-model="selectedPublisher"
+          @change="doSearch"
+          style="background:transparent;border:none;border-right:1px solid #1e1e1e;color:#fff;font-family:'Courier New',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:0 32px 0 16px;height:44px;outline:none;cursor:pointer;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2710%27 height=%276%27 fill=%27none%27%3E%3Cpath stroke=%27%23555%27 stroke-width=%271.5%27 d=%27M1 1l4 4 4-4%27/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 12px center;"
+        >
+          <option value="" style="background:#111;">Tous les éditeurs</option>
+          <option v-for="p in publishers" :key="p" :value="p" style="background:#111;">{{ p }}</option>
+        </select>
+        <input
+          v-model="yearFrom"
+          @change="doSearch"
+          type="number"
+          min="1900"
+          max="2100"
+          placeholder="ANNÉE ≥"
+          style="background:transparent;border:none;border-right:1px solid #1e1e1e;color:#fff;font-family:'Courier New',monospace;font-size:11px;letter-spacing:2px;padding:0 12px;height:44px;outline:none;width:90px;"
+        />
+        <input
+          v-model="yearTo"
+          @change="doSearch"
+          type="number"
+          min="1900"
+          max="2100"
+          placeholder="ANNÉE ≤"
+          style="background:transparent;border:none;border-right:1px solid #1e1e1e;color:#fff;font-family:'Courier New',monospace;font-size:11px;letter-spacing:2px;padding:0 12px;height:44px;outline:none;width:90px;"
+        />
+        <select
+          v-model="sortBy"
+          @change="doSearch"
+          :disabled="!lastQuery"
+          :style="!lastQuery ? 'opacity:0.35;' : ''"
+          title="Le tri s'applique aux résultats de recherche"
+          style="background:transparent;border:none;border-right:1px solid #1e1e1e;color:#fff;font-family:'Courier New',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:0 32px 0 16px;height:44px;outline:none;cursor:pointer;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2710%27 height=%276%27 fill=%27none%27%3E%3Cpath stroke=%27%23555%27 stroke-width=%271.5%27 d=%27M1 1l4 4 4-4%27/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 12px center;"
+        >
+          <option value="" style="background:#111;">Tri : pertinence</option>
+          <option value="rating" style="background:#111;">Tri : note</option>
+          <option value="recent" style="background:#111;">Tri : récent</option>
+          <option value="title" style="background:#111;">Tri : titre</option>
+        </select>
         <button
-          v-if="selectedGenre || selectedAuthor || query"
+          v-if="selectedGenre || selectedAuthor || selectedPublisher || yearFrom || yearTo || query"
           @click="clearFilters"
           class="btn-ghost"
           style="margin-left:auto;font-size:10px;letter-spacing:3px;padding:6px 14px;"
@@ -172,6 +211,10 @@ const PAGE_SIZE = 10
 const query = ref('')
 const selectedGenre = ref('')
 const selectedAuthor = ref('')
+const selectedPublisher = ref('')
+const yearFrom = ref('')
+const yearTo = ref('')
+const sortBy = ref('')
 const lastQuery = ref('')
 const currentPage = ref(1)
 
@@ -197,9 +240,10 @@ const pageNumbers = computed(() => {
   return pages
 })
 
-// Genres et auteurs disponibles
+// Genres, auteurs et éditeurs disponibles
 const { data: genres } = await useFetch(`${base}/comics/genres`)
 const { data: authorNames } = await useFetch(`${base}/comics/author-names`)
+const { data: publishers } = await useFetch(`${base}/comics/publishers`)
 
 // Chargement initial
 await fetchComics()
@@ -212,10 +256,15 @@ async function fetchComics() {
       limit: PAGE_SIZE,
       offset: offset.value,
     }
+    if (selectedPublisher.value) params.publisher = selectedPublisher.value
+    if (yearFrom.value) params.yearFrom = yearFrom.value
+    if (yearTo.value) params.yearTo = yearTo.value
+
     let data
     if (lastQuery.value.length >= 2) {
+      if (sortBy.value) params.sort = sortBy.value
       data = await $fetch(`${base}/comics/search`, {
-        params: { q: lastQuery.value, limit: PAGE_SIZE, offset: offset.value },
+        params: { ...params, q: lastQuery.value },
       })
     } else {
       if (selectedGenre.value) params.genre = selectedGenre.value
@@ -233,12 +282,8 @@ async function fetchComics() {
 
 async function doSearch() {
   const hasTextQuery = query.value.trim().length >= 2
-  const hasFilters = selectedGenre.value || selectedAuthor.value
   lastQuery.value = hasTextQuery ? query.value.trim() : ''
   currentPage.value = 1
-  if (!hasTextQuery && !hasFilters) {
-    lastQuery.value = ''
-  }
   await fetchComics()
 }
 
@@ -253,6 +298,10 @@ function clearFilters() {
   query.value = ''
   selectedGenre.value = ''
   selectedAuthor.value = ''
+  selectedPublisher.value = ''
+  yearFrom.value = ''
+  yearTo.value = ''
+  sortBy.value = ''
   lastQuery.value = ''
   currentPage.value = 1
   fetchComics()
