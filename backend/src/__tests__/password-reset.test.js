@@ -6,14 +6,14 @@ import prisma from '../lib/prisma.js'
 import { hashToken } from '../lib/crypto.js'
 
 vi.mock('../lib/email.js', () => ({
-  sendWelcomeEmail: vi.fn(),
+  sendRegistrationConfirmationEmail: vi.fn(),
   sendPasswordResetEmail: vi.fn(),
   sendPasswordChangedEmail: vi.fn(),
   sendOAuthAccountNotice: vi.fn(),
 }))
 
 import {
-  sendWelcomeEmail,
+  sendRegistrationConfirmationEmail,
   sendPasswordResetEmail,
   sendPasswordChangedEmail,
   sendOAuthAccountNotice,
@@ -47,13 +47,13 @@ function extractToken(resetUrl) {
   return resetUrl.split('/reset-password/')[1]
 }
 
-// ─── Register → email de bienvenue ────────────────────────────────────────────
+// ─── Register → email de confirmation d'inscription ──────────────────────────
 
 describe('POST /auth/register', () => {
-  it('déclenche un email de bienvenue', async () => {
+  it('déclenche un email de confirmation d\'inscription', async () => {
     const res = await request(app).post('/auth/register').send(TEST_USER)
     expect(res.status).toBe(201)
-    expect(sendWelcomeEmail).toHaveBeenCalledWith(TEST_USER.email, TEST_USER.username)
+    expect(sendRegistrationConfirmationEmail).toHaveBeenCalledWith(TEST_USER.email, TEST_USER.username)
   })
 })
 
