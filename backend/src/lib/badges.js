@@ -60,13 +60,31 @@ export const BADGES = {
     description: "Faire partie des 50 premiers inscrits",
     icon: "🌟",
   },
+  streak_7: {
+    key: "streak_7",
+    name: "Une semaine de feu",
+    description: "Lire 7 jours d'affilée",
+    icon: "🔥",
+  },
+  streak_30: {
+    key: "streak_30",
+    name: "Le marathonien",
+    description: "Lire 30 jours d'affilée",
+    icon: "🏃",
+  },
+  streak_100: {
+    key: "streak_100",
+    name: "Inarrêtable",
+    description: "Lire 100 jours d'affilée",
+    icon: "💯",
+  },
 }
 
 // Vérifie et attribue les badges mérités pour un user
 export async function checkAndAwardBadges(userId, prisma) {
   const awarded = []
 
-  const [finishedCount, reviewCount, followingCount, inProgressCount, userRank, finishedEntries] =
+  const [finishedCount, reviewCount, followingCount, inProgressCount, userRank, finishedEntries, streakUser] =
     await Promise.all([
       prisma.readingEntry.count({ where: { userId, status: "FINISHED" } }),
       prisma.review.count({ where: { userId } }),
@@ -79,9 +97,11 @@ export async function checkAndAwardBadges(userId, prisma) {
         where: { userId, status: "FINISHED" },
         include: { comic: { select: { genres: true } } },
       }),
+      prisma.user.findUnique({ where: { id: userId }, select: { longestStreak: true } }),
     ])
 
   const uniqueGenres = new Set(finishedEntries.flatMap((e) => e.comic.genres)).size
+  const longestStreak = streakUser?.longestStreak ?? 0
 
   const conditions = [
     { key: "first_read", met: finishedCount >= 1 },
@@ -94,6 +114,9 @@ export async function checkAndAwardBadges(userId, prisma) {
     { key: "genre_master", met: uniqueGenres >= 5 },
     { key: "in_progress_collector", met: inProgressCount >= 3 },
     { key: "early_adopter", met: userRank <= 50 },
+    { key: "streak_7", met: longestStreak >= 7 },
+    { key: "streak_30", met: longestStreak >= 30 },
+    { key: "streak_100", met: longestStreak >= 100 },
   ]
 
   for (const { key, met } of conditions) {

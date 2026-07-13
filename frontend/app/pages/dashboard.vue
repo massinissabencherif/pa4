@@ -28,6 +28,22 @@
 
       <template v-else>
 
+        <!-- Streak de lecture -->
+        <div style="background:#111;border:1px solid #2a2a2a;border-left:4px solid #e02020;padding:20px 24px;margin-bottom:32px;" class="flex items-center justify-between flex-wrap gap-4">
+          <div class="flex items-center gap-4">
+            <span style="font-size:32px;" aria-hidden="true">🔥</span>
+            <div>
+              <p style="font-family:impact,sans-serif;font-size:28px;letter-spacing:1px;color:#fff;line-height:1;">
+                {{ stats.streak?.current ?? 0 }} jour{{ (stats.streak?.current ?? 0) > 1 ? 's' : '' }}
+              </p>
+              <p style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#fff;margin-top:6px;">Streak de lecture</p>
+            </div>
+          </div>
+          <p style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#666;">
+            Record : {{ stats.streak?.longest ?? 0 }} jour{{ (stats.streak?.longest ?? 0) > 1 ? 's' : '' }}
+          </p>
+        </div>
+
         <!-- Compteurs principaux -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-px mb-px" style="background:#2a2a2a;margin-bottom:32px;">
           <div style="background:#111;padding:24px 20px;text-align:center;">
@@ -147,7 +163,7 @@
           <div style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:4px;text-transform:uppercase;color:#e02020;margin-bottom:6px;">Récompenses</div>
           <div style="font-family:impact,sans-serif;font-size:16px;letter-spacing:1px;text-transform:uppercase;color:#fff;margin-bottom:20px;">
             Badges
-            <span style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:2px;color:#fff;text-transform:uppercase;margin-left:12px;">({{ stats.badges.length }}/10)</span>
+            <span style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:2px;color:#fff;text-transform:uppercase;margin-left:12px;">({{ stats.badges.length }}/13)</span>
           </div>
           <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-px" style="background:#2a2a2a;">
             <div
@@ -166,7 +182,7 @@
               </div>
             </div>
             <div
-              v-for="i in (10 - stats.badges.length)"
+              v-for="i in Math.max(0, 13 - stats.badges.length)"
               :key="`empty-${i}`"
               style="background:#111;display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 12px;text-align:center;opacity:0.25;"
             >
