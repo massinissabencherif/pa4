@@ -18,6 +18,40 @@
         <!-- ── Feed principal ── -->
         <div class="flex-1 min-w-0">
 
+          <!-- Comic de la semaine (curation éditoriale) -->
+          <NuxtLink
+            v-if="featuredData?.featured"
+            :to="`/comics/${featuredData.featured.comic.externalId}`"
+            class="block group"
+            style="background:#111;border:1px solid #2a2a2a;border-top:3px solid #e02020;margin-bottom:28px;text-decoration:none;"
+          >
+            <div class="flex gap-5 p-5">
+              <div style="width:96px;height:132px;overflow:hidden;background:#1e1e1e;flex-shrink:0;">
+                <img
+                  v-if="featuredData.featured.comic.coverUrl"
+                  :src="getComicCover(featuredData.featured.comic)"
+                  :alt="`Couverture de ${featuredData.featured.comic.title}`"
+                  class="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                />
+              </div>
+              <div class="flex-1 min-w-0">
+                <div style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:4px;color:#e02020;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px;">
+                  <span style="width:14px;height:2px;background:#e02020;display:inline-block;"></span>
+                  Comic de la semaine
+                </div>
+                <div style="font-family:impact,sans-serif;font-size:24px;letter-spacing:1px;color:#fff;text-transform:uppercase;line-height:1.1;" class="group-hover:text-red-500 transition-colors">
+                  {{ featuredData.featured.comic.title }}
+                </div>
+                <p v-if="featuredData.featured.blurb" style="font-family:'Courier New',monospace;font-size:12px;line-height:1.6;color:#bbb;margin-top:10px;" class="line-clamp-3">
+                  {{ featuredData.featured.blurb }}
+                </p>
+                <div v-if="featuredData.featured.comic.avgRating" style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:2px;color:#fbbf24;margin-top:10px;">
+                  ★ {{ featuredData.featured.comic.avgRating.toFixed(1) }} ({{ featuredData.featured.comic.reviewCount }} avis)
+                </div>
+              </div>
+            </div>
+          </NuxtLink>
+
           <!-- Bannière suggestion -->
           <div v-if="feedData?.suggestion" style="display:flex;align-items:center;gap:14px;background:rgba(224,32,32,0.06);border:1px solid rgba(224,32,32,0.2);border-top:2px solid #e02020;padding:16px 20px;margin-bottom:24px;">
             <span style="font-size:20px;flex-shrink:0;">👥</span>
@@ -235,6 +269,7 @@ const { token } = useAuth()
 const headers = computed(() => ({ Authorization: `Bearer ${token.value}` }))
 
 const { data: feedData, pending: feedPending } = await useFetch(`${base}/feed`, { headers })
+const { data: featuredData } = await useFetch(`${base}/featured/current`)
 const { data: recoData } = await useFetch(`${base}/recommendations?limit=3`, { headers })
 const { data: latestData } = await useFetch(`${base}/comics/latest?limit=5`)
 const { data: trendingData } = await useFetch(`${base}/comics/trending?period=today&limit=5`)
