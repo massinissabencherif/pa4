@@ -25,9 +25,12 @@ model User {
   currentStreak  Int       @default(0)
   longestStreak  Int       @default(0)
   lastActiveDate DateTime?
+  // Points d'expérience gagnés dans l'Arcade (et futures mécaniques de jeu)
+  xp            Int       @default(0)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  arcadeRuns     ArcadeRun[]
   readingEntries ReadingEntry[]
   reviews        Review[]
   lists          List[]
@@ -368,4 +371,32 @@ enum AdPlacement {
   COMIC_DETAIL
   GUIDES_LIST
   GUIDE_DETAIL
+}
+
+// ─── Arcade — mini-jeux générés depuis le catalogue ──────────────────────────
+
+enum ArcadeGame {
+  COMICDLE
+  COVER_MYSTERY
+}
+
+model ArcadeRun {
+  id         String     @id @default(cuid())
+  userId     String
+  game       ArcadeGame
+  // Jour UTC (YYYY-MM-DD) du défi quotidien ; null pour le mode infini.
+  // Postgres autorise plusieurs NULL dans l'unique → plusieurs runs infinis OK.
+  dateKey    String?
+  // État serveur de la partie (réponses, timestamps) — jamais exposé tel quel au client
+  state      Json
+  score      Int        @default(0)
+  finishedAt DateTime?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, game, dateKey])
+  @@index([userId, game])
+  @@index([game, dateKey])
 }
