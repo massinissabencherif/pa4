@@ -1,6 +1,7 @@
 import { Router } from "express"
 import { requireAuth } from "../middleware/auth.js"
 import { checkAndAwardBadges, BADGES } from "../lib/badges.js"
+import { effectiveStreak } from "../lib/streaks.js"
 import prisma from "../lib/prisma.js"
 
 const router = Router()
@@ -12,7 +13,7 @@ router.get("/me", requireAuth, async (req, res) => {
   // Vérifier et attribuer les nouveaux badges
   await checkAndAwardBadges(userId, prisma)
 
-  const [entries, reviews, followingCount, followersCount, userBadges, allUsers] =
+  const [entries, reviews, followingCount, followersCount, userBadges, streakUser] =
     await Promise.all([
       prisma.readingEntry.findMany({
         where: { userId },
@@ -26,7 +27,10 @@ router.get("/me", requireAuth, async (req, res) => {
       prisma.follow.count({ where: { followerId: userId } }),
       prisma.follow.count({ where: { followingId: userId } }),
       prisma.userBadge.findMany({ where: { userId }, orderBy: { earnedAt: "asc" } }),
-      prisma.user.count(),
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: { currentStreak: true, longestStreak: true, lastActiveDate: true },
+      }),
     ])
 
   const finished = entries.filter((e) => e.status === "FINISHED")
@@ -89,6 +93,10 @@ router.get("/me", requireAuth, async (req, res) => {
     avgRatingGiven,
     monthlyActivity,
     badges,
+    streak: {
+      current: effectiveStreak(streakUser),
+      longest: streakUser?.longestStreak ?? 0,
+    },
     recentReviews: reviews.slice(0, 5),
   })
 })
