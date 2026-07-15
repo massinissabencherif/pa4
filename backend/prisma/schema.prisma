@@ -44,6 +44,8 @@ model User {
   guideTopics    GuideTopic[]   @relation("GuideTopic_author")
   guideReplies   GuideReply[]   @relation("GuideReply_author")
   passwordResetTokens PasswordResetToken[]
+  notifications       Notification[] @relation("NotificationRecipient")
+  notificationsCaused Notification[] @relation("NotificationActor")
 }
 
 enum Role {
@@ -399,4 +401,29 @@ model ArcadeRun {
   @@unique([userId, game, dateKey])
   @@index([userId, game])
   @@index([game, dateKey])
+}
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  type      NotificationType
+  actorId   String?
+  entityId  String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user  User  @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
+  actor User? @relation("NotificationActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([userId, readAt])
+  @@index([userId, createdAt])
+}
+
+enum NotificationType {
+  FOLLOW
+  REVIEW_COMMENT
+  GUIDE_REPLY
+  BADGE
 }
