@@ -70,6 +70,7 @@
         <div class="flex items-center gap-3">
           <template v-if="isLoggedIn">
             <span class="hidden sm:block" style="font-family:'Courier New',monospace;font-size:8px;letter-spacing:3px;color:#fff;text-transform:uppercase;">№ 2026</span>
+            <NotificationBell />
             <NuxtLink
               v-if="isAdmin"
               to="/admin"

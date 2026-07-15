@@ -1,6 +1,8 @@
 import { Router } from "express";
 import { requireAuth } from "../middleware/auth.js";
 import prisma from "../lib/prisma.js";
+import { notify } from "../lib/notifications.js";
+import { awardBadgesAndNotify } from "../lib/badges.js";
 
 const router = Router();
 
@@ -180,6 +182,8 @@ router.post("/users/:id/follow", requireAuth, async (req, res) => {
   await prisma.follow.create({
     data: { followerId: req.user.id, followingId: req.params.id },
   });
+  await notify(prisma, { userId: req.params.id, type: "FOLLOW", actorId: req.user.id });
+  await awardBadgesAndNotify(req.user.id, prisma);
   res.status(201).json({ message: "Suivi" });
 });
 

@@ -1,3 +1,5 @@
+import { notify } from "./notifications.js"
+
 // Définition des 10 badges disponibles
 export const BADGES = {
   first_read: {
@@ -129,5 +131,15 @@ export async function checkAndAwardBadges(userId, prisma) {
     }
   }
 
+  return awarded
+}
+
+// Vérifie, attribue, et notifie les nouveaux badges — à appeler après toute action
+// pouvant en débloquer un (lecture terminée, avis posté, follow, inscription)
+export async function awardBadgesAndNotify(userId, prisma) {
+  const awarded = await checkAndAwardBadges(userId, prisma)
+  for (const badgeKey of awarded) {
+    await notify(prisma, { userId, type: "BADGE", entityId: badgeKey })
+  }
   return awarded
 }
