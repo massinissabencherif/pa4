@@ -1,6 +1,6 @@
 import { Router } from "express"
 import { requireAuth } from "../middleware/auth.js"
-import { checkAndAwardBadges, BADGES } from "../lib/badges.js"
+import { awardBadgesAndNotify, BADGES } from "../lib/badges.js"
 import prisma from "../lib/prisma.js"
 
 const router = Router()
@@ -9,8 +9,9 @@ const router = Router()
 router.get("/me", requireAuth, async (req, res) => {
   const userId = req.user.id
 
-  // Vérifier et attribuer les nouveaux badges
-  await checkAndAwardBadges(userId, prisma)
+  // Vérifier et attribuer les nouveaux badges (filet de sécurité — la plupart
+  // sont déjà attribués/notifiés directement à l'action concernée)
+  await awardBadgesAndNotify(userId, prisma)
 
   const [entries, reviews, followingCount, followersCount, userBadges, allUsers] =
     await Promise.all([

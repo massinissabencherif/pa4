@@ -11,6 +11,7 @@ import prisma from "../lib/prisma.js";
 import { requireAuth } from "../middleware/auth.js";
 import { hashToken, encryptTotp, decryptTotp } from "../lib/crypto.js";
 import { isReservedUsername, normalizeUsername } from "../lib/reservedUsernames.js";
+import { awardBadgesAndNotify } from "../lib/badges.js";
 import {
   sendRegistrationConfirmationEmail,
   sendPasswordResetEmail,
@@ -203,6 +204,7 @@ router.post("/register", async (req, res) => {
   });
 
   sendRegistrationConfirmationEmail(user.email, user.username); // fire-and-forget, ne bloque jamais l'inscription
+  await awardBadgesAndNotify(user.id, prisma);
 
   const accessToken = signAccessToken(user);
   const refreshToken = await createRefreshToken(user.id);

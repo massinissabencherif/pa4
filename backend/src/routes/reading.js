@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { requireAuth } from "../middleware/auth.js";
 import prisma from "../lib/prisma.js";
+import { awardBadgesAndNotify } from "../lib/badges.js";
 
 const router = Router();
 
@@ -55,6 +56,7 @@ router.patch("/reading-list/:id/status", requireAuth, async (req, res) => {
     data: updates,
     include: { comic: true },
   });
+  await awardBadgesAndNotify(req.user.id, prisma);
   res.json(updated);
 });
 
@@ -92,6 +94,7 @@ router.patch("/reading-list/:id/progress", requireAuth, async (req, res) => {
     data: updates,
     include: { comic: true },
   });
+  if (updates.status) await awardBadgesAndNotify(req.user.id, prisma);
   res.json(updated);
 });
 
