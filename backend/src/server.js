@@ -21,6 +21,11 @@ import statsRouter from "./routes/stats.js";
 import commentsRouter from "./routes/comments.js";
 import guidesRouter from "./routes/guides.js";
 import adsRouter from "./routes/ads.js";
+import featuredRouter from "./routes/featured.js";
+import arcadeRouter from "./routes/arcade.js";
+import arcadeComicdleRouter from "./routes/arcadeComicdle.js";
+import arcadeCoverMysteryRouter from "./routes/arcadeCoverMystery.js";
+import notificationsRouter from "./routes/notifications.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -123,6 +128,10 @@ app.use("/comics", comicsRouter);
 app.use("/authors", authorsRouter);
 app.use("/stats", statsRouter);
 app.use("/ads", adsRouter);
+app.use("/featured", featuredRouter);
+app.use("/arcade", arcadeRouter);
+app.use("/arcade/comicdle", arcadeComicdleRouter);
+app.use("/arcade/cover-mystery", arcadeCoverMysteryRouter);
 app.use("/comments", writeLimiter, commentsRouter);
 app.use(["/reviews", "/lists", "/guides"], writeLimiter);
 app.use("/", readingRouter);
@@ -132,6 +141,7 @@ app.use("/", adminRouter);
 app.use("/", usersRouter);
 app.use("/", feedRouter);
 app.use("/", guidesRouter);
+app.use("/", notificationsRouter);
 
 // ─── Middleware d'erreur global ───────────────────────────────────────────────
 app.use((err, req, res, next) => {

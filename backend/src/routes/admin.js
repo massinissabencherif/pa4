@@ -749,6 +749,59 @@ router.post("/admin/ads/:id/reset", requireAdmin, async (req, res) => {
   res.json(reset);
 });
 
+// ─── Curation éditoriale — comic de la semaine ───────────────────────────────
+
+// GET /admin/featured — historique des mises en avant
+router.get("/admin/featured", requireAdmin, async (req, res) => {
+  const rows = await prisma.featuredComic.findMany({
+    orderBy: { startAt: "desc" },
+    take: 20,
+    include: { comic: { select: { id: true, externalId: true, title: true, coverUrl: true } } },
+  });
+  const now = new Date();
+  res.json(rows.map((r) => ({
+    ...r,
+    isCurrent: r.startAt <= now && (!r.endAt || r.endAt > now),
+  })));
+});
+
+// POST /admin/featured — mettre un comic en avant (clôt la mise en avant courante)
+router.post("/admin/featured", requireAdmin, async (req, res) => {
+  const { comicId, blurb } = req.body;
+  if (!comicId) return res.status(400).json({ error: "comicId est requis" });
+  if (blurb && String(blurb).length > 500) {
+    return res.status(400).json({ error: "Le texte éditorial dépasse 500 caractères" });
+  }
+
+  const comic = await prisma.comic.findUnique({ where: { id: comicId } });
+  if (!comic) return res.status(404).json({ error: "Comic introuvable" });
+
+  const now = new Date();
+  const [, created] = await prisma.$transaction([
+    // Clôture des mises en avant encore actives
+    prisma.featuredComic.updateMany({
+      where: { OR: [{ endAt: null }, { endAt: { gt: now } }] },
+      data: { endAt: now },
+    }),
+    prisma.featuredComic.create({
+      data: { comicId, blurb: blurb ? String(blurb).trim() : null },
+      include: { comic: { select: { title: true, externalId: true } } },
+    }),
+  ]);
+  res.status(201).json(created);
+});
+
+// DELETE /admin/featured/current — retirer la mise en avant courante
+router.delete("/admin/featured/current", requireAdmin, async (req, res) => {
+  const now = new Date();
+  const { count } = await prisma.featuredComic.updateMany({
+    where: { startAt: { lte: now }, OR: [{ endAt: null }, { endAt: { gt: now } }] },
+    data: { endAt: now },
+  });
+  if (count === 0) return res.status(404).json({ error: "Aucune mise en avant active" });
+  res.json({ message: "Mise en avant retirée" });
+});
+
 // ─── Stats ────────────────────────────────────────────────────────────────────
 
 router.get("/admin/stats", requireAdmin, async (req, res) => {

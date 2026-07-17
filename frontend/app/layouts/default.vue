@@ -58,12 +58,19 @@
             style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#fff;padding:0 14px;height:52px;display:flex;align-items:center;border-right:1px solid #2a2a2a;text-decoration:none;transition:color 0.15s;"
             active-class="!text-[#e02020]"
           >Stats</NuxtLink>
+          <NuxtLink
+            v-if="isLoggedIn"
+            to="/arcade"
+            style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#e02020;padding:0 14px;height:52px;display:flex;align-items:center;border-right:1px solid #2a2a2a;text-decoration:none;transition:color 0.15s;"
+            active-class="!text-[#fff]"
+          >Arcade</NuxtLink>
         </nav>
 
         <!-- Auth actions -->
         <div class="flex items-center gap-3">
           <template v-if="isLoggedIn">
             <span class="hidden sm:block" style="font-family:'Courier New',monospace;font-size:8px;letter-spacing:3px;color:#fff;text-transform:uppercase;">№ 2026</span>
+            <NotificationBell />
             <NuxtLink
               v-if="isAdmin"
               to="/admin"

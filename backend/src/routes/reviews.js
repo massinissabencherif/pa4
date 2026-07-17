@@ -1,6 +1,8 @@
 import { Router } from "express";
 import { requireAuth, optionalAuth } from "../middleware/auth.js";
 import prisma from "../lib/prisma.js";
+import { notify } from "../lib/notifications.js";
+import { awardBadgesAndNotify } from "../lib/badges.js";
 
 const router = Router();
 
@@ -40,6 +42,7 @@ router.post("/reviews", requireAuth, async (req, res) => {
     data: { userId: req.user.id, comicId, rating: Number(rating), content: content || null },
     include: { comic: { select: { title: true } } },
   });
+  await awardBadgesAndNotify(req.user.id, prisma);
   res.status(201).json(review);
 });
 
@@ -177,6 +180,12 @@ router.post("/reviews/:id/comments", requireAuth, async (req, res) => {
   const comment = await prisma.comment.create({
     data: { userId: req.user.id, reviewId: req.params.id, content: String(content).trim() },
     include: { user: { select: { id: true, username: true } } },
+  });
+  await notify(prisma, {
+    userId: review.userId,
+    type: "REVIEW_COMMENT",
+    actorId: req.user.id,
+    entityId: review.id,
   });
 
   res.status(201).json({ ...comment, likeCount: 0, likedByMe: false });

@@ -1,7 +1,8 @@
 // Comicster — Prisma Schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearchPostgres"]
 }
 
 datasource db {
@@ -20,9 +21,16 @@ model User {
   role          Role      @default(USER)
   totpSecret    String?
   totpEnabled   Boolean   @default(false)
+  // Streak de lecture — jours consécutifs avec activité (convention : jours UTC)
+  currentStreak  Int       @default(0)
+  longestStreak  Int       @default(0)
+  lastActiveDate DateTime?
+  // Points d'expérience gagnés dans l'Arcade (et futures mécaniques de jeu)
+  xp            Int       @default(0)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  arcadeRuns     ArcadeRun[]
   readingEntries ReadingEntry[]
   reviews        Review[]
   lists          List[]
@@ -36,6 +44,8 @@ model User {
   guideTopics    GuideTopic[]   @relation("GuideTopic_author")
   guideReplies   GuideReply[]   @relation("GuideReply_author")
   passwordResetTokens PasswordResetToken[]
+  notifications       Notification[] @relation("NotificationRecipient")
+  notificationsCaused Notification[] @relation("NotificationActor")
 }
 
 enum Role {
@@ -104,6 +114,22 @@ model Comic {
   reviews        Review[]
   listItems      ListItem[]
   authorLinks    AuthorOnComic[]
+  featured       FeaturedComic[]
+}
+
+// ─── Curation éditoriale — "Comic de la semaine" ─────────────────────────────
+
+model FeaturedComic {
+  id        String    @id @default(cuid())
+  comicId   String
+  blurb     String?
+  startAt   DateTime  @default(now())
+  endAt     DateTime?
+  createdAt DateTime  @default(now())
+
+  comic Comic @relation(fields: [comicId], references: [id], onDelete: Cascade)
+
+  @@index([startAt])
 }
 
 // ─── Journal de lecture ───────────────────────────────────────────────────────
@@ -347,4 +373,57 @@ enum AdPlacement {
   COMIC_DETAIL
   GUIDES_LIST
   GUIDE_DETAIL
+}
+
+// ─── Arcade — mini-jeux générés depuis le catalogue ──────────────────────────
+
+enum ArcadeGame {
+  COMICDLE
+  COVER_MYSTERY
+}
+
+model ArcadeRun {
+  id         String     @id @default(cuid())
+  userId     String
+  game       ArcadeGame
+  // Jour UTC (YYYY-MM-DD) du défi quotidien ; null pour le mode infini.
+  // Postgres autorise plusieurs NULL dans l'unique → plusieurs runs infinis OK.
+  dateKey    String?
+  // État serveur de la partie (réponses, timestamps) — jamais exposé tel quel au client
+  state      Json
+  score      Int        @default(0)
+  finishedAt DateTime?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, game, dateKey])
+  @@index([userId, game])
+  @@index([game, dateKey])
+}
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  type      NotificationType
+  actorId   String?
+  entityId  String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user  User  @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
+  actor User? @relation("NotificationActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([userId, readAt])
+  @@index([userId, createdAt])
+}
+
+enum NotificationType {
+  FOLLOW
+  REVIEW_COMMENT
+  GUIDE_REPLY
+  BADGE
 }

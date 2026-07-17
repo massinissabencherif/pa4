@@ -97,6 +97,21 @@
         2FA activé avec succès !
       </div>
     </div>
+
+    <!-- Export RGPD -->
+    <div class="card p-6 space-y-4">
+      <div>
+        <h2 class="font-semibold">Mes données</h2>
+        <p class="text-sm text-white mt-1">
+          Télécharge une copie de toutes tes données personnelles au format JSON : profil, journal de lecture,
+          avis, listes, abonnements, badges et contributions aux guides (droit à la portabilité, RGPD).
+        </p>
+      </div>
+      <button @click="downloadExport" :disabled="exporting" class="btn-primary">
+        {{ exporting ? 'Préparation…' : 'Télécharger mes données' }}
+      </button>
+      <div v-if="exportError" class="text-sm text-red-400">{{ exportError }}</div>
+    </div>
   </div>
 </template>
 
@@ -179,6 +194,30 @@ function cancelSetup() {
   secret.value = ''
   verifyCode.value = ''
   error.value = ''
+}
+
+const exporting = ref(false)
+const exportError = ref('')
+
+async function downloadExport() {
+  exporting.value = true
+  exportError.value = ''
+  try {
+    const data = await $fetch(`${base}/me/export`, {
+      headers: { Authorization: `Bearer ${token.value}` },
+    })
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `comicster-export-${new Date().toISOString().slice(0, 10)}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch (e) {
+    exportError.value = e.data?.error || "Impossible de générer l'export"
+  } finally {
+    exporting.value = false
+  }
 }
 
 onMounted(fetchMe)
