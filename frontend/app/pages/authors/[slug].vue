@@ -71,4 +71,19 @@ const config = useRuntimeConfig()
 const base = config.public.apiBase
 
 const { data: author, pending, error } = await useFetch(`${base}/authors/${route.params.slug}`)
+
+// SEO — métadonnées dynamiques à partir de l'auteur
+useSeoMeta({
+  title: () => author.value?.name || 'Auteur',
+  description: () =>
+    author.value?.bio
+      ? author.value.bio.slice(0, 160)
+      : `Découvre les comics de ${author.value?.name || 'cet auteur'} sur Comicster.`,
+  ogTitle: () => author.value?.name || 'Comicster',
+  ogImage: () => {
+    const photo = author.value?.photoUrl
+    if (!photo) return undefined
+    return photo.startsWith('http') ? photo : `${config.public.siteUrl}${photo}`
+  },
+})
 </script>

@@ -1,2 +1,10 @@
-User-Agent: *
-Disallow:
+User-agent: *
+Allow: /
+
+# Espaces privés / authentifiés — non indexables
+Disallow: /admin
+Disallow: /auth
+Disallow: /settings
+Disallow: /dashboard
+
+Sitemap: https://sitedetestdemassinissabencherif.com/sitemap.xml
