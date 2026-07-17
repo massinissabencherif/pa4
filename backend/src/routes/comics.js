@@ -45,12 +45,27 @@ async function upsertComic(raw) {
   });
 }
 
+// Filtres communs éditeur + fenêtre d'années (utilisés par GET /comics et /comics/search)
+function buildCommonFilters({ publisher, yearFrom, yearTo }) {
+  const filters = {};
+  if (publisher) filters.publisher = { contains: String(publisher), mode: "insensitive" };
+  const fromYear = Number.parseInt(yearFrom, 10);
+  const toYear = Number.parseInt(yearTo, 10);
+  if (Number.isFinite(fromYear) || Number.isFinite(toYear)) {
+    filters.publishedAt = {
+      ...(Number.isFinite(fromYear) && { gte: new Date(Date.UTC(fromYear, 0, 1)) }),
+      ...(Number.isFinite(toYear) && { lte: new Date(Date.UTC(toYear, 11, 31, 23, 59, 59)) }),
+    };
+  }
+  return filters;
+}
+
 // GET /comics — liste tous les comics de la DB avec filtres optionnels
 router.get("/", async (req, res) => {
   const { limit: lq, offset: oq, genre, author } = req.query;
   const { limit, offset } = parsePagination({ limit: lq ?? 50, offset: oq }, { limit: 50, max: 200 });
 
-  const where = {};
+  const where = buildCommonFilters(req.query);
   if (genre) where.genres = { has: genre };
   if (author) where.authors = { has: author };
 
@@ -126,37 +141,82 @@ router.get("/author-names", async (req, res) => {
   res.json(authors);
 });
 
+// GET /comics/publishers — liste tous les éditeurs disponibles
+router.get("/publishers", async (req, res) => {
+  const rows = await prisma.comic.findMany({
+    where: { publisher: { not: null } },
+    select: { publisher: true },
+    distinct: ["publisher"],
+    orderBy: { publisher: "asc" },
+  });
+  res.json(rows.map((r) => r.publisher).filter(Boolean));
+});
+
 // GET /comics/search?q=batman&limit=20&offset=0
+// Construit une tsquery sûre à partir d'une saisie libre : tokens alphanumériques
+// uniquement, avec préfixe (:*) pour matcher les mots partiels, reliés par AND.
+function buildTsQuery(input) {
+  const tokens = input
+    .toLowerCase()
+    .match(/[\p{L}\p{N}]+/gu);
+  if (!tokens || tokens.length === 0) return null;
+  return tokens.map((t) => `${t}:*`).join(" & ");
+}
+
 router.get("/search", async (req, res) => {
-  const { q } = req.query;
+  const { q, sort } = req.query;
   const { limit, offset } = parsePagination(req.query);
 
   if (!q || q.trim().length < 2) {
     return res.status(400).json({ error: "Le paramètre q doit contenir au moins 2 caractères" });
   }
 
-  // Sans clés Marvel → recherche dans la DB locale avec correspondance partielle sur les auteurs
+  // Sans clés Marvel → recherche full-text PostgreSQL (titre + description)
+  // + correspondance partielle sur les auteurs, avec filtres et tri optionnels
   if (!hasMarvelKeys()) {
     const search = q.trim().toLowerCase();
-    const [byTitle, allWithAuthors] = await Promise.all([
+    const tsQuery = buildTsQuery(search);
+    const filters = buildCommonFilters(req.query);
+
+    // Full-text sur titre + description, classé par pertinence.
+    // Pas d'index GIN dédié pour l'instant : le catalogue est trop petit pour
+    // que ça compte — à ajouter si la table dépasse ~10k lignes.
+    const ftWhere = tsQuery
+      ? { OR: [{ title: { search: tsQuery } }, { description: { search: tsQuery } }] }
+      : { title: { contains: search, mode: "insensitive" } };
+
+    const [ftMatches, allWithAuthors] = await Promise.all([
       prisma.comic.findMany({
-        where: { title: { contains: search, mode: "insensitive" } },
-        orderBy: { createdAt: "desc" },
+        where: { AND: [ftWhere, filters] },
+        orderBy: tsQuery
+          ? { _relevance: { fields: ["title", "description"], search: tsQuery, sort: "desc" } }
+          : { createdAt: "desc" },
         take: 200,
       }),
       prisma.comic.findMany({
-        where: { authors: { isEmpty: false } },
+        where: { AND: [{ authors: { isEmpty: false } }, filters] },
         orderBy: { createdAt: "desc" },
         take: 500,
       }),
     ]);
+
     const authorMatches = allWithAuthors.filter((c) =>
       c.authors.some((a) => a.toLowerCase().includes(search))
     );
-    const seen = new Set(byTitle.map((c) => c.id));
-    const merged = [...byTitle, ...authorMatches.filter((c) => !seen.has(c.id))];
-    const sliced = merged.slice(offset, offset + limit);
-    const comics = await withRatings(sliced)
+    const seen = new Set(ftMatches.map((c) => c.id));
+    const merged = [...ftMatches, ...authorMatches.filter((c) => !seen.has(c.id))];
+    const rated = await withRatings(merged);
+
+    // Tri (par défaut : pertinence full-text, ordre de la fusion)
+    if (sort === "rating") {
+      rated.sort((a, b) => (b.avgRating ?? 0) - (a.avgRating ?? 0) || (b.reviewCount ?? 0) - (a.reviewCount ?? 0));
+    } else if (sort === "recent") {
+      rated.sort((a, b) => new Date(b.publishedAt ?? 0) - new Date(a.publishedAt ?? 0));
+    } else if (sort === "title") {
+      rated.sort((a, b) => a.title.localeCompare(b.title, "fr"));
+    }
+
+    const comics = rated.slice(offset, offset + limit);
     return res.json({ total: merged.length, count: comics.length, offset, comics });
   }
 

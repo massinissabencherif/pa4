@@ -1,6 +1,8 @@
 import { Router } from "express";
 import { requireAuth } from "../middleware/auth.js";
 import prisma from "../lib/prisma.js";
+import { updateStreak } from "../lib/streaks.js";
+import { awardBadgesAndNotify } from "../lib/badges.js";
 
 const router = Router();
 
@@ -55,6 +57,13 @@ router.patch("/reading-list/:id/status", requireAuth, async (req, res) => {
     data: updates,
     include: { comic: true },
   });
+
+  // Passer en lecture ou terminer compte comme une activité pour le streak
+  if (status === "IN_PROGRESS" || status === "FINISHED") {
+    await updateStreak(req.user.id, prisma);
+  }
+  await awardBadgesAndNotify(req.user.id, prisma);
+
   res.json(updated);
 });
 
@@ -92,6 +101,10 @@ router.patch("/reading-list/:id/progress", requireAuth, async (req, res) => {
     data: updates,
     include: { comic: true },
   });
+
+  await updateStreak(req.user.id, prisma);
+  if (updates.status) await awardBadgesAndNotify(req.user.id, prisma);
+
   res.json(updated);
 });
 
