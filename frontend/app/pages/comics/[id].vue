@@ -312,6 +312,24 @@ const { isLoggedIn, token } = useAuth()
 const { data: comic, pending, error: _fetchError } = await useFetch(`${base}/comics/${route.params.id}`)
 const fetchError = computed(() => _fetchError.value?.data?.error || (_fetchError.value ? 'Erreur lors du chargement' : null))
 
+// SEO — métadonnées dynamiques (titre, description, image de partage à partir du comic)
+useSeoMeta({
+  title: () => comic.value?.title || 'Comic',
+  description: () =>
+    comic.value?.description
+      ? comic.value.description.slice(0, 160)
+      : `Découvre ${comic.value?.title || 'ce comic'} sur Comicster : note, avis de la communauté et suivi de lecture.`,
+  ogTitle: () => comic.value?.title || 'Comicster',
+  ogDescription: () => (comic.value?.description ? comic.value.description.slice(0, 200) : undefined),
+  ogType: 'article',
+  ogImage: () => {
+    if (!comic.value) return undefined
+    const cover = getComicCover(comic.value)
+    if (!cover) return undefined
+    return cover.startsWith('http') ? cover : `${config.public.siteUrl}${cover}`
+  },
+})
+
 // Auteurs liés (inclus dans la réponse du comic)
 const linkedAuthors = computed(() => comic.value?.linkedAuthors ?? [])
 
