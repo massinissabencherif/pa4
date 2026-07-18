@@ -19,6 +19,26 @@ Projet réalisé dans le cadre du **Projet Annuel ESGI 2026** (PA4).
 
 ---
 
+## Démarrage en une commande
+
+Depuis un clone frais, avec **Docker** installé (rien d'autre) :
+
+```bash
+./start.sh
+```
+
+Cette commande construit et lance toute la stack (PostgreSQL + backend + frontend), applique les migrations Prisma et charge un jeu de **données de démo** — sans aucune étape manuelle ni secret à fournir.
+
+- **Front** → http://localhost:3000
+- **API** → http://localhost:3001/health
+- **Comptes de démo** : n'importe quel utilisateur de la base, mot de passe `demo2026!`
+
+Autres commandes : `./start.sh down` (arrêter), `./start.sh reset` (repartir de zéro), `./start.sh logs`. Équivalents disponibles via `make` (`make demo`, `make stop`, `make reset`, `make logs`).
+
+> En local, OAuth Google/GitHub est inactif (pas de clés) — connexion par email / mot de passe. L'expérience connectée (cœur de la démo) est pleinement fonctionnelle.
+
+---
+
 ## Table des matières
 
 1. [Stack technique](#stack-technique)
