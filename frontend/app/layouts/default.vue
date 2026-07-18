@@ -69,7 +69,6 @@
         <!-- Auth actions -->
         <div class="flex items-center gap-3">
           <template v-if="isLoggedIn">
-            <span class="hidden sm:block" style="font-family:'Courier New',monospace;font-size:8px;letter-spacing:3px;color:#fff;text-transform:uppercase;">№ 2026</span>
             <NotificationBell />
             <NuxtLink
               v-if="isAdmin"
@@ -92,7 +91,6 @@
             >DÉCO_</button>
           </template>
           <template v-else>
-            <span class="hidden sm:block" style="font-family:'Courier New',monospace;font-size:8px;letter-spacing:3px;color:#fff;text-transform:uppercase;">№ 2026</span>
             <NuxtLink
               to="/auth/login"
               style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#fff;text-decoration:none;padding:7px 14px;border:1px solid #3a3a3a;transition:border-color 0.15s,color 0.15s;"
