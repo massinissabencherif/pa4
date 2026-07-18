@@ -8,6 +8,17 @@ Projet réalisé dans le cadre du **Projet Annuel ESGI 2026** (PA4).
 
 ---
 
+## Équipe
+
+| Pseudo GitHub | Nom | Prénom |
+|---------------|-----|--------|
+| [massinissabencherif](https://github.com/massinissabencherif) | Bencherif | Massinissa |
+| [Kiikx](https://github.com/Kiikx) | Gonçalves | Killian |
+| [Daruiii](https://github.com/Daruiii) | Meguira | David |
+| [lukaab](https://github.com/lukaab) | Boudjelal | Luka |
+
+---
+
 ## Table des matières
 
 1. [Stack technique](#stack-technique)
