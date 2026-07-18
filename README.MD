@@ -553,52 +553,48 @@ En production, `JWT_SECRET`, `SESSION_SECRET` et `TOTP_ENCRYPTION_KEY` sont **ob
 
 ## Workflow de développement
 
-### Règles fondamentales
+> Référence complète : **[guidelines/workflow.md](guidelines/workflow.md)**
 
-- Toute **feature** passe par sandbox avant d'être mergée — on ne saute jamais sandbox
-- Toute feature fait l'objet d'une **PR GitHub** — jamais de merge direct en CLI (`git merge feat/xxx`)
-- Les branches feature sont **supprimées après merge** (origin + local)
-- Les pushs directs sur `main` sont réservés aux **correctifs et maintenance** (fix CI, fix tests, README, chore)
-- Pas de reviewer obligatoire (projet solo) — à activer quand l'équipe s'agrandit
+### Le principe
 
-### Cycle complet — nouvelle feature
-1. Créer une branche depuis `main`
-   ```bash
-   git checkout main && git pull origin main
-   git checkout -b feat/nom-de-la-feature
-   ```
-2. Développer et **tester sur sandbox** (copie des fichiers ou rebuild du container)
-3. Push et PR vers `main`
-   ```bash
-   git push -u origin feat/nom-de-la-feature
-   # Ouvrir la PR sur GitHub
-   ```
-4. Le CI tourne automatiquement (backend tests, frontend build, docker build)
-5. Merger la PR sur GitHub une fois les checks verts
-6. Supprimer la branche feature
-   ```bash
-   git push origin --delete feat/nom-de-la-feature
-   git branch -D feat/nom-de-la-feature
-   git checkout main && git pull origin main
-   ```
+Trois étapes en ligne, une seule direction de circulation, et **chaque passage d'étape est une Pull Request** :
 
-### Cycle complet — correctif / maintenance
-Pour les fix de tests, CI, README, chore — push direct sur `main` autorisé :
-```bash
-git add <fichiers>
-git commit -m "fix(...): ..."
-git push origin main
+```
+local  →  feature branch  →  sandbox  →  dev  →  prod (main)
 ```
 
-### Ce qu'on ne fait jamais
-```bash
-# INTERDIT — merger une feature sans PR
-git merge feat/xxx
-git push origin feat/xxx:main
+| Environnement | Branche | Rôle | Qui teste |
+|---|---|---|---|
+| **sandbox** | `sandbox` | Terrain de jeu / intégration des features | les devs |
+| **dev** | `dev` | Release candidate — ce qui va partir en prod | clients, marketing, PM |
+| **prod** | `main` | Le réel, vrais utilisateurs | les utilisateurs |
 
-# INTERDIT — pusher directement une nouvelle feature sur main ou dev
-# (les features passent toujours par une PR)
+### La règle d'or
+
+> **`prod ⊆ dev ⊆ sandbox`** — `dev` et `main` ne reçoivent **jamais** de modification directe : ils n'avancent que pour rattraper l'étape du dessus.
+
+C'est ce qui garantit que `dev` n'est jamais en retard sur la prod (donc un miroir fiable pour les tests des équipes) et qu'aucune dérive n'est possible entre les branches.
+
+### Cycle d'une feature
+
+```bash
+git checkout sandbox && git pull          # toujours partir de l'intégration
+git checkout -b feat/nom-de-la-feature
+./start.sh reset                          # coder et tester en local
+git push -u origin feat/nom-de-la-feature
 ```
+Puis : **PR vers `sandbox`** → test sur sandbox → **PR `sandbox → dev`** → test par les équipes → **PR `dev → main`** → production. La branche est supprimée après merge.
+
+### Interdits
+
+- Commit ou push **direct** sur `dev` ou `main`
+- Brancher une feature depuis `main` (base volontairement en retard → conflits garantis)
+- Merger sans passer par une PR
+- Arriver en prod sans être passé par sandbox **puis** dev
+
+### Hotfix (seule exception)
+
+Correctif urgent en production : brancher depuis `main`, PR vers `main`. **Obligatoire juste après** : faire redescendre le correctif (`main → dev`, puis `dev → sandbox`) pour préserver l'invariant.
 
 ### Tests E2E
 ```bash
