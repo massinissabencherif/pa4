@@ -13,12 +13,7 @@ export default defineNuxtConfig({
       umamiId: process.env.NUXT_PUBLIC_UMAMI_ID || '',
       umamiUrl: process.env.NUXT_PUBLIC_UMAMI_URL || '',
       appEnv: process.env.NUXT_PUBLIC_APP_ENV || 'production',
-    },
-  },
-
-  app: {
-    head: {
-      titleTemplate: process.env.NUXT_PUBLIC_APP_ENV === 'dev' ? '(dev) Comicster' : 'Comicster',
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'https://sitedetestdemassinissabencherif.com',
     },
   },
 })
