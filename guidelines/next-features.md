@@ -1,5 +1,9 @@
 # Next Features — Comicster
 
+> ⚠️ **Document remplacé le 2026-07-13 par [`referentiel-2026-07.md`](referentiel-2026-07.md)**, qui fait foi pour la priorisation.
+> Conservé pour les specs d'implémentation détaillées (XP, streaks) encore valables.
+> Note : l'objectif annuel de lecture décrit ci-dessous a été **écarté** le 2026-07-13.
+
 Idées discutées et validées lors de la session du 2026-05-09.
 Ce document sert de référence pour les prochaines itérations.
 
