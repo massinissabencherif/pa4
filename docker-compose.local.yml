@@ -1,0 +1,70 @@
+# Comicster — stack locale « une commande » (plan B démo / reproductibilité).
+# Self-contained : aucune dépendance externe, aucun secret à fournir.
+# Lancement : `make demo` (voir Makefile). Secrets ci-dessous = DEV LOCAL UNIQUEMENT.
+name: comicster-local
+
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: comicster
+      POSTGRES_USER: comicster
+      POSTGRES_PASSWORD: comicster_local
+    volumes:
+      - pg_data_local:/var/lib/postgresql/data
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U comicster -d comicster"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PORT: 3001
+      DATABASE_URL: postgresql://comicster:comicster_local@postgres:5432/comicster
+      NODE_ENV: development
+      # ⚠️ Secrets DEV LOCAL uniquement — jamais utilisés en prod (validés/exigés seulement si NODE_ENV=production)
+      JWT_SECRET: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+      JWT_EXPIRES_IN: 15m
+      SESSION_SECRET: fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210
+      TOTP_ENCRYPTION_KEY: 00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff
+      FRONTEND_URL: http://localhost:${FRONT_PORT:-3000}
+      API_BASE_URL: http://localhost:${BACK_PORT:-3001}
+      # OAuth / Marvel / Mail non configurés en local → dégradation propre (boutons OAuth inactifs, emails non envoyés)
+    ports:
+      - "${BACK_PORT:-3001}:3001"
+    volumes:
+      - uploads_data_local:/app/uploads
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NUXT_PUBLIC_API_BASE: ${NUXT_PUBLIC_API_BASE:-http://localhost:3001}
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${FRONT_PORT:-3000}:3000"
+
+volumes:
+  pg_data_local:
+  uploads_data_local:
