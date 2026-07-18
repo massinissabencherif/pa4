@@ -101,6 +101,12 @@
         <div class="flex gap-3 flex-wrap" style="margin-top:22px;">
           <button v-if="summary.mode === 'infinite'" @click="start('infinite')" class="btn-primary" style="font-size:11px;padding:8px 18px;">Rejouer</button>
           <button v-else @click="start('infinite')" class="btn-ghost" style="font-size:11px;padding:8px 18px;">Continuer en mode infini</button>
+          <button @click="shareOnX" class="btn-ghost" style="font-size:11px;padding:8px 18px;display:inline-flex;align-items:center;gap:6px;" aria-label="Partager mon score sur X">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.4l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93zm-1.29 19.5h2.04L6.49 3.24H4.3z"/>
+            </svg>
+            Partager sur X
+          </button>
           <NuxtLink to="/arcade" class="btn-ghost" style="font-size:11px;padding:8px 18px;text-decoration:none;">Retour à l'arcade</NuxtLink>
         </div>
       </div>
@@ -246,6 +252,19 @@ async function nextRound() {
   pendingNext.value = null
   await nextTick()
   startReveal(round.value.cover)
+}
+
+// Partage sur X — simple lien "intent" pré-rempli, aucune API ni clé requise
+function shareOnX() {
+  if (!summary.value) return
+  const xp = summary.value.xpAwarded ? ` (+${summary.value.xpAwarded} XP)` : ''
+  const text = `J'ai marqué ${summary.value.score} pts${xp} au Cover Mystère sur Comicster ! 🦸`
+  const url = `${config.public.siteUrl || 'https://sitedetestdemassinissabencherif.com'}/arcade`
+  window.open(
+    `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
+    '_blank',
+    'noopener,noreferrer'
+  )
 }
 
 function choiceStyle(id) {
