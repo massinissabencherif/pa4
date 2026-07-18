@@ -2,6 +2,7 @@ import { Router } from "express";
 import { requireAuth, optionalAuth } from "../middleware/auth.js";
 import { requireAdmin } from "../middleware/requireAdmin.js";
 import { slugify } from "../lib/slug.js";
+import { notify } from "../lib/notifications.js";
 import prisma from "../lib/prisma.js";
 
 const router = Router();
@@ -137,18 +138,20 @@ router.post("/guides/:slug/topics/:topicId/replies", requireAuth, async (req, re
   try { rejectHtml(content); } catch { return res.status(400).json({ error: "HTML non autorisé dans le contenu" }); }
   const topic = await prisma.guideTopic.findUnique({
     where: { id: req.params.topicId },
-    select: { id: true },
+    select: { id: true, authorId: true },
   });
   if (!topic) return res.status(404).json({ error: "Topic introuvable" });
 
+  let notifyRecipientId = topic.authorId;
   if (parentId) {
     const parent = await prisma.guideReply.findUnique({
       where: { id: parentId },
-      select: { topicId: true },
+      select: { topicId: true, authorId: true },
     });
     if (!parent || parent.topicId !== topic.id) {
       return res.status(400).json({ error: "Réponse parente invalide" });
     }
+    notifyRecipientId = parent.authorId;
   }
 
   const reply = await prisma.guideReply.create({
@@ -160,6 +163,12 @@ router.post("/guides/:slug/topics/:topicId/replies", requireAuth, async (req, re
       parentId: parentId || null,
     },
     include: { author: { select: { username: true } } },
+  });
+  await notify(prisma, {
+    userId: notifyRecipientId,
+    type: "GUIDE_REPLY",
+    actorId: req.user.id,
+    entityId: reply.id,
   });
   res.status(201).json({ ...reply, children: [] });
 });
