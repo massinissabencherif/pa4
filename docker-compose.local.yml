@@ -62,6 +62,10 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+    environment:
+      # Sans ça, appEnv retombe sur "production" → cookies secure → refusés en http://localhost
+      # (la session ne persiste pas, le login semble échouer). "local" => secure=false.
+      NUXT_PUBLIC_APP_ENV: local
     ports:
       - "${FRONT_PORT:-3000}:3000"
 
