@@ -34,6 +34,28 @@ C'est la règle qui garantit tout le reste :
 
 Toutes les dérives qu'on a connues venaient d'une violation de cette règle (un changement poussé directement sur `main`, ou une promotion qui n'est jamais redescendue).
 
+### Comment vérifier l'invariant (et éviter les faux positifs)
+
+Chaque merge de PR crée un **commit de merge** sur la branche cible. Compter les « commits de retard » donne donc des **faux positifs** : une branche peut afficher un commit d'écart alors qu'aucun contenu ne lui manque. **Ce qui compte, c'est le contenu.**
+
+```bash
+git fetch origin
+# Du contenu de la prod manque-t-il à sandbox ? (on ne doit rien voir venir de main)
+git diff origin/main origin/sandbox --stat
+```
+
+Les différences dans le sens « sandbox est en avance » sont normales et attendues.
+
+### Redescendre : toujours en chaîne, jamais en parallèle
+
+Quand il faut faire redescendre quelque chose (hotfix, remise à niveau), procéder **en séquence** :
+
+```
+main → dev,  PUIS  dev → sandbox
+```
+
+❌ Ne **jamais** lancer `main → dev` et `main → sandbox` **en parallèle** : ça crée deux commits de merge indépendants et les branches divergent structurellement (même si le contenu reste correct). Erreur commise une fois — la chaîne évite le problème.
+
 ---
 
 ## 3. Le cycle d'une feature
