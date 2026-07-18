@@ -104,6 +104,12 @@
                 <button @click="copyShare" class="btn-ghost" style="font-size:11px;padding:8px 16px;">
                   {{ copied ? '✓ Copié !' : 'Partager le résultat' }}
                 </button>
+                <button @click="shareOnX" class="btn-ghost" style="font-size:11px;padding:8px 16px;display:inline-flex;align-items:center;gap:6px;" aria-label="Partager mon résultat sur X">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.4l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93zm-1.29 19.5h2.04L6.49 3.24H4.3z"/>
+                  </svg>
+                  Partager sur X
+                </button>
               </div>
             </div>
           </div>
@@ -216,14 +222,33 @@ function cellStyle(rel) {
   return `background:#0f0f0f;padding:12px 10px;font-family:'Courier New',monospace;font-size:13px;text-align:center;color:${colors[rel] ?? '#444'};`
 }
 
-function copyShare() {
+// Grille façon Wordle, partagée par le copier-coller et le partage sur X
+function buildShareGrid() {
   const rows = state.value.guesses.map((g) => {
     const cell = (rel) => (rel === 'exact' || rel === 'match' ? '🟩' : rel === 'partial' ? '🟨' : '⬛')
     return cell(g.genres) + cell(g.publisher === 'match' ? 'exact' : g.publisher) + cell(g.year === 'match' ? 'exact' : 'none') + cell(g.authors)
   })
   const header = `Comicdle ${state.value.date} — ${state.value.solved ? state.value.guesses.length : 'X'}/${state.value.maxGuesses}`
+  return { header, rows }
+}
+
+function copyShare() {
+  const { header, rows } = buildShareGrid()
   navigator.clipboard.writeText(`${header}\n${rows.join('\n')}\ncomicster — sitedetestdemassinissabencherif.com/arcade`)
   copied.value = true
   setTimeout(() => { copied.value = false }, 2500)
+}
+
+// Partage sur X — simple lien "intent" pré-rempli, aucune API ni clé requise
+function shareOnX() {
+  const { header, rows } = buildShareGrid()
+  const xp = state.value.solved && state.value.score ? ` (+${state.value.score} XP)` : ''
+  const text = `${header}${xp}\n${rows.join('\n')}`
+  const url = `${config.public.siteUrl || 'https://sitedetestdemassinissabencherif.com'}/arcade`
+  window.open(
+    `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
+    '_blank',
+    'noopener,noreferrer'
+  )
 }
 </script>
