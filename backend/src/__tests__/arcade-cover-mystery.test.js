@@ -14,7 +14,7 @@ vi.mock('../lib/email.js', () => ({
 const TEST_USER = {
   email: 'covermystery_test@comicster.test',
   username: 'covermystery_user',
-  password: 'CoverPassword123',
+  password: 'CoverPassword123!',
 }
 
 let token
@@ -216,7 +216,7 @@ describe('mode infini', () => {
     const other = await request(app).post('/auth/register').send({
       email: 'covermystery_other@comicster.test',
       username: 'covermystery_other',
-      password: 'OtherPassword123',
+      password: 'OtherPassword123!',
     })
     const myRun = await prisma.arcadeRun.findFirst({ where: { userId, game: 'COVER_MYSTERY' } })
 
