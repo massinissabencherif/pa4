@@ -14,7 +14,7 @@ vi.mock('../lib/email.js', () => ({
 const TEST_USER = {
   email: 'arcade_core@comicster.test',
   username: 'arcade_core_user',
-  password: 'ArcadePassword123',
+  password: 'ArcadePassword123!',
 }
 
 let token

@@ -22,7 +22,7 @@ import {
 const TEST_USER = {
   email: 'pwreset_test@comicster.test',
   username: 'pwreset_testuser',
-  password: 'OriginalPassword123',
+  password: 'OriginalPassword123!',
 }
 
 const OAUTH_USER_EMAIL = 'pwreset_oauth@comicster.test'
@@ -106,7 +106,7 @@ describe('POST /auth/reset-password', () => {
   it('refuse un token invalide → 401', async () => {
     const res = await request(app)
       .post('/auth/reset-password')
-      .send({ token: 'token_qui_nexiste_pas', password: 'NouveauPassword123' })
+      .send({ token: 'token_qui_nexiste_pas', password: 'NouveauPassword123!' })
     expect(res.status).toBe(401)
   })
 
@@ -123,7 +123,7 @@ describe('POST /auth/reset-password', () => {
 
     const res = await request(app)
       .post('/auth/reset-password')
-      .send({ token: rawToken, password: 'NouveauPassword123' })
+      .send({ token: rawToken, password: 'NouveauPassword123!' })
     expect(res.status).toBe(401)
   })
 
@@ -152,7 +152,7 @@ describe('POST /auth/reset-password', () => {
     await request(app).post('/auth/forgot-password').send({ email: TEST_USER.email })
     const rawToken = extractToken(sendPasswordResetEmail.mock.calls.at(-1)[1])
 
-    const NEW_PASSWORD = 'NouveauPassword456'
+    const NEW_PASSWORD = 'NouveauPassword456!'
     const resetRes = await request(app)
       .post('/auth/reset-password')
       .send({ token: rawToken, password: NEW_PASSWORD })
@@ -182,7 +182,7 @@ describe('POST /auth/reset-password', () => {
     // Le token de reset est à usage unique
     const secondUse = await request(app)
       .post('/auth/reset-password')
-      .send({ token: rawToken, password: 'EncoreUnAutre789' })
+      .send({ token: rawToken, password: 'EncoreUnAutre789!' })
     expect(secondUse.status).toBe(401)
   })
 })
