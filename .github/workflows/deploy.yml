@@ -3,6 +3,17 @@ name: Deploy
 on:
   push:
     branches: [main, dev, sandbox]
+  # Déclenchement manuel depuis l'onglet Actions (bouton « Run workflow »).
+  # Filet de sécurité : le 19/07, les pushes sur main ont cessé de déclencher
+  # quoi que ce soit côté GitHub (ni CI ni déploiement), alors que le fichier de
+  # workflow était strictement identique à celui qui fonctionnait — dev et
+  # sandbox continuaient de se déployer normalement. Sans ce bouton, une
+  # livraison en production n'aurait aucun moyen de partir.
+  #
+  # L'environnement déployé dépend de la branche choisie au lancement : les
+  # étapes ci-dessous sont conditionnées par github.ref, donc lancer le workflow
+  # sur main déploie la prod, sur dev le staging, sur sandbox le bac à sable.
+  workflow_dispatch:
 
 jobs:
   deploy:
