@@ -86,6 +86,15 @@ describe('POST /auth/register', () => {
     expect(res.status).toBe(400)
   })
 
+  it('refuse un mot de passe sans chiffre → 400', async () => {
+    const res = await request(app).post('/auth/register').send({
+      email: 'no_digit@comicster.test',
+      username: 'no_digit_user',
+      password: 'MotDePasse!',
+    })
+    expect(res.status).toBe(400)
+  })
+
   it('refuse un mot de passe sans caractère spécial → 400', async () => {
     const res = await request(app).post('/auth/register').send({
       email: 'no_special@comicster.test',

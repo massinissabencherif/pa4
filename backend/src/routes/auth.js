@@ -67,7 +67,8 @@ function validate(rules, body) {
 }
 
 // ─── Politique de mot de passe ────────────────────────────────────────────────
-// 8 caractères minimum, au moins une majuscule, au moins un caractère spécial.
+// 8 caractères minimum, au moins une majuscule, au moins un chiffre,
+// au moins un caractère spécial.
 //
 // Ne s'applique qu'aux NOUVEAUX mots de passe (inscription et réinitialisation).
 // Choix assumé : les comptes existants ne sont pas impactés — le login ne vérifie
@@ -82,6 +83,8 @@ function validatePasswordPolicy(password) {
     return `Le mot de passe doit contenir au moins ${PASSWORD_MIN} caractères`;
   if (!/[A-Z]/.test(str))
     return "Le mot de passe doit contenir au moins une majuscule";
+  if (!/[0-9]/.test(str))
+    return "Le mot de passe doit contenir au moins un chiffre";
   if (!/[^A-Za-z0-9]/.test(str))
     return "Le mot de passe doit contenir au moins un caractère spécial";
   return null;

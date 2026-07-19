@@ -60,7 +60,7 @@
 
             <div>
               <label style="display:block;font-family:'Courier New',monospace;font-size:10px;letter-spacing:4px;color:#fff;text-transform:uppercase;margin-bottom:8px;">Mot de passe</label>
-              <input v-model="form.password" type="password" required minlength="8" placeholder="8 caractères, 1 majuscule, 1 spécial" class="input" />
+              <input v-model="form.password" type="password" required minlength="8" placeholder="8 caractères, 1 majuscule, 1 chiffre, 1 spécial" class="input" />
               <div v-if="form.password.length > 0" style="display:flex;gap:3px;margin-top:6px;">
                 <div
                   v-for="i in 4"
@@ -191,6 +191,7 @@ const passwordMismatch = computed(() =>
 const passwordRules = computed(() => [
   { label: '8 caractères minimum', ok: form.password.length >= 8 },
   { label: 'Une majuscule', ok: /[A-Z]/.test(form.password) },
+  { label: 'Un chiffre', ok: /[0-9]/.test(form.password) },
   { label: 'Un caractère spécial', ok: /[^A-Za-z0-9]/.test(form.password) },
 ])
 const passwordValid = computed(() => passwordRules.value.every((r) => r.ok))
@@ -215,7 +216,7 @@ const strengthColor = computed(() => {
 
 async function submit() {
   if (!passwordValid.value) {
-    error.value = 'Le mot de passe doit contenir 8 caractères minimum, une majuscule et un caractère spécial.'
+    error.value = 'Le mot de passe doit contenir 8 caractères minimum, une majuscule, un chiffre et un caractère spécial.'
     return
   }
   if (form.password !== form.passwordConfirm) {
