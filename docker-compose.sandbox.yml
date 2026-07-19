@@ -1,3 +1,8 @@
+# Projet Docker dédié : sandbox ne partage plus le projet « pa4 » avec la PROD.
+# Avant, déployer sandbox affichait les conteneurs de production comme
+# « orphelins » et suggérait --remove-orphans — soit la destruction de la prod.
+name: comicster-sandbox
+
 services:
 
   # ─── PostgreSQL (sandbox) ────────────────────────────────────────────────────
@@ -66,5 +71,10 @@ services:
       - "3020:3000"
 
 volumes:
+  # Noms épinglés sur les volumes existants (créés quand sandbox tournait dans le
+  # projet « pa4 »). Sans cet épinglage, le changement de projet créerait des
+  # volumes vides et la base sandbox apparaîtrait réinitialisée.
   pg_data_sandbox:
+    name: pa4_pg_data_sandbox
   uploads_sandbox:
+    name: pa4_uploads_sandbox
