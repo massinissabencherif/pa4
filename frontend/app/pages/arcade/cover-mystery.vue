@@ -101,11 +101,11 @@
         <div class="flex gap-3 flex-wrap" style="margin-top:22px;">
           <button v-if="summary.mode === 'infinite'" @click="start('infinite')" class="btn-primary" style="font-size:11px;padding:8px 18px;">Rejouer</button>
           <button v-else @click="start('infinite')" class="btn-ghost" style="font-size:11px;padding:8px 18px;">Continuer en mode infini</button>
-          <button @click="shareOnX" class="btn-ghost" style="font-size:11px;padding:8px 18px;display:inline-flex;align-items:center;gap:6px;" aria-label="Partager mon score sur X">
+          <button @click="shareResult" class="btn-ghost" style="font-size:11px;padding:8px 18px;display:inline-flex;align-items:center;gap:6px;" aria-label="Partager mon résultat sur X">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.4l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93zm-1.29 19.5h2.04L6.49 3.24H4.3z"/>
             </svg>
-            Partager sur X
+            Partager mon résultat
           </button>
           <NuxtLink to="/arcade" class="btn-ghost" style="font-size:11px;padding:8px 18px;text-decoration:none;">Retour à l'arcade</NuxtLink>
         </div>
@@ -254,14 +254,16 @@ async function nextRound() {
   startReveal(round.value.cover)
 }
 
-// Partage sur X — simple lien "intent" pré-rempli, aucune API ni clé requise
-function shareOnX() {
+// Partage du résultat : ouvre X avec un tweet déjà rédigé, l'utilisateur n'a
+// plus qu'à cliquer sur « Poster ». Simple lien "intent" — aucune API ni clé.
+function shareResult() {
   if (!summary.value) return
-  const xp = summary.value.xpAwarded ? ` (+${summary.value.xpAwarded} XP)` : ''
-  const text = `J'ai marqué ${summary.value.score} pts${xp} au Cover Mystère sur Comicster ! 🦸`
-  const url = `${config.public.siteUrl || 'https://sitedetestdemassinissabencherif.com'}/arcade`
+  const site = config.public.siteUrl || 'https://sitedetestdemassinissabencherif.com'
+  const total = summary.value.rounds?.length || 5
+  const found = summary.value.rounds?.filter((r) => r.correct).length ?? 0
+  const text = `J'ai reconnu ${found} couverture${found > 1 ? 's' : ''} sur ${total} au Cover Mystère du jour (${summary.value.score} pts), essaye de faire mieux sur ${site}`
   window.open(
-    `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
+    `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`,
     '_blank',
     'noopener,noreferrer'
   )
