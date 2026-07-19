@@ -26,7 +26,7 @@ test.beforeAll(async ({ browser }) => {
   await dismissCookieBanner(page)
   await page.getByPlaceholder('toi@example.com').fill(JOURNAL_USER.email)
   await page.getByPlaceholder('spider_reader').fill(JOURNAL_USER.username)
-  await page.getByPlaceholder('Au moins 8 caractères').fill(JOURNAL_USER.password)
+  await page.getByPlaceholder(/caractères/).fill(JOURNAL_USER.password)
   await page.getByPlaceholder('Répète ton mot de passe').fill(JOURNAL_USER.password)
   await page.getByRole('button', { name: 'Commencer gratuitement' }).click()
   await page.waitForURL(/\/feed/, { timeout: 30_000 })
