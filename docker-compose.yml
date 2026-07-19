@@ -1,3 +1,10 @@
+# Nom de projet Docker explicite. Sans lui, Compose prend le nom du dossier, ce
+# qui faisait cohabiter prod et sandbox dans le même projet : chaque déploiement
+# sandbox voyait les conteneurs de PROD comme « orphelins » et proposait
+# --remove-orphans, c'est-à-dire de les supprimer. Chaque environnement a
+# désormais son propre projet. Valeur identique à l'existante → aucun impact.
+name: pa4
+
 services:
 
   # ─── PostgreSQL ──────────────────────────────────────────────────────────────

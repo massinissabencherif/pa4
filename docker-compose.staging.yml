@@ -1,3 +1,9 @@
+# Projet Docker explicite. Le déploiement passait déjà « -p pa4-staging » en
+# ligne de commande ; on l'inscrit ici pour que le fichier soit sûr même si
+# quelqu'un lance la commande sans le flag (sinon staging retombait dans « pa4 »
+# avec la prod). Valeur identique à l'existante → aucun impact.
+name: pa4-staging
+
 services:
 
   # ─── PostgreSQL (staging) ────────────────────────────────────────────────────

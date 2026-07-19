@@ -13,7 +13,7 @@ vi.mock('../lib/email.js', () => ({
 const TEST_USER = {
   email: 'rgpd_export@comicster.test',
   username: 'rgpd_export_user',
-  password: 'ExportPassword123',
+  password: 'ExportPassword123!',
 }
 
 let token
