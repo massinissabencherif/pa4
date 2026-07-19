@@ -2,7 +2,7 @@ name: Deploy
 
 on:
   push:
-    branches: [main, dev]
+    branches: [main, dev, sandbox]
 
 jobs:
   deploy:
@@ -25,6 +25,33 @@ jobs:
             docker compose -f docker-compose.yml up -d --build
             docker compose -f docker-compose.yml exec -T backend npx prisma migrate deploy
             docker compose -f docker-compose.yml exec -T backend node prisma/seed-guides.js
+            docker image prune -f
+
+      # Sandbox travaille dans un répertoire dédié (git worktree), et non dans
+      # /home/ubuntu/pa4 : la branche main y reste ainsi toujours en place pour
+      # le déploiement prod. Sans ça, trois déploiements se disputeraient la
+      # branche checkout du même dossier et pourraient builder un état mélangé.
+      - name: Deploy SANDBOX (sandbox)
+        if: github.ref == 'refs/heads/sandbox'
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            # Crée le worktree s'il n'existe pas (serveur fraîchement provisionné).
+            # Le .env n'étant pas versionné, on le lie à celui du dépôt principal.
+            if [ ! -d /home/ubuntu/pa4-sandbox ]; then
+              cd /home/ubuntu/pa4
+              git fetch origin sandbox
+              git worktree add /home/ubuntu/pa4-sandbox sandbox
+              ln -sfn /home/ubuntu/pa4/.env /home/ubuntu/pa4-sandbox/.env
+            fi
+            cd /home/ubuntu/pa4-sandbox
+            git pull origin sandbox
+            docker compose -f docker-compose.sandbox.yml up -d --build
+            docker compose -f docker-compose.sandbox.yml exec -T backend-sandbox npx prisma migrate deploy
+            docker compose -f docker-compose.sandbox.yml exec -T backend-sandbox node prisma/seed-guides.js
             docker image prune -f
 
       - name: Deploy STAGING (dev)
