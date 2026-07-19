@@ -101,8 +101,11 @@
                 <button v-if="!state.solved" @click="addToList" :disabled="addedToList" class="btn-primary" style="font-size:11px;padding:8px 16px;">
                   {{ addedToList ? '✓ Dans ta liste' : '+ Ajouter à ma liste' }}
                 </button>
-                <button @click="copyShare" class="btn-ghost" style="font-size:11px;padding:8px 16px;">
-                  {{ copied ? '✓ Copié !' : 'Partager le résultat' }}
+                <button @click="shareResult" class="btn-ghost" style="font-size:11px;padding:8px 16px;display:inline-flex;align-items:center;gap:6px;" aria-label="Partager mon résultat sur X">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M18.9 1.15h3.68l-8.04 9.19L24 22.85h-7.4l-5.8-7.58-6.64 7.58H.47l8.6-9.83L0 1.15h7.59l5.24 6.93zm-1.29 19.5h2.04L6.49 3.24H4.3z"/>
+                  </svg>
+                  Partager mon résultat
                 </button>
               </div>
             </div>
@@ -139,7 +142,6 @@ const options = ref([])
 const guessing = ref(false)
 const guessError = ref('')
 const addedToList = ref(false)
-const copied = ref(false)
 
 onMounted(loadDaily)
 
@@ -216,14 +218,18 @@ function cellStyle(rel) {
   return `background:#0f0f0f;padding:12px 10px;font-family:'Courier New',monospace;font-size:13px;text-align:center;color:${colors[rel] ?? '#444'};`
 }
 
-function copyShare() {
-  const rows = state.value.guesses.map((g) => {
-    const cell = (rel) => (rel === 'exact' || rel === 'match' ? '🟩' : rel === 'partial' ? '🟨' : '⬛')
-    return cell(g.genres) + cell(g.publisher === 'match' ? 'exact' : g.publisher) + cell(g.year === 'match' ? 'exact' : 'none') + cell(g.authors)
-  })
-  const header = `Comicdle ${state.value.date} — ${state.value.solved ? state.value.guesses.length : 'X'}/${state.value.maxGuesses}`
-  navigator.clipboard.writeText(`${header}\n${rows.join('\n')}\ncomicster — sitedetestdemassinissabencherif.com/arcade`)
-  copied.value = true
-  setTimeout(() => { copied.value = false }, 2500)
+// Partage du résultat : ouvre X avec un tweet déjà rédigé, l'utilisateur n'a
+// plus qu'à cliquer sur « Poster ». Simple lien "intent" — aucune API ni clé.
+function shareResult() {
+  const site = config.public.siteUrl || 'https://sitedetestdemassinissabencherif.com'
+  const n = state.value.guesses.length
+  const text = state.value.solved
+    ? `J'ai trouvé le comic du jour en ${n} essai${n > 1 ? 's' : ''}, essaye de le trouver toi aussi sur ${site}`
+    : `Je n'ai pas trouvé le comic du jour… Essaye de faire mieux que moi sur ${site}`
+  window.open(
+    `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`,
+    '_blank',
+    'noopener,noreferrer'
+  )
 }
 </script>

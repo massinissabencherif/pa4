@@ -60,7 +60,7 @@
 
             <div>
               <label style="display:block;font-family:'Courier New',monospace;font-size:10px;letter-spacing:4px;color:#fff;text-transform:uppercase;margin-bottom:8px;">Mot de passe</label>
-              <input v-model="form.password" type="password" required minlength="8" placeholder="Au moins 8 caractères" class="input" />
+              <input v-model="form.password" type="password" required minlength="8" placeholder="8 caractères, 1 majuscule, 1 chiffre, 1 spécial" class="input" />
               <div v-if="form.password.length > 0" style="display:flex;gap:3px;margin-top:6px;">
                 <div
                   v-for="i in 4"
@@ -69,6 +69,20 @@
                   :class="i <= passwordStrength ? strengthColor : 'bg-[#1e1e1e]'"
                 ></div>
               </div>
+              <!-- Exigences : passent au vert au fur et à mesure de la saisie -->
+              <ul
+                v-if="form.password.length > 0"
+                aria-live="polite"
+                style="list-style:none;padding:0;margin:8px 0 0;display:flex;flex-direction:column;gap:2px;"
+              >
+                <li
+                  v-for="rule in passwordRules"
+                  :key="rule.label"
+                  :style="`font-family:'Courier New',monospace;font-size:12px;color:${rule.ok ? '#22c55e' : '#9ca3af'};`"
+                >
+                  <span aria-hidden="true">{{ rule.ok ? '✓' : '○' }}</span> {{ rule.label }}
+                </li>
+              </ul>
             </div>
 
             <div>
@@ -172,6 +186,16 @@ const passwordMismatch = computed(() =>
   form.passwordConfirm.length > 0 && form.password !== form.passwordConfirm
 )
 
+// Politique de mot de passe — doit rester alignée avec la validation serveur
+// (backend/src/routes/auth.js → validatePasswordPolicy).
+const passwordRules = computed(() => [
+  { label: '8 caractères minimum', ok: form.password.length >= 8 },
+  { label: 'Une majuscule', ok: /[A-Z]/.test(form.password) },
+  { label: 'Un chiffre', ok: /[0-9]/.test(form.password) },
+  { label: 'Un caractère spécial', ok: /[^A-Za-z0-9]/.test(form.password) },
+])
+const passwordValid = computed(() => passwordRules.value.every((r) => r.ok))
+
 const passwordStrength = computed(() => {
   const p = form.password
   if (p.length === 0) return 0
@@ -191,6 +215,10 @@ const strengthColor = computed(() => {
 })
 
 async function submit() {
+  if (!passwordValid.value) {
+    error.value = 'Le mot de passe doit contenir 8 caractères minimum, une majuscule, un chiffre et un caractère spécial.'
+    return
+  }
   if (form.password !== form.passwordConfirm) {
     error.value = 'Les mots de passe ne correspondent pas.'
     return

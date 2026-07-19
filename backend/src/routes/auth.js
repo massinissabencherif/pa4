@@ -66,6 +66,30 @@ function validate(rules, body) {
   return null;
 }
 
+// ─── Politique de mot de passe ────────────────────────────────────────────────
+// 8 caractères minimum, au moins une majuscule, au moins un chiffre,
+// au moins un caractère spécial.
+//
+// Ne s'applique qu'aux NOUVEAUX mots de passe (inscription et réinitialisation).
+// Choix assumé : les comptes existants ne sont pas impactés — le login ne vérifie
+// que le hash bcrypt, jamais la politique. Durcir une politique ne doit pas
+// verrouiller les utilisateurs déjà inscrits ; une rotation du parc existant est
+// une décision produit qui se planifie séparément.
+const PASSWORD_MIN = 8;
+
+function validatePasswordPolicy(password) {
+  const str = String(password ?? "");
+  if (str.length < PASSWORD_MIN)
+    return `Le mot de passe doit contenir au moins ${PASSWORD_MIN} caractères`;
+  if (!/[A-Z]/.test(str))
+    return "Le mot de passe doit contenir au moins une majuscule";
+  if (!/[0-9]/.test(str))
+    return "Le mot de passe doit contenir au moins un chiffre";
+  if (!/[^A-Za-z0-9]/.test(str))
+    return "Le mot de passe doit contenir au moins un caractère spécial";
+  return null;
+}
+
 // ─── Passport OAuth setup ────────────────────────────────────────────────────
 
 async function findOrCreateOAuthUser(provider, profile) {
@@ -184,6 +208,9 @@ router.post("/register", async (req, res) => {
     req.body
   );
   if (err) return res.status(400).json({ error: err });
+
+  const policyErr = validatePasswordPolicy(req.body.password);
+  if (policyErr) return res.status(400).json({ error: policyErr });
 
   const { email, username, password } = req.body;
 
@@ -353,6 +380,9 @@ router.post("/reset-password", async (req, res) => {
     req.body
   );
   if (err) return res.status(400).json({ error: err });
+
+  const policyErr = validatePasswordPolicy(req.body.password);
+  if (policyErr) return res.status(400).json({ error: policyErr });
 
   const { token, password } = req.body;
 
