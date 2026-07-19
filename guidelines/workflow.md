@@ -137,8 +137,17 @@ elle affiche **le diff**, lance **la CI (tests + build)**, permet la relecture, 
 
 ---
 
-## 7. Points d'amélioration identifiés (non encore faits)
+## 7. Infrastructure — état
 
-- **Automatiser le déploiement de sandbox** : aujourd'hui `dev` et `main` se déploient tout seuls au push, mais **sandbox se rebuild à la main**. Ajouter `sandbox` aux déclencheurs de `.github/workflows/deploy.yml` rendrait la pipeline homogène.
-- **Isoler les environnements côté serveur** : prod, sandbox et staging partagent le dossier `/home/ubuntu/pa4` et les déploiements y font des `git pull` concurrents ; prod et sandbox partagent en plus le même projet Docker `pa4`. Un dossier (ou un projet Docker) par environnement supprimerait ce risque.
+### ✅ Corrigé : isolation des projets Docker
+Aucun fichier compose ne déclarait de nom de projet, donc Compose prenait le nom du dossier (`pa4`) : **prod et sandbox cohabitaient dans le même projet**. Chaque déploiement sandbox listait les conteneurs de production comme « orphelins » et Docker suggérait `--remove-orphans` — c'est-à-dire de les supprimer. Chaque environnement déclare désormais son projet (`pa4`, `comicster-sandbox`, `pa4-staging`), et les volumes sandbox sont épinglés sur leurs noms existants pour ne pas perdre les données au changement de projet.
+
+### ✅ Corrigé : déploiement sandbox automatisé
+`sandbox` est maintenant dans les déclencheurs de `.github/workflows/deploy.yml`. Auparavant seuls `main` et `dev` se déployaient automatiquement : merger dans `sandbox` mettait à jour la branche **mais pas les conteneurs**, et l'écart était silencieux (on a testé du code vieux de 3 jours en croyant valider le nouveau).
+
+**Sandbox travaille dans un répertoire dédié** — un *git worktree* en `/home/ubuntu/pa4-sandbox` — et non dans `/home/ubuntu/pa4`. Ainsi la branche `main` reste toujours en place dans le dépôt principal pour le déploiement prod. Le script recrée le worktree s'il est absent (le `.env`, non versionné, est lié par symlink).
+
+### ⚠️ Reste à faire
+- **Dossier partagé entre prod et staging** : leurs déploiements font tous deux `cd /home/ubuntu/pa4 && git pull origin <branche>`. Or `git pull origin dev` fusionne dev dans la branche actuellement checkout → on peut builder depuis un état mélangé. Donner aussi à staging son propre worktree réglerait le dernier cas.
 - **Activer la suppression automatique des branches** après merge dans les réglages GitHub.
+- **Ajouter `sandbox` aux déclencheurs de la CI** (`ci.yml`) pour faire tourner les tests aussi sur sandbox — à faire en décidant quelle URL utiliser pour les tests E2E.
