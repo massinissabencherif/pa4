@@ -3,6 +3,7 @@ import request from 'supertest'
 import { app } from '../server.js'
 import prisma from '../lib/prisma.js'
 import { hashToken } from '../lib/crypto.js'
+import bcrypt from 'bcrypt'
 
 const TEST_USER = {
   email: 'integration_test@comicster.test',
@@ -75,6 +76,33 @@ describe('POST /auth/register', () => {
     })
     expect(res.status).toBe(400)
   })
+
+  it('refuse un mot de passe sans majuscule → 400', async () => {
+    const res = await request(app).post('/auth/register').send({
+      email: 'no_upper@comicster.test',
+      username: 'no_upper_user',
+      password: 'motdepasse123!',
+    })
+    expect(res.status).toBe(400)
+  })
+
+  it('refuse un mot de passe sans chiffre → 400', async () => {
+    const res = await request(app).post('/auth/register').send({
+      email: 'no_digit@comicster.test',
+      username: 'no_digit_user',
+      password: 'MotDePasse!',
+    })
+    expect(res.status).toBe(400)
+  })
+
+  it('refuse un mot de passe sans caractère spécial → 400', async () => {
+    const res = await request(app).post('/auth/register').send({
+      email: 'no_special@comicster.test',
+      username: 'no_special_user',
+      password: 'MotDePasse123',
+    })
+    expect(res.status).toBe(400)
+  })
 })
 
 // ─── Login ───────────────────────────────────────────────────────────────────
@@ -88,6 +116,31 @@ describe('POST /auth/login', () => {
     expect(res.status).toBe(200)
     expect(res.body).toHaveProperty('token')
     expect(res.body).toHaveProperty('refreshToken')
+  })
+
+  // Grandfathering : durcir la politique ne doit pas verrouiller les comptes déjà
+  // inscrits — le login ne vérifie que le hash, jamais la politique.
+  it('accepte un compte existant dont le mot de passe ne respecte pas la politique → 200', async () => {
+    const legacyEmail = 'legacy_pwd@comicster.test'
+    const legacyPassword = 'ancienmotdepasse' // ni majuscule ni caractère spécial
+    await prisma.user.deleteMany({ where: { email: legacyEmail } })
+    await prisma.user.create({
+      data: {
+        email: legacyEmail,
+        username: 'legacy_pwd_user',
+        passwordHash: await bcrypt.hash(legacyPassword, 10),
+      },
+    })
+
+    const res = await request(app).post('/auth/login').send({
+      email: legacyEmail,
+      password: legacyPassword,
+    })
+    expect(res.status).toBe(200)
+    expect(res.body).toHaveProperty('token')
+
+    await prisma.refreshToken.deleteMany({ where: { user: { email: legacyEmail } } })
+    await prisma.user.deleteMany({ where: { email: legacyEmail } })
   })
 
   it('refuse un mauvais mot de passe → 401', async () => {
