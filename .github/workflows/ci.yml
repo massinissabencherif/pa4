@@ -5,6 +5,13 @@ on:
     branches: [main, dev]
   pull_request:
     branches: [main, dev]
+  # Déclenchement manuel depuis l'onglet Actions (bouton « Run workflow »).
+  # Utile quand un push n'a pas déclenché de run — c'est arrivé le 19/07 : le
+  # merge sur main n'a généré aucun événement côté GitHub, laissant la dernière
+  # CI de main au rouge alors que le correctif était validé sur dev.
+  # Volontairement absent de deploy.yml : un bouton qui redéploie la prod par
+  # inadvertance serait dangereux.
+  workflow_dispatch:
 
 jobs:
   # ─── Backend ───────────────────────────────────────────────────────────────
