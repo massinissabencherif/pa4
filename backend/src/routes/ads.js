@@ -6,7 +6,7 @@ const router = Router();
 const VALID_PLACEMENTS = ["HOME", "COMIC_DETAIL", "GUIDES_LIST", "GUIDE_DETAIL"];
 
 // GET /ads?placement=HOME
-// status "ad"      → un vrai encart configuré à afficher (champ ad)
+// status "ad"      → un ou plusieurs encarts à afficher (champs ads[] et ad)
 // status "generic" → aucun visuel perso, mais pas explicitement masqué → affiche générique
 // status "hidden"  → au moins un encart existe et est explicitement désactivé → n'affiche rien
 router.get("/", async (req, res) => {
@@ -35,8 +35,17 @@ router.get("/", async (req, res) => {
 
   if (inWindowWithImage.length === 0) return res.json({ status: "generic" });
 
-  const ad = inWindowWithImage[Math.floor(Math.random() * inWindowWithImage.length)];
-  res.json({ status: "ad", ad });
+  // On renvoie désormais TOUS les encarts diffusables, dans l'ordre défini par
+  // l'admin : le client les fait défiler. Avant, un seul était tiré au hasard et
+  // les autres étaient jetés — le champ `order` ne servait donc à rien.
+  //
+  // Rotation dans l'ordre plutôt qu'aléatoire : l'admin contrôle la séquence, et
+  // le rendu est reproductible (utile en démo comme en test). Contrepartie
+  // assumée : le premier encart récolte toujours la première impression.
+  //
+  // `ad` est conservé — premier de la liste — pour ne casser aucun appelant qui
+  // lirait encore l'ancien format.
+  res.json({ status: "ad", ads: inWindowWithImage, ad: inWindowWithImage[0] });
 });
 
 export default router;
