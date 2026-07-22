@@ -113,9 +113,63 @@ router.post("/assistant/recommend", requireAuth, async (req, res) => {
     await logQuery({ userId: req.user.id, query, resultCount: results.length, success: true });
     res.json({ basis: "ai", message: null, intro: selection.intro, results });
   } catch (e) {
-    console.error("[assistant/recommend]", e.message);
+    console.error("[assistant/recommend]", e.message, e.response?.data ? JSON.stringify(e.response.data) : "");
     await fallbackToAlgo(req, res, { query, reason: e.message || "erreur inconnue" });
   }
+});
+
+// ─── Recherches enregistrées ───────────────────────────────────────────────────
+
+const MAX_SAVED_RESULTS = 10;
+
+// POST /assistant/saved { query, intro, results: [{ comicId, justification }] }
+// Le client renvoie ce qu'il a déjà reçu de /assistant/recommend ; on revérifie
+// chaque comicId en base et on reconstruit un instantané côté serveur (jamais
+// confiance dans le titre/cover envoyés par le client).
+router.post("/assistant/saved", requireAuth, async (req, res) => {
+  const query = String(req.body?.query || "").trim();
+  const intro = req.body?.intro ? String(req.body.intro).slice(0, 500) : null;
+  const items = Array.isArray(req.body?.results) ? req.body.results.slice(0, MAX_SAVED_RESULTS) : [];
+
+  if (!query) return res.status(400).json({ error: "Requête manquante" });
+  if (items.length === 0) return res.status(400).json({ error: "Aucun résultat à enregistrer" });
+
+  const ids = items.map((i) => i?.comicId).filter(Boolean);
+  const comics = await prisma.comic.findMany({
+    where: { id: { in: ids } },
+    select: { id: true, externalId: true, title: true, coverUrl: true },
+  });
+  const comicMap = new Map(comics.map((c) => [c.id, c]));
+
+  const snapshot = items
+    .filter((i) => comicMap.has(i.comicId))
+    .map((i) => ({ ...comicMap.get(i.comicId), justification: i.justification ? String(i.justification).slice(0, 500) : null }));
+
+  if (snapshot.length === 0) return res.status(400).json({ error: "Comics introuvables" });
+
+  const saved = await prisma.savedAssistantQuery.create({
+    data: { userId: req.user.id, query: query.slice(0, MAX_QUERY_LENGTH), intro, results: snapshot },
+  });
+  res.status(201).json(saved);
+});
+
+// GET /assistant/saved — recherches enregistrées par l'utilisateur connecté
+router.get("/assistant/saved", requireAuth, async (req, res) => {
+  const saved = await prisma.savedAssistantQuery.findMany({
+    where: { userId: req.user.id },
+    orderBy: { createdAt: "desc" },
+  });
+  res.json(saved);
+});
+
+// DELETE /assistant/saved/:id
+router.delete("/assistant/saved/:id", requireAuth, async (req, res) => {
+  const saved = await prisma.savedAssistantQuery.findUnique({ where: { id: req.params.id } });
+  if (!saved || saved.userId !== req.user.id) {
+    return res.status(404).json({ error: "Introuvable" });
+  }
+  await prisma.savedAssistantQuery.delete({ where: { id: req.params.id } });
+  res.status(204).end();
 });
 
 // ─── Admin — visibilité + contrôle ────────────────────────────────────────────
