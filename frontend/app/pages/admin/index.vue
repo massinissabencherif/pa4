@@ -461,7 +461,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="comic in comics" :key="comic.id" class="border-b border-white/5 last:border-0 hover:bg-white/3 transition-colors">
+            <tr v-for="comic in paginatedComics" :key="comic.id" class="border-b border-white/5 last:border-0 hover:bg-white/3 transition-colors">
               <td class="px-5 py-4">
                 <div class="flex items-center gap-3">
                   <div class="w-9 h-12 rounded-lg overflow-hidden bg-white/5 shrink-0">
@@ -497,6 +497,21 @@
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- Pagination comics -->
+      <div v-if="comicsTotalPages > 1" class="flex items-center justify-center gap-2 mt-6">
+        <button
+          @click="comicsPage--"
+          :disabled="comicsPage === 1"
+          class="px-3 py-1.5 rounded-lg text-[13px] text-white border border-white/10 hover:bg-white/5 transition disabled:opacity-30 disabled:cursor-not-allowed"
+        >← Précédent</button>
+        <span class="text-[13px] text-white px-2">Page {{ comicsPage }} / {{ comicsTotalPages }}</span>
+        <button
+          @click="comicsPage++"
+          :disabled="comicsPage === comicsTotalPages"
+          class="px-3 py-1.5 rounded-lg text-[13px] text-white border border-white/10 hover:bg-white/5 transition disabled:opacity-30 disabled:cursor-not-allowed"
+        >Suivant →</button>
       </div>
 
       </template>
@@ -1083,7 +1098,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="u in users" :key="u.id" class="border-b border-white/5 last:border-0 hover:bg-white/3 transition-colors">
+              <tr v-for="u in paginatedUsers" :key="u.id" class="border-b border-white/5 last:border-0 hover:bg-white/3 transition-colors">
                 <td class="px-5 py-4 font-medium text-white">{{ u.username }}</td>
                 <td class="px-5 py-4 hidden sm:table-cell text-white text-[13px]">{{ u.email }}</td>
                 <td class="px-5 py-4">
@@ -1120,6 +1135,21 @@
           </table>
         </div>
 
+        <!-- Pagination utilisateurs -->
+        <div v-if="usersTotalPages > 1" class="flex items-center justify-center gap-2 mt-6">
+          <button
+            @click="usersPage--"
+            :disabled="usersPage === 1"
+            class="px-3 py-1.5 rounded-lg text-[13px] text-white border border-white/10 hover:bg-white/5 transition disabled:opacity-30 disabled:cursor-not-allowed"
+          >← Précédent</button>
+          <span class="text-[13px] text-white px-2">Page {{ usersPage }} / {{ usersTotalPages }}</span>
+          <button
+            @click="usersPage++"
+            :disabled="usersPage === usersTotalPages"
+            class="px-3 py-1.5 rounded-lg text-[13px] text-white border border-white/10 hover:bg-white/5 transition disabled:opacity-30 disabled:cursor-not-allowed"
+          >Suivant →</button>
+        </div>
+
       </template>
 
     </div>
@@ -1150,6 +1180,15 @@ const stats = computed(() => [
 const comics = ref([])
 const loadingComics = ref(true)
 
+const ADMIN_PAGE_SIZE = 20
+const comicsPage = ref(1)
+const comicsTotalPages = computed(() => Math.max(1, Math.ceil(comics.value.length / ADMIN_PAGE_SIZE)))
+const paginatedComics = computed(() => {
+  const page = Math.min(comicsPage.value, comicsTotalPages.value)
+  const start = (page - 1) * ADMIN_PAGE_SIZE
+  return comics.value.slice(start, start + ADMIN_PAGE_SIZE)
+})
+
 async function loadAll() {
   loadingComics.value = true
   try {
@@ -1159,6 +1198,7 @@ async function loadAll() {
     ])
     statsData.value = s
     comics.value = c
+    comicsPage.value = 1
   } catch {}
   loadingComics.value = false
 }
@@ -1352,6 +1392,7 @@ async function submitComic() {
         } catch {}
       }
       comics.value.unshift({ ...comic, _count: { readingEntries: 0, reviews: 0 } })
+      comicsPage.value = 1
       statsData.value = { ...statsData.value, comics: (statsData.value?.comics ?? 0) + 1 }
       closeUpload()
     } else {
@@ -1716,11 +1757,20 @@ const loadingUsers = ref(false)
 const userRoleLoadingId = ref(null)
 const usersError = ref('')
 
+const usersPage = ref(1)
+const usersTotalPages = computed(() => Math.max(1, Math.ceil(users.value.length / ADMIN_PAGE_SIZE)))
+const paginatedUsers = computed(() => {
+  const page = Math.min(usersPage.value, usersTotalPages.value)
+  const start = (page - 1) * ADMIN_PAGE_SIZE
+  return users.value.slice(start, start + ADMIN_PAGE_SIZE)
+})
+
 async function fetchUsers() {
   loadingUsers.value = true
   usersError.value = ''
   try {
     users.value = await $fetch(`${base}/admin/users`, { headers: authHeaders() })
+    usersPage.value = 1
   } catch (e) {
     usersError.value = e.data?.error || 'Erreur lors du chargement des utilisateurs'
   } finally {
