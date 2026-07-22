@@ -46,6 +46,7 @@ model User {
   passwordResetTokens PasswordResetToken[]
   notifications       Notification[] @relation("NotificationRecipient")
   notificationsCaused Notification[] @relation("NotificationActor")
+  assistantQueries    AssistantQuery[]
 }
 
 enum Role {
@@ -426,4 +427,30 @@ enum NotificationType {
   REVIEW_COMMENT
   GUIDE_REPLY
   BADGE
+}
+
+// ─── Conseiller de lecture IA ─────────────────────────────────────────────────
+
+// Ligne unique (id fixe "singleton") — permet d'activer/désactiver la feature
+// et d'ajuster son rate limit depuis l'admin, sans redéploiement.
+model AssistantSettings {
+  id                String   @id @default("singleton")
+  enabled           Boolean  @default(true)
+  rateLimitPerMinute Int     @default(10)
+  updatedAt         DateTime @updatedAt
+}
+
+model AssistantQuery {
+  id           String   @id @default(cuid())
+  userId       String
+  query        String
+  resultCount  Int      @default(0)
+  success      Boolean
+  errorMessage String?
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
 }

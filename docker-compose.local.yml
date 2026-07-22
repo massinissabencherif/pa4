@@ -41,7 +41,8 @@ services:
       TOTP_ENCRYPTION_KEY: 00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff
       FRONTEND_URL: http://localhost:${FRONT_PORT:-3000}
       API_BASE_URL: http://localhost:${BACK_PORT:-3001}
-      # OAuth / Marvel / Mail non configurés en local → dégradation propre (boutons OAuth inactifs, emails non envoyés)
+      # OAuth / Marvel / Mail / Anthropic non configurés en local → dégradation propre
+      # (boutons OAuth inactifs, emails non envoyés, assistant IA bascule sur la reco algo)
     ports:
       - "${BACK_PORT:-3001}:3001"
     volumes:
