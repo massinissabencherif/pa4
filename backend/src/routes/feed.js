@@ -116,13 +116,13 @@ router.get("/feed", requireAuth, async (req, res) => {
   res.json({ events, empty: events.length === 0, suggestion: false });
 });
 
-// GET /recommendations — comics recommandés basés sur les goûts
-router.get("/recommendations", requireAuth, async (req, res) => {
-  const { limit } = parsePagination(req.query, { limit: 12, max: 24 });
-
+// Reco algorithmique basée sur les goûts (genres/auteurs du journal de lecture).
+// Extraite en fonction réutilisable : sert la route ci-dessous ET le fallback de
+// l'assistant IA (voir routes/assistant.js) quand le LLM est indisponible.
+export async function getAlgoRecommendations(userId, limit) {
   // Comics déjà dans la liste de l'utilisateur
   const myEntries = await prisma.readingEntry.findMany({
-    where: { userId: req.user.id },
+    where: { userId },
     select: { comicId: true, comic: { select: { genres: true, authors: true } } },
   });
 
@@ -147,7 +147,7 @@ router.get("/recommendations", requireAuth, async (req, res) => {
       orderBy: { createdAt: "desc" },
       select: { id: true, externalId: true, title: true, coverUrl: true, genres: true, authors: true, _count: { select: { reviews: true } } },
     });
-    return res.json({ recommendations: popular, basis: "popular" });
+    return { recommendations: popular, basis: "popular" };
   }
 
   // Chercher des comics avec genres/auteurs similaires
@@ -181,7 +181,14 @@ router.get("/recommendations", requireAuth, async (req, res) => {
 
   scored.sort((a, b) => b.score - a.score);
 
-  res.json({ recommendations: scored.slice(0, limit), basis: "taste", topGenres });
+  return { recommendations: scored.slice(0, limit), basis: "taste", topGenres };
+}
+
+// GET /recommendations — comics recommandés basés sur les goûts
+router.get("/recommendations", requireAuth, async (req, res) => {
+  const { limit } = parsePagination(req.query, { limit: 12, max: 24 });
+  const result = await getAlgoRecommendations(req.user.id, limit);
+  res.json(result);
 });
 
 export default router;
