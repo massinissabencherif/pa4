@@ -26,7 +26,7 @@
         />
         <div style="position:absolute;inset:0;background:linear-gradient(to right,rgba(0,0,0,0.95) 40%,transparent 100%);"></div>
         <div class="max-w-[1100px] mx-auto px-6 py-12" style="position:relative;">
-          <NuxtLink to="/recommendations" style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:3px;color:#fff;text-transform:uppercase;text-decoration:none;display:inline-flex;align-items:center;gap:8px;margin-bottom:20px;transition:color 0.15s;" class="hover:text-[#888]">
+          <NuxtLink to="/guides" style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:3px;color:#fff;text-transform:uppercase;text-decoration:none;display:inline-flex;align-items:center;gap:8px;margin-bottom:20px;transition:color 0.15s;" class="hover:text-[#888]">
             <span>←</span> Tous les parcours
           </NuxtLink>
           <div style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:5px;color:#e02020;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:10px;">

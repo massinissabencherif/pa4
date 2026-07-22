@@ -110,3 +110,64 @@ describe('GET /ads', () => {
     expect(res.body.ad.altText).toBe('active_row')
   })
 })
+
+describe('GET /ads — encarts multiples (défilement)', () => {
+  it('renvoie tous les encarts diffusables, triés par order', async () => {
+    await prisma.adBanner.create({
+      data: { placement: 'HOME', isActive: true, imageUrl: 'https://example.com/b.png', altText: 'second', order: 2 },
+    })
+    await prisma.adBanner.create({
+      data: { placement: 'HOME', isActive: true, imageUrl: 'https://example.com/a.png', altText: 'premier', order: 1 },
+    })
+
+    const res = await request(app).get('/ads?placement=HOME')
+    expect(res.body.status).toBe('ad')
+    expect(res.body.ads).toHaveLength(2)
+    expect(res.body.ads.map((a) => a.altText)).toEqual(['premier', 'second'])
+  })
+
+  it('conserve le champ ad (compatibilité) sur le premier de la liste', async () => {
+    await prisma.adBanner.create({
+      data: { placement: 'HOME', isActive: true, imageUrl: 'https://example.com/a.png', altText: 'premier', order: 1 },
+    })
+    await prisma.adBanner.create({
+      data: { placement: 'HOME', isActive: true, imageUrl: 'https://example.com/b.png', altText: 'second', order: 2 },
+    })
+
+    const res = await request(app).get('/ads?placement=HOME')
+    expect(res.body.ad.altText).toBe('premier')
+    expect(res.body.ad.id).toBe(res.body.ads[0].id)
+  })
+
+  it('un seul encart diffusable → ads contient une seule entrée', async () => {
+    await prisma.adBanner.create({
+      data: { placement: 'HOME', isActive: true, imageUrl: 'https://example.com/solo.png', altText: 'solo' },
+    })
+    const res = await request(app).get('/ads?placement=HOME')
+    expect(res.body.ads).toHaveLength(1)
+    expect(res.body.ads[0].altText).toBe('solo')
+  })
+
+  it('exclut du défilement les encarts hors fenêtre de diffusion', async () => {
+    await prisma.adBanner.create({
+      data: { placement: 'HOME', isActive: true, imageUrl: 'https://example.com/ok.png', altText: 'diffusable', order: 1 },
+    })
+    await prisma.adBanner.create({
+      data: {
+        placement: 'HOME',
+        isActive: true,
+        imageUrl: 'https://example.com/expire.png',
+        altText: 'expire',
+        order: 2,
+        endAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
+      },
+    })
+    await prisma.adBanner.create({
+      data: { placement: 'HOME', isActive: false, imageUrl: 'https://example.com/off.png', altText: 'desactive', order: 3 },
+    })
+
+    const res = await request(app).get('/ads?placement=HOME')
+    expect(res.body.ads).toHaveLength(1)
+    expect(res.body.ads[0].altText).toBe('diffusable')
+  })
+})

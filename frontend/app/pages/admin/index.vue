@@ -892,6 +892,83 @@
 
       </template>
 
+      <!-- ─── ONGLET ASSISTANT IA ─── -->
+      <template v-if="activeTab === 'assistant'">
+        <div v-if="loadingAssistant" class="text-center py-24 text-white">Chargement…</div>
+        <template v-else-if="assistantData">
+          <!-- Réglages : kill switch + rate limit, à chaud -->
+          <div class="card p-6 mb-6">
+            <h2 class="text-lg font-bold mb-4">Réglages</h2>
+            <div class="flex flex-wrap items-end gap-6">
+              <label class="flex items-center gap-2 text-sm text-white">
+                <input v-model="assistantForm.enabled" type="checkbox" class="rounded" />
+                Assistant activé
+              </label>
+              <div>
+                <label class="block text-[13px] font-medium text-white mb-1.5">Rate limit (requêtes / min / utilisateur)</label>
+                <input v-model="assistantForm.rateLimitPerMinute" type="number" min="1" max="100" class="input w-40" />
+              </div>
+              <button @click="saveAssistantSettings" :disabled="assistantSaving" class="btn-primary disabled:opacity-40">
+                {{ assistantSaving ? '…' : 'Enregistrer' }}
+              </button>
+            </div>
+            <div v-if="assistantError" class="text-sm text-red-400 mt-3">{{ assistantError }}</div>
+            <p v-if="!assistantForm.enabled" class="text-[13px] text-yellow-400 mt-3">
+              Désactivé : les utilisateurs basculent automatiquement sur la reco algorithmique classique.
+            </p>
+          </div>
+
+          <!-- Stats -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+            <div class="card p-5">
+              <div class="text-[13px] text-white mb-1">Requêtes totales</div>
+              <div class="text-2xl font-bold text-white">{{ assistantData.stats.total }}</div>
+            </div>
+            <div class="card p-5">
+              <div class="text-[13px] text-white mb-1">Réussies</div>
+              <div class="text-2xl font-bold text-green-400">{{ assistantData.stats.successCount }}</div>
+            </div>
+            <div class="card p-5">
+              <div class="text-[13px] text-white mb-1">Échouées / fallback</div>
+              <div class="text-2xl font-bold text-yellow-400">{{ assistantData.stats.failureCount }}</div>
+            </div>
+            <div class="card p-5">
+              <div class="text-[13px] text-white mb-1">Coût estimé</div>
+              <div class="text-2xl font-bold text-white">${{ assistantData.stats.estimatedCostUsd.toFixed(3) }}</div>
+            </div>
+          </div>
+
+          <!-- Requêtes récentes -->
+          <div v-if="!assistantData.recent.length" class="text-center py-16">
+            <p class="text-white">Aucune requête pour l'instant.</p>
+          </div>
+          <div v-else class="overflow-hidden rounded-2xl border border-white/8">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b border-white/8 text-left text-[13px] text-white">
+                  <th class="px-5 py-3.5 font-medium">Utilisateur</th>
+                  <th class="px-5 py-3.5 font-medium">Requête</th>
+                  <th class="px-5 py-3.5 font-medium">Statut</th>
+                  <th class="px-5 py-3.5 font-medium hidden sm:table-cell">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="q in assistantData.recent" :key="q.id" class="border-b border-white/5 last:border-0 hover:bg-white/3 transition-colors">
+                  <td class="px-5 py-4 text-white text-[13px]">{{ q.user?.username || '—' }}</td>
+                  <td class="px-5 py-4 text-white text-[13px] max-w-xs truncate" :title="q.query">{{ q.query }}</td>
+                  <td class="px-5 py-4">
+                    <span :class="q.success ? 'text-green-400' : 'text-yellow-400'" class="text-[13px]">
+                      {{ q.success ? `OK · ${q.resultCount}` : (q.errorMessage || 'fallback') }}
+                    </span>
+                  </td>
+                  <td class="px-5 py-4 hidden sm:table-cell text-white text-[13px]">{{ new Date(q.createdAt).toLocaleString('fr-FR') }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </template>
+      </template>
+
       <!-- ─── ONGLET À LA UNE (comic de la semaine) ─── -->
       <template v-if="activeTab === 'featured'">
 
@@ -1108,7 +1185,7 @@ const isSuperAdmin = computed(() => {
 })
 
 const tabs = computed(() => {
-  const t = [{ key: 'comics', label: 'Comics' }, { key: 'authors', label: 'Auteurs' }, { key: 'guides', label: 'Parcours' }, { key: 'ads', label: 'Encarts pub' }, { key: 'featured', label: 'À la une' }]
+  const t = [{ key: 'comics', label: 'Comics' }, { key: 'authors', label: 'Auteurs' }, { key: 'guides', label: 'Parcours' }, { key: 'ads', label: 'Encarts pub' }, { key: 'featured', label: 'À la une' }, { key: 'assistant', label: 'Assistant IA' }]
   if (isSuperAdmin.value) t.push({ key: 'users', label: 'Utilisateurs' })
   return t
 })
@@ -1674,7 +1751,44 @@ watch(activeTab, (tab) => {
   if (tab === 'guides' && !guides.value.length) loadGuides()
   if (tab === 'ads' && !ads.value.length) loadAds()
   if (tab === 'featured' && !featuredHistory.value.length) loadFeatured()
+  if (tab === 'assistant' && !assistantData.value) loadAssistant()
 })
+
+// ─── Assistant IA — visibilité + contrôle ────────────────────────────────────
+
+const assistantData = ref(null)
+const loadingAssistant = ref(false)
+const assistantSaving = ref(false)
+const assistantError = ref('')
+const assistantForm = reactive({ enabled: true, rateLimitPerMinute: 10 })
+
+async function loadAssistant() {
+  loadingAssistant.value = true
+  try {
+    const data = await $fetch(`${base}/admin/assistant`, { headers: authHeaders() })
+    assistantData.value = data
+    assistantForm.enabled = data.settings.enabled
+    assistantForm.rateLimitPerMinute = data.settings.rateLimitPerMinute
+  } catch {}
+  loadingAssistant.value = false
+}
+
+async function saveAssistantSettings() {
+  assistantSaving.value = true
+  assistantError.value = ''
+  try {
+    const updated = await $fetch(`${base}/admin/assistant/settings`, {
+      method: 'PATCH',
+      body: { enabled: assistantForm.enabled, rateLimitPerMinute: Number(assistantForm.rateLimitPerMinute) },
+      headers: authHeaders(),
+    })
+    if (assistantData.value) assistantData.value.settings = updated
+  } catch (e) {
+    assistantError.value = e.data?.error || 'Erreur lors de la mise à jour'
+  } finally {
+    assistantSaving.value = false
+  }
+}
 
 // ─── Curation éditoriale — comic de la semaine ───────────────────────────────
 
