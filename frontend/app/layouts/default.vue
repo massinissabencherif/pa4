@@ -7,7 +7,7 @@
       <div class="max-w-[1100px] mx-auto px-6 h-[52px] flex items-center justify-between">
 
         <!-- Logo -->
-        <NuxtLink to="/" class="flex items-center gap-[10px]" aria-label="Comicster — Accueil">
+        <NuxtLink to="/" class="flex items-center gap-[10px] flex-shrink-0" aria-label="Comicster — Accueil">
           <div style="width:26px;height:26px;background:#e02020;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <span style="font-family:impact,sans-serif;font-size:15px;color:#fff;line-height:1;">C</span>
           </div>
@@ -15,7 +15,7 @@
         </NuxtLink>
 
         <!-- Nav links -->
-        <nav class="hidden sm:flex items-center" aria-label="Navigation principale">
+        <nav class="hidden sm:flex items-center flex-1 min-w-0 nav-scroll" aria-label="Navigation principale">
           <NuxtLink
             v-if="isLoggedIn"
             to="/feed"
@@ -73,7 +73,7 @@
         </nav>
 
         <!-- Auth actions -->
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-3 flex-shrink-0">
           <template v-if="isLoggedIn">
             <NotificationBell />
             <NuxtLink
@@ -162,3 +162,17 @@ const onScroll = () => { scrolled.value = window.scrollY > 10 }
 onMounted(() => window.addEventListener('scroll', onScroll))
 onBeforeUnmount(() => window.removeEventListener('scroll', onScroll))
 </script>
+
+<style scoped>
+.nav-scroll {
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.nav-scroll::-webkit-scrollbar {
+  display: none;
+}
+.nav-scroll > a {
+  flex-shrink: 0;
+}
+</style>
