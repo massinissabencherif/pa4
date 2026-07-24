@@ -65,6 +65,12 @@ jobs:
             docker compose -f docker-compose.sandbox.yml exec -T backend-sandbox node prisma/seed-guides.js
             docker image prune -f
 
+      # Staging travaille dans un répertoire dédié (git worktree), comme sandbox
+      # ci-dessus — et pour la même raison. Avant ce fix, ce déploiement faisait
+      # `git pull origin dev` dans /home/ubuntu/pa4, le même dossier que la prod.
+      # Le 24/07, ce pull a échoué en silence ("divergent branches", le script
+      # n'a pas de gestion d'erreur) : les conteneurs staging ont été reconstruits
+      # avec l'ancien code, tout en affichant "succès" côté GitHub Actions.
       - name: Deploy STAGING (dev)
         if: github.ref == 'refs/heads/dev'
         uses: appleboy/ssh-action@v1
@@ -73,7 +79,15 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            cd /home/ubuntu/pa4
+            # Crée le worktree s'il n'existe pas (serveur fraîchement provisionné).
+            # Le .env n'étant pas versionné, on le lie à celui du dépôt principal.
+            if [ ! -d /home/ubuntu/pa4-staging ]; then
+              cd /home/ubuntu/pa4
+              git fetch origin dev
+              git worktree add /home/ubuntu/pa4-staging dev
+              ln -sfn /home/ubuntu/pa4/.env /home/ubuntu/pa4-staging/.env
+            fi
+            cd /home/ubuntu/pa4-staging
             git pull origin dev
             docker compose -f docker-compose.staging.yml -p pa4-staging up -d --build
             docker compose -f docker-compose.staging.yml -p pa4-staging exec -T backend-staging npx prisma migrate deploy
