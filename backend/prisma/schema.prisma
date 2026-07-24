@@ -48,6 +48,8 @@ model User {
   notificationsCaused Notification[] @relation("NotificationActor")
   assistantQueries    AssistantQuery[]
   savedAssistantQueries SavedAssistantQuery[]
+  reportsMade         Report[] @relation("ReportReporter")
+  reportsResolved     Report[] @relation("ReportResolver")
 }
 
 enum Role {
@@ -205,7 +207,7 @@ model Comment {
   createdAt DateTime @default(now())
 
   user   User          @relation(fields: [userId],   references: [id])
-  review Review        @relation(fields: [reviewId], references: [id])
+  review Review        @relation(fields: [reviewId], references: [id], onDelete: Cascade)
   likes  CommentLike[]
 
   @@index([reviewId])
@@ -339,7 +341,10 @@ model GuideReply {
   id        String       @id @default(cuid())
   topic     GuideTopic   @relation(fields: [topicId], references: [id], onDelete: Cascade)
   topicId   String
-  parent    GuideReply?  @relation("ReplyThread", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  // SetNull (pas Cascade) : si une réponse est supprimée (modération ou autre),
+  // ses propres réponses remontent au niveau du topic plutôt que d'être
+  // supprimées en cascade — évite de perdre du contenu innocent.
+  parent    GuideReply?  @relation("ReplyThread", fields: [parentId], references: [id], onDelete: SetNull, onUpdate: NoAction)
   parentId  String?
   children  GuideReply[] @relation("ReplyThread")
   author    User         @relation("GuideReply_author", fields: [authorId], references: [id])
@@ -428,6 +433,55 @@ enum NotificationType {
   REVIEW_COMMENT
   GUIDE_REPLY
   BADGE
+}
+
+// ─── Modération ────────────────────────────────────────────────────────────
+
+// contentSnapshot/authorUsername : instantané du contenu au moment du
+// signalement (même logique que SavedAssistantQuery.results) — le contenu
+// visé est supprimé (hard delete) une fois le signalement résolu, ce
+// snapshot est ce qui reste pour l'audit log ("qui a supprimé quoi, quand").
+model Report {
+  id              String           @id @default(cuid())
+  reporterId      String
+  targetType      ReportTargetType
+  targetId        String
+  reason          ReportReason
+  details         String?
+  status          ReportStatus     @default(PENDING)
+  contentSnapshot String
+  authorUsername  String
+  resolvedById    String?
+  resolvedAt      DateTime?
+  createdAt       DateTime         @default(now())
+
+  reporter   User  @relation("ReportReporter", fields: [reporterId],   references: [id], onDelete: Cascade)
+  resolvedBy User? @relation("ReportResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
+
+  @@unique([reporterId, targetType, targetId])
+  @@index([status, createdAt])
+  @@index([targetType, targetId])
+}
+
+enum ReportTargetType {
+  REVIEW
+  COMMENT
+  GUIDE_TOPIC
+  GUIDE_REPLY
+}
+
+enum ReportReason {
+  SPAM
+  HATE
+  NSFW
+  HARCELEMENT
+  AUTRE
+}
+
+enum ReportStatus {
+  PENDING
+  RESOLVED
+  DISMISSED
 }
 
 // ─── Conseiller de lecture IA ─────────────────────────────────────────────────
