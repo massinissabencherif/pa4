@@ -44,6 +44,20 @@
         </button>
       </div>
 
+      <!-- 2FA requise — sans ça, chaque appel /admin/* échoue en silence -->
+      <div v-if="needs2FASetup" class="card p-6 mb-8 border-red-500/30 bg-red-500/5">
+        <h2 class="font-semibold text-red-400 mb-2">2FA requise pour accéder aux données admin</h2>
+        <p class="text-sm text-white mb-4">
+          Ton compte a bien un rôle administrateur, mais l'accès aux comics, auteurs, encarts, etc. exige
+          en plus la double authentification (2FA). Active-la pour débloquer le tableau de bord.
+        </p>
+        <NuxtLink to="/settings/security" class="btn-primary !py-2 !px-4 text-sm">Activer la 2FA →</NuxtLink>
+      </div>
+      <div v-else-if="adminLoadError" class="card p-6 mb-8 border-red-500/30 bg-red-500/5">
+        <h2 class="font-semibold text-red-400 mb-2">Erreur de chargement</h2>
+        <p class="text-sm text-white">{{ adminLoadError }}</p>
+      </div>
+
       <!-- Onglets -->
       <div class="flex gap-1 mb-8 border-b border-white/8">
         <button
@@ -1236,6 +1250,12 @@ const stats = computed(() => [
   { label: 'Lectures', value: statsData.value?.readingEntries },
 ])
 
+// Accès admin — le rôle seul ne suffit pas côté backend (2FA obligatoire).
+// Sans ce garde-fou, chaque appel /admin/* échoue en silence et la page
+// paraît juste vide, sans aucun indice pour l'admin fraîchement promu.
+const needs2FASetup = ref(false)
+const adminLoadError = ref('')
+
 // Comics
 const comics = ref([])
 const loadingComics = ref(true)
@@ -1259,13 +1279,19 @@ async function loadAll() {
     statsData.value = s
     comics.value = c
     comicsPage.value = 1
-  } catch {}
+  } catch (e) {
+    if (e?.data?.requires2FASetup) {
+      needs2FASetup.value = true
+    } else {
+      adminLoadError.value = e?.data?.error || 'Erreur lors du chargement des données admin.'
+    }
+  }
   loadingComics.value = false
 }
 
-onMounted(() => {
-  loadAll()
-  loadAuthors()
+onMounted(async () => {
+  await loadAll()
+  if (!needs2FASetup.value) loadAuthors()
   document.addEventListener('click', (e) => {
     if (authorDropdownRef.value && !authorDropdownRef.value.contains(e.target)) {
       authorDropdownOpen.value = false
