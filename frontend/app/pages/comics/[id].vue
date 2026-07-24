@@ -240,17 +240,26 @@
                 <NuxtLink :to="`/profile/${r.user.username}`" class="font-medium text-sm text-white hover:text-red-400 transition">{{ r.user.username }}</NuxtLink>
                 <span style="font-family:'Courier New',monospace;font-size:13px;color:#fbbf24;">{{ r.rating }} ★</span>
               </div>
-              <button
-                @click="toggleReviewLike(r)"
-                class="flex items-center gap-1.5 text-[13px] transition shrink-0"
-                :class="r.likedByMe ? 'text-red-400' : 'text-white hover:text-red-400'"
-                :aria-label="r.likedByMe ? 'Retirer le like' : 'Liker cet avis'"
-              >
-                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                </svg>
-                <span>{{ r.likeCount }}</span>
-              </button>
+              <div class="flex items-center gap-3 shrink-0">
+                <button
+                  @click="toggleReviewLike(r)"
+                  class="flex items-center gap-1.5 text-[13px] transition"
+                  :class="r.likedByMe ? 'text-red-400' : 'text-white hover:text-red-400'"
+                  :aria-label="r.likedByMe ? 'Retirer le like' : 'Liker cet avis'"
+                >
+                  <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                  </svg>
+                  <span>{{ r.likeCount }}</span>
+                </button>
+                <button
+                  v-if="isLoggedIn && r.user.id !== currentUserId"
+                  @click="reportTarget = { targetType: 'REVIEW', targetId: r.id }"
+                  class="text-[13px] text-white hover:text-red-400 transition"
+                >
+                  Signaler
+                </button>
+              </div>
             </div>
             <p v-if="r.content" class="text-sm text-white leading-relaxed mb-4">{{ r.content }}</p>
 
@@ -279,6 +288,13 @@
                     class="text-[13px] text-white hover:text-red-400 transition"
                     aria-label="Supprimer ce commentaire"
                   >✕</button>
+                  <button
+                    v-else-if="isLoggedIn"
+                    @click.stop="reportTarget = { targetType: 'COMMENT', targetId: c.id }"
+                    class="text-[13px] text-white hover:text-red-400 transition"
+                  >
+                    Signaler
+                  </button>
                 </div>
               </div>
 
@@ -299,6 +315,13 @@
       </div>
 
     </div>
+
+    <ReportModal
+      v-if="reportTarget"
+      :target-type="reportTarget.targetType"
+      :target-id="reportTarget.targetId"
+      @close="reportTarget = null"
+    />
   </div>
 </template>
 
@@ -534,6 +557,7 @@ const currentUserId = computed(() => {
   const { user } = useAuth()
   return user.value?.id ?? null
 })
+const reportTarget = ref(null)
 
 async function deleteComment(review, comment) {
   try {

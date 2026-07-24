@@ -70,6 +70,16 @@
           <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor"><path d="M6 2a1 1 0 00-.894.553L4.382 4H2a1 1 0 000 2v7a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-2.382l-.724-1.447A1 1 0 0010 2H6zm0 5a1 1 0 112 0v3a1 1 0 11-2 0V7zm4 0a1 1 0 112 0v3a1 1 0 11-2 0V7z"/></svg>
           {{ deleting ? '…' : 'Supprimer' }}
         </button>
+
+        <!-- Signaler (contenu d'un autre utilisateur) -->
+        <button
+          v-if="isLoggedIn && currentUsername !== reply.author.username"
+          @click="reportOpen = true"
+          style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;background:none;border:none;color:#fff;cursor:pointer;display:flex;align-items:center;gap:4px;padding:0;transition:color 0.15s;margin-left:auto;"
+          class="hover:text-[#e02020]"
+        >
+          Signaler
+        </button>
       </div>
 
       <!-- Formulaire de réponse inline -->
@@ -202,6 +212,13 @@
         <img :src="lightboxSrc" style="max-width:90vw;max-height:90vh;object-fit:contain;" @click.stop />
       </div>
     </Teleport>
+
+    <ReportModal
+      v-if="reportOpen"
+      target-type="GUIDE_REPLY"
+      :target-id="reply.id"
+      @close="reportOpen = false"
+    />
   </div>
 </template>
 
@@ -229,6 +246,7 @@ const selectedGifUrl = ref(null)
 const lightboxSrc = ref(null)
 const threadModal = ref(false)
 const deleting = ref(false)
+const reportOpen = ref(false)
 
 function countAll(nodes) {
   return nodes.reduce((n, r) => n + 1 + countAll(r.children || []), 0)
