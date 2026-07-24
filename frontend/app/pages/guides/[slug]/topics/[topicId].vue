@@ -67,6 +67,14 @@
               <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor"><path d="M6 2a1 1 0 00-.894.553L4.382 4H2a1 1 0 000 2v7a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-2.382l-.724-1.447A1 1 0 0010 2H6zm0 5a1 1 0 112 0v3a1 1 0 11-2 0V7zm4 0a1 1 0 112 0v3a1 1 0 11-2 0V7z"/></svg>
               {{ deletingTopic ? '…' : 'Supprimer le sujet' }}
             </button>
+            <button
+              v-else-if="isLoggedIn"
+              @click="reportTopicOpen = true"
+              style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;background:none;border:none;color:#fff;cursor:pointer;display:flex;align-items:center;gap:4px;padding:0;transition:color 0.15s;"
+              class="hover:text-[#e02020]"
+            >
+              Signaler
+            </button>
           </div>
         </div>
 
@@ -155,6 +163,13 @@
         <img :src="lightboxSrc" style="max-width:90vw;max-height:90vh;object-fit:contain;" @click.stop />
       </div>
     </Teleport>
+
+    <ReportModal
+      v-if="reportTopicOpen && topic"
+      target-type="GUIDE_TOPIC"
+      :target-id="topic.id"
+      @close="reportTopicOpen = false"
+    />
   </div>
 </template>
 
@@ -228,6 +243,7 @@ const topLevelSaving = ref(false)
 const topLevelError = ref('')
 const selectedGifUrl = ref(null)
 const lightboxSrc = ref(null)
+const reportTopicOpen = ref(false)
 
 async function submitTopLevel() {
   if (!replyDraft.value.trim() && !selectedGifUrl.value) return

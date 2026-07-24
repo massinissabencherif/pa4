@@ -1066,6 +1066,66 @@
 
       </template>
 
+      <!-- ─── ONGLET MODÉRATION ─── -->
+      <template v-if="activeTab === 'reports'">
+
+        <div class="flex items-center gap-2 mb-6">
+          <button
+            v-for="s in REPORT_STATUSES"
+            :key="s.value"
+            @click="reportsStatus = s.value; loadReports()"
+            class="px-4 py-1.5 rounded-full text-sm font-medium transition"
+            :class="reportsStatus === s.value ? 'bg-red-500 text-white' : 'bg-white/5 text-white hover:bg-white/10'"
+          >
+            {{ s.label }}
+          </button>
+        </div>
+
+        <div v-if="loadingReports" class="text-sm text-white">Chargement…</div>
+        <div v-else-if="!reports.length" class="card p-6 text-white text-sm">Aucun signalement dans cette catégorie.</div>
+
+        <div v-else class="space-y-4">
+          <div v-for="r in reports" :key="r.id" class="card p-5">
+            <div class="flex items-start justify-between gap-4 flex-wrap mb-3">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-[11px] uppercase tracking-widest px-2 py-0.5 rounded-full bg-white/10 text-white">{{ TARGET_LABELS[r.targetType] }}</span>
+                <span class="text-[13px] text-white">signalé par <strong class="text-white">{{ r.reporter.username }}</strong></span>
+                <span class="text-[13px] text-white">· {{ new Date(r.createdAt).toLocaleDateString('fr-FR') }}</span>
+              </div>
+              <span class="text-[13px] font-medium px-2 py-0.5 rounded-full border" :class="reasonBadgeClass(r.reason)">{{ REASON_LABELS[r.reason] }}</span>
+            </div>
+
+            <p v-if="r.details" class="text-sm text-white mb-2">« {{ r.details }} »</p>
+
+            <div class="bg-white/5 border border-white/8 rounded-xl p-3 mb-4">
+              <p class="text-[11px] uppercase tracking-widest text-white mb-1">Contenu signalé — {{ r.authorUsername }}</p>
+              <p class="text-sm text-white whitespace-pre-wrap">{{ r.contentSnapshot }}</p>
+            </div>
+
+            <div v-if="r.status === 'PENDING'" class="flex items-center gap-3">
+              <button
+                @click="resolveReport(r, 'RESOLVE')"
+                :disabled="resolvingId === r.id"
+                class="px-4 py-2 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 transition text-sm disabled:opacity-40"
+              >
+                {{ resolvingId === r.id ? '…' : 'Supprimer le contenu' }}
+              </button>
+              <button
+                @click="resolveReport(r, 'DISMISS')"
+                :disabled="resolvingId === r.id"
+                class="px-4 py-2 rounded-xl border border-white/15 text-white hover:bg-white/5 transition text-sm disabled:opacity-40"
+              >
+                Rejeter le signalement
+              </button>
+            </div>
+            <p v-else class="text-[13px] text-white">
+              {{ r.status === 'RESOLVED' ? 'Contenu supprimé' : 'Rejeté' }} par {{ r.resolvedBy?.username }} le {{ new Date(r.resolvedAt).toLocaleDateString('fr-FR') }}
+            </p>
+          </div>
+        </div>
+
+      </template>
+
       <!-- ─── ONGLET UTILISATEURS ─── -->
       <template v-if="activeTab === 'users'">
 
@@ -1225,7 +1285,7 @@ const isSuperAdmin = computed(() => {
 })
 
 const tabs = computed(() => {
-  const t = [{ key: 'comics', label: 'Comics' }, { key: 'authors', label: 'Auteurs' }, { key: 'guides', label: 'Parcours' }, { key: 'ads', label: 'Encarts pub' }, { key: 'featured', label: 'À la une' }, { key: 'assistant', label: 'Assistant IA' }]
+  const t = [{ key: 'comics', label: 'Comics' }, { key: 'authors', label: 'Auteurs' }, { key: 'guides', label: 'Parcours' }, { key: 'ads', label: 'Encarts pub' }, { key: 'featured', label: 'À la une' }, { key: 'assistant', label: 'Assistant IA' }, { key: 'reports', label: 'Modération' }]
   if (isSuperAdmin.value) t.push({ key: 'users', label: 'Utilisateurs' })
   return t
 })
@@ -1802,7 +1862,48 @@ watch(activeTab, (tab) => {
   if (tab === 'ads' && !ads.value.length) loadAds()
   if (tab === 'featured' && !featuredHistory.value.length) loadFeatured()
   if (tab === 'assistant' && !assistantData.value) loadAssistant()
+  if (tab === 'reports' && !reports.value.length) loadReports()
 })
+
+// ─── Modération ───────────────────────────────────────────────────────────
+
+const REPORT_STATUSES = [
+  { value: 'PENDING', label: 'En attente' },
+  { value: 'RESOLVED', label: 'Résolus' },
+  { value: 'DISMISSED', label: 'Rejetés' },
+]
+const TARGET_LABELS = { REVIEW: 'Avis', COMMENT: 'Commentaire', GUIDE_TOPIC: 'Sujet', GUIDE_REPLY: 'Réponse' }
+const REASON_LABELS = { SPAM: 'Spam', HATE: 'Propos haineux', NSFW: 'NSFW', HARCELEMENT: 'Harcèlement', AUTRE: 'Autre' }
+
+const reportsStatus = ref('PENDING')
+const reports = ref([])
+const loadingReports = ref(false)
+const resolvingId = ref(null)
+
+async function loadReports() {
+  loadingReports.value = true
+  try {
+    const data = await $fetch(`${base}/admin/reports`, { params: { status: reportsStatus.value }, headers: authHeaders() })
+    reports.value = data.reports
+  } catch {}
+  loadingReports.value = false
+}
+
+async function resolveReport(report, action) {
+  if (action === 'RESOLVE' && !confirm('Supprimer définitivement ce contenu ?')) return
+  resolvingId.value = report.id
+  try {
+    await $fetch(`${base}/admin/reports/${report.id}`, { method: 'PATCH', body: { action }, headers: authHeaders() })
+    reports.value = reports.value.filter((r) => r.id !== report.id)
+  } catch {}
+  resolvingId.value = null
+}
+
+function reasonBadgeClass(reason) {
+  return reason === 'HATE' || reason === 'HARCELEMENT'
+    ? 'bg-red-500/15 text-red-400 border-red-500/20'
+    : 'bg-amber-500/15 text-amber-400 border-amber-500/20'
+}
 
 // ─── Assistant IA — visibilité + contrôle ────────────────────────────────────
 
