@@ -2,7 +2,12 @@ import axios from "axios";
 
 const API_URL = "https://api.anthropic.com/v1/messages";
 const MODEL = process.env.LLM_MODEL || "claude-haiku-4-5";
-const TIMEOUT_MS = 8000;
+// 8s s'est révélé trop juste en usage réel (latence Anthropic variable, parfois
+// 4-8s pour un seul des deux appels séquentiels) — constaté en QA pré-soutenance,
+// bascule fréquente sur le repli algorithmique alors que l'appel aboutissait
+// quelques secondes plus tard. Le flux a de toute façon un repli si l'appel
+// échoue vraiment : plus de marge ne coûte qu'un peu d'attente, jamais de casse.
+const TIMEOUT_MS = 15000;
 
 function headers() {
   return {
