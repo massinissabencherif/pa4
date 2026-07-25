@@ -29,8 +29,19 @@ async function withRatings(comics) {
 }
 
 function rewriteUploadUrl(url, req) {
-  if (!url || !url.includes("/uploads/")) return url;
-  const filename = url.split("/uploads/")[1];
+  if (!url) return url;
+  // Pathname réel de l'URL, qu'elle soit relative ("/uploads/x.jpg") ou absolue
+  // ("https://…/uploads/x.jpg"). On n'utilise plus un simple .includes("/uploads/") :
+  // certaines URLs externes (ex: CDN ComicVine, "/a/uploads/...") contiennent la même
+  // sous-chaîne sans être un upload local, et se faisaient réécrire à tort.
+  let pathname;
+  try {
+    pathname = url.startsWith("http") ? new URL(url).pathname : url;
+  } catch {
+    return url;
+  }
+  if (!pathname.startsWith("/uploads/")) return url;
+  const filename = pathname.slice("/uploads/".length);
   const protocol = req.headers["x-forwarded-proto"] || req.protocol;
   const host = req.get("host");
   return `${protocol}://${host}/uploads/${filename}`;
