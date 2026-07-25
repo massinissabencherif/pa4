@@ -152,6 +152,12 @@ app.use((err, req, res, next) => {
   console.error(err);
   if (err.code === "P2002") return res.status(409).json({ error: "Conflit : cette valeur existe déjà" });
   if (err.code === "P2025") return res.status(404).json({ error: "Ressource introuvable" });
+  // Erreurs déjà porteuses d'un status (ex: PayloadTooLargeError du body-parser
+  // sur un corps de requête énorme) : le respecter plutôt qu'un 500 générique.
+  const status = err.status || err.statusCode;
+  if (status && status >= 400 && status < 500) {
+    return res.status(status).json({ error: err.message || "Requête invalide" });
+  }
   res.status(500).json({ error: "Erreur serveur" });
 });
 
