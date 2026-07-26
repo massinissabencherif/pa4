@@ -76,5 +76,40 @@ test.describe('Navigation principale', () => {
     await expect(nav.getByRole('link', { name: 'Feed', exact: true })).toBeVisible()
     await expect(nav.getByRole('link', { name: 'Journal', exact: true })).toBeVisible()
     await expect(nav.getByRole('link', { name: 'Explorer', exact: true })).toBeVisible()
+
+    // Arcade, dernière rubrique, était coupée par le scroll horizontal du nav
+    await expect(nav.getByRole('link', { name: 'Arcade', exact: true })).toBeInViewport()
+    expect(await nav.evaluate((el) => el.scrollWidth - el.clientWidth)).toBe(0)
+  })
+
+  // Un seul login pour tout le parcours mobile : le backend limite les écritures
+  // à 20/min, un login par test ferait sauter la suite en CI.
+  test('en mobile, le menu burger donne accès à toutes les rubriques', async ({ page }) => {
+    await login(page)
+    await page.setViewportSize({ width: 390, height: 844 })
+
+    // la barre desktop est masquée, seul le burger subsiste
+    await expect(page.getByLabel('Navigation principale')).toBeHidden()
+    const burger = page.getByRole('button', { name: 'Ouvrir le menu' })
+    await expect(burger).toBeVisible()
+
+    await burger.click()
+    const drawer = page.locator('#mobile-nav')
+    await expect(drawer).toBeVisible()
+    for (const label of ['Feed', 'Explorer', 'Journal', 'Listes', 'Avis', 'Guide', 'Recos', 'Stats', 'Arcade']) {
+      await expect(drawer.getByRole('link', { name: label, exact: true })).toBeVisible()
+    }
+
+    // Échap referme
+    await page.keyboard.press('Escape')
+    await expect(drawer).toBeHidden()
+
+    // cliquer une rubrique navigue et referme le menu
+    await burger.click()
+    await drawer.getByRole('link', { name: 'Journal', exact: true }).click()
+    await page.waitForURL(/\/journal/, { timeout: 20_000 })
+    await expect(drawer).toBeHidden()
+    // le scroll de page est rendu après fermeture
+    await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe('')
   })
 })
