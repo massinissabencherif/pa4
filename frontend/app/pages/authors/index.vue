@@ -35,8 +35,7 @@
 </template>
 
 <script setup>
-const config = useRuntimeConfig()
-const base = config.public.apiBase
+const base = useApiBase()
 
 // `default` évite un `undefined` si la requête échoue : sans lui, `authors.length`
 // jetait un TypeError et la page entière partait en 500.

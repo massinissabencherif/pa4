@@ -203,8 +203,7 @@
 
 <script setup>
 import { getComicCover } from '~/utils/comicCover.js'
-const config = useRuntimeConfig()
-const base = config.public.apiBase
+const base = useApiBase()
 
 const PAGE_SIZE = 10
 
