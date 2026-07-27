@@ -53,6 +53,9 @@ const USERS_DATA = [
   { username: "inkandcolor",    email: "inkandcolor@demo.com",    role: "USER" },
   { username: "frenchcomics",   email: "frenchcomics@demo.com",   role: "USER" },
   { username: "comicster_mod",  email: "comicster_mod@demo.com",  role: "ADMIN" },
+  // Compte d'exploration de la démo : la 2FA reste obligatoire pour toute action
+  // admin (cf. middleware/requireAdmin.js), elle s'active depuis /settings/security.
+  { username: "comicster_boss", email: "comicster_boss@demo.com", role: "SUPER_ADMIN" },
 ];
 
 // ─── Comics ───────────────────────────────────────────────────────────────────
@@ -692,12 +695,15 @@ async function main() {
 
   console.log("\n✅ Seed terminé !\n");
   console.log("Comptes de démonstration (mot de passe: demo2026!) :");
+  console.log("  • comicster_boss@demo.com (SUPER_ADMIN)");
   console.log("  • comicster_mod@demo.com  (ADMIN)");
   console.log("  • batmaniac@demo.com      (USER)");
   console.log("  • spiderfan42@demo.com    (USER)");
   console.log("  • rorschach42@demo.com    (USER)");
   console.log("  • indiefan@demo.com       (USER)");
   console.log("  + 11 autres comptes USER\n");
+  console.log("Le panneau /admin exige la 2FA : connecte-toi en SUPER_ADMIN puis");
+  console.log("active-la depuis /settings/security (QR code à scanner).\n");
 }
 
 main()

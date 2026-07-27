@@ -262,8 +262,7 @@
 import { getComicCover } from '~/utils/comicCover.js'
 definePageMeta({ middleware: 'auth' })
 
-const config = useRuntimeConfig()
-const base = config.public.apiBase
+const base = useApiBase()
 const { token } = useAuth()
 
 const headers = computed(() => ({ Authorization: `Bearer ${token.value}` }))
