@@ -4,11 +4,21 @@ import { requireAdmin } from "../middleware/requireAdmin.js";
 import prisma from "../lib/prisma.js";
 import { extractCriteria, selectAndJustify } from "../lib/llm.js";
 import { getAlgoRecommendations } from "./feed.js";
+import { buildTsQueryAny, diversifyBySeries } from "../lib/search.js";
 
 const router = Router();
 
 const MAX_QUERY_LENGTH = 500;
 const MAX_CANDIDATES = 20;
+// Part réservée aux correspondances ciblées (noms propres cités) : assez pour
+// couvrir plusieurs numéros d'une série demandée, en laissant la place au
+// complément par genres.
+const TARGETED_TAKE = 12;
+// Vivier interrogé avant plafonnement par série — surdimensionné exprès : après
+// avoir gardé 2 numéros par série, il faut encore de quoi remplir MAX_CANDIDATES.
+const GENRE_POOL = 150;
+// Les auteurs sont un String[] non indexable en plein-texte : on filtre en mémoire.
+const AUTHOR_POOL = 500;
 
 // Rate limit par utilisateur, ajustable depuis l'admin sans redéploiement
 // (contrairement à express-rate-limit, dont la config est figée au démarrage).
@@ -42,6 +52,88 @@ async function logQuery({ userId, query, resultCount, success, errorMessage }) {
   } catch {
     // Le log ne doit jamais faire échouer la requête utilisateur
   }
+}
+
+const CANDIDATE_FIELDS = {
+  id: true,
+  externalId: true,
+  title: true,
+  coverUrl: true,
+  genres: true,
+  authors: true,
+  description: true,
+};
+
+// Constitue le jeu de candidats soumis au modèle.
+//
+// L'ancienne version filtrait sur les genres puis prenait `take: 20` trié par
+// `createdAt desc`. Deux conséquences : un nom propre cité par l'utilisateur
+// n'atteignait jamais la requête (« superman » était généralisé en genre, et le
+// premier comic Superman arrive au rang 334 par ancienneté d'import — donc hors
+// d'atteinte), et comme 434 des 651 comics portent « Super-héros », presque toute
+// demande recevait les 20 mêmes numéros consécutifs de Batgirl et Harley Quinn.
+//
+// On combine désormais deux sources :
+//   1. ciblée — recherche plein-texte sur les noms propres cités (titre, description,
+//      auteurs), classée par pertinence. C'est elle qui rend « superman » atteignable.
+//   2. complément — filtre par genres, classé par popularité (nombre d'avis) puis par
+//      date de publication, et plafonné à 2 numéros par série pour que les candidats
+//      couvrent réellement le catalogue au lieu d'une seule collection.
+export async function gatherCandidates(criteria) {
+  const exclusion = criteria.exclude?.length
+    ? { NOT: { genres: { hasSome: criteria.exclude } } }
+    : {};
+
+  const subjects = (criteria.subjects || []).map((s) => String(s).trim()).filter(Boolean);
+  let targeted = [];
+
+  if (subjects.length) {
+    const tsQuery = buildTsQueryAny(subjects);
+    const [textMatches, authorPool] = await Promise.all([
+      tsQuery
+        ? prisma.comic.findMany({
+            where: { AND: [{ OR: [{ title: { search: tsQuery } }, { description: { search: tsQuery } }] }, exclusion] },
+            orderBy: { _relevance: { fields: ["title", "description"], search: tsQuery, sort: "desc" } },
+            take: TARGETED_TAKE,
+            select: CANDIDATE_FIELDS,
+          })
+        : Promise.resolve([]),
+      // Les auteurs sont un String[] : pas de plein-texte dessus, on filtre en mémoire
+      // sur un échantillon — même approche que /comics/search.
+      prisma.comic.findMany({
+        where: { AND: [{ authors: { isEmpty: false } }, exclusion] },
+        take: AUTHOR_POOL,
+        select: CANDIDATE_FIELDS,
+      }),
+    ]);
+
+    const needles = subjects.map((s) => s.toLowerCase());
+    const authorMatches = authorPool.filter((c) =>
+      c.authors.some((a) => needles.some((n) => a.toLowerCase().includes(n)))
+    );
+
+    targeted = dedupeById([...textMatches, ...authorMatches]).slice(0, TARGETED_TAKE);
+  }
+
+  const genreWhere = criteria.genres?.length
+    ? { AND: [{ genres: { hasSome: criteria.genres } }, exclusion] }
+    : exclusion;
+
+  const genrePool = await prisma.comic.findMany({
+    where: genreWhere,
+    orderBy: [{ reviews: { _count: "desc" } }, { publishedAt: "desc" }],
+    take: GENRE_POOL,
+    select: CANDIDATE_FIELDS,
+  });
+
+  const complement = diversifyBySeries(genrePool, 2);
+
+  return dedupeById([...targeted, ...complement]).slice(0, MAX_CANDIDATES);
+}
+
+function dedupeById(comics) {
+  const seen = new Set();
+  return comics.filter((c) => (seen.has(c.id) ? false : (seen.add(c.id), true)));
 }
 
 async function fallbackToAlgo(req, res, { query, reason }) {
@@ -82,22 +174,21 @@ router.post("/assistant/recommend", requireAuth, async (req, res) => {
 
     const criteria = await extractCriteria(query, allGenres);
 
-    const where = {};
-    if (criteria.genres?.length) where.genres = { hasSome: criteria.genres };
-    if (criteria.exclude?.length) where.NOT = { genres: { hasSome: criteria.exclude } };
+    if (!criteria) {
+      return fallbackToAlgo(req, res, { query, reason: "extraction des critères illisible" });
+    }
 
-    const candidates = await prisma.comic.findMany({
-      where,
-      take: MAX_CANDIDATES,
-      select: { id: true, externalId: true, title: true, coverUrl: true, genres: true, authors: true, description: true },
-      orderBy: { createdAt: "desc" },
-    });
+    const candidates = await gatherCandidates(criteria);
 
     if (candidates.length === 0) {
       return fallbackToAlgo(req, res, { query, reason: "aucun candidat trouvé pour ces critères" });
     }
 
-    const selection = await selectAndJustify(query, candidates);
+    const selection = await selectAndJustify(query, candidates, criteria);
+
+    if (!selection) {
+      return fallbackToAlgo(req, res, { query, reason: "réponse IA illisible (probablement tronquée)" });
+    }
 
     // Anti-hallucination : on ne garde que les id réellement présents parmi les candidats
     // envoyés au modèle — un id inventé ou modifié est silencieusement écarté.
@@ -107,7 +198,14 @@ router.post("/assistant/recommend", requireAuth, async (req, res) => {
       .map((s) => ({ comic: candidateMap.get(s.id), justification: s.justification }));
 
     if (results.length === 0) {
-      return fallbackToAlgo(req, res, { query, reason: "sélection IA vide ou invalide" });
+      // Les deux causes n'ont rien à voir et l'ancien message unique accusait l'IA
+      // d'un échec qui était en fait celui de la récupération : un modèle qui ne
+      // retient rien parmi 20 candidats hors sujet fait correctement son travail.
+      const proposed = (selection.selections || []).length;
+      const reason = proposed === 0
+        ? `aucun candidat pertinent parmi les ${candidates.length} proposés au modèle`
+        : `les ${proposed} id renvoyés par le modèle ne correspondent à aucun candidat`;
+      return fallbackToAlgo(req, res, { query, reason });
     }
 
     await logQuery({ userId: req.user.id, query, resultCount: results.length, success: true });
