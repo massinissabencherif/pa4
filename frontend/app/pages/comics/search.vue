@@ -15,8 +15,8 @@
     <!-- Search bar -->
     <div style="border-bottom:1px solid #1e1e1e;">
       <div class="max-w-[1100px] mx-auto px-6 py-5">
-        <form @submit.prevent="doSearch" style="display:flex;">
-          <div style="flex:1;display:flex;align-items:stretch;border:1px solid #2a2a2a;border-right:none;">
+        <form @submit.prevent="doSearch" style="display:flex;" class="search-form">
+          <div style="flex:1;min-width:0;display:flex;align-items:stretch;border:1px solid #2a2a2a;border-right:none;">
             <input
               v-model="query"
               type="text"
@@ -27,7 +27,7 @@
           <button
             type="submit"
             :disabled="loading"
-            class="btn-primary"
+            class="btn-primary search-submit"
             style="border-radius:0;padding:0 28px;flex-shrink:0;font-size:13px;"
             :style="loading ? 'opacity:0.4;' : ''"
           >{{ loading ? '…' : 'RECHERCHER ▶' }}</button>
@@ -37,7 +37,7 @@
 
     <!-- Filters strip -->
     <div style="border-bottom:1px solid #1e1e1e;">
-      <div class="max-w-[1100px] mx-auto px-6" style="display:flex;align-items:center;height:44px;">
+      <div class="max-w-[1100px] mx-auto px-6 filters-bar">
         <span style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:4px;color:#fff;text-transform:uppercase;padding-right:20px;border-right:1px solid #1e1e1e;flex-shrink:0;">FILTRES</span>
         <select
           v-model="selectedGenre"
@@ -128,7 +128,7 @@
       </div>
 
       <!-- Comics grid -->
-      <div class="max-w-[1100px] mx-auto px-6 pb-12" style="display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:#1a1a1a;">
+      <div class="max-w-[1100px] mx-auto px-6 pb-12 results-grid">
         <NuxtLink
           v-for="comic in displayedComics"
           :key="comic.id"
@@ -307,3 +307,67 @@ function clearFilters() {
   fetchComics()
 }
 </script>
+
+<style scoped>
+/* ── Formulaire de recherche ── */
+/* Le bouton était en `flex-shrink:0` avec 28px de padding de chaque côté, soit
+   197px incompressibles : à 390px il sortait de l'écran de 41px. */
+@media (max-width: 560px) {
+  .search-submit {
+    padding: 0 14px !important;
+    font-size: 11px !important;
+    letter-spacing: 1px;
+  }
+}
+
+/* ── Barre de filtres ── */
+/* Elle était en `display:flex` sans retour à la ligne, hauteur figée à 44px :
+   les 3 selects + 2 champs année + le bouton réclamaient 978px, donc à 390px le
+   document débordait de 588px et le header du layout était étiré avec lui. */
+.filters-bar {
+  display: flex;
+  align-items: center;
+  height: 44px;
+}
+
+@media (max-width: 860px) {
+  .filters-bar {
+    flex-wrap: wrap;
+    height: auto;
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+  /* Les champs se partagent la largeur au lieu de pousser la ligne vers la droite. */
+  .filters-bar > select,
+  .filters-bar > input {
+    flex: 1 1 42%;
+    min-width: 0;
+    width: auto;
+    border-right: none;
+  }
+  .filters-bar > button {
+    margin-left: 0;
+    flex: 1 1 100%;
+  }
+}
+
+/* ── Grille de résultats ── */
+/* `repeat(5,1fr)` en dur donnait 5 colonnes de ~78px sur un téléphone,
+   avec des titres tronqués en « ASTÉR CHE… ». */
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1px;
+  background: #1a1a1a;
+}
+
+@media (max-width: 1024px) {
+  .results-grid { grid-template-columns: repeat(4, 1fr); }
+}
+@media (max-width: 860px) {
+  .results-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 560px) {
+  .results-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
