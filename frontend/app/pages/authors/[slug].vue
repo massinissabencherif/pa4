@@ -68,7 +68,7 @@
 import { getComicCover } from '~/utils/comicCover.js'
 const route = useRoute()
 const config = useRuntimeConfig()
-const base = config.public.apiBase
+const base = useApiBase()
 
 const { data: author, pending, error, refresh } = await useFetch(`${base}/authors/${route.params.slug}`)
 

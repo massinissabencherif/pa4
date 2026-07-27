@@ -329,7 +329,7 @@
 import { getComicCover } from '~/utils/comicCover.js'
 const route = useRoute()
 const config = useRuntimeConfig()
-const base = config.public.apiBase
+const base = useApiBase()
 const { isLoggedIn, token } = useAuth()
 
 const { data: comic, pending, error: _fetchError } = await useFetch(`${base}/comics/${route.params.id}`)

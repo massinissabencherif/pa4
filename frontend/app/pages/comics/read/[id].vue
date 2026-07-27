@@ -81,8 +81,7 @@ definePageMeta({ layout: false, middleware: 'auth' })
 
 const route = useRoute()
 const router = useRouter()
-const config = useRuntimeConfig()
-const base = config.public.apiBase
+const base = useApiBase()
 const { token } = useAuth()
 
 const { data: comic, pending } = await useFetch(`${base}/comics/${route.params.id}`)
