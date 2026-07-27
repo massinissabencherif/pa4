@@ -175,8 +175,7 @@
 
 <script setup>
 const route = useRoute()
-const config = useRuntimeConfig()
-const base = config.public.apiBase
+const base = useApiBase()
 const { token, isLoggedIn, user } = useAuth()
 
 function authHeaders() {

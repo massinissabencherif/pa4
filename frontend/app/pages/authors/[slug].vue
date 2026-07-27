@@ -68,9 +68,15 @@
 import { getComicCover } from '~/utils/comicCover.js'
 const route = useRoute()
 const config = useRuntimeConfig()
-const base = config.public.apiBase
+const base = useApiBase()
 
-const { data: author, pending, error } = await useFetch(`${base}/authors/${route.params.slug}`)
+const { data: author, pending, error, refresh } = await useFetch(`${base}/authors/${route.params.slug}`)
+
+// Même rattrapage que sur /authors : en local le rendu serveur n'atteint pas l'API,
+// et la fiche affichait « Auteur introuvable » alors que l'auteur existe bien.
+onMounted(() => {
+  if (!author.value) refresh()
+})
 
 // SEO — métadonnées dynamiques à partir de l'auteur
 useSeoMeta({

@@ -93,8 +93,7 @@
 </template>
 
 <script setup>
-const config = useRuntimeConfig()
-const base = config.public.apiBase
+const base = useApiBase()
 
 const { data, pending } = await useFetch(`${base}/guides`)
 const guides = computed(() => data.value || [])
