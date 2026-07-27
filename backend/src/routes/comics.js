@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { searchComics, getComicById, normalizeComic } from "../lib/marvel.js";
 import prisma from "../lib/prisma.js";
+import { buildTsQuery } from "../lib/search.js";
 
 const router = Router();
 
@@ -164,15 +165,7 @@ router.get("/publishers", async (req, res) => {
 });
 
 // GET /comics/search?q=batman&limit=20&offset=0
-// Construit une tsquery sûre à partir d'une saisie libre : tokens alphanumériques
-// uniquement, avec préfixe (:*) pour matcher les mots partiels, reliés par AND.
-function buildTsQuery(input) {
-  const tokens = input
-    .toLowerCase()
-    .match(/[\p{L}\p{N}]+/gu);
-  if (!tokens || tokens.length === 0) return null;
-  return tokens.map((t) => `${t}:*`).join(" & ");
-}
+// buildTsQuery vit dans lib/search.js — partagé avec l'assistant IA.
 
 router.get("/search", async (req, res) => {
   const { q, sort } = req.query;
