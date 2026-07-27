@@ -67,6 +67,11 @@ services:
       # Sans ça, appEnv retombe sur "production" → cookies secure → refusés en http://localhost
       # (la session ne persiste pas, le login semble échouer). "local" => secure=false.
       NUXT_PUBLIC_APP_ENV: local
+      # Le navigateur atteint l'API sur localhost:3001 (port publié), mais ce
+      # conteneur-ci n'y trouve que lui-même : au rendu serveur il doit passer par le
+      # nom de service. Sans cette variable, tous les useFetch du SSR échouaient et
+      # les pages arrivaient vides (fiche comic, lecteur, guides, feed, arcade).
+      NUXT_API_BASE_SERVER: http://backend:3001
     ports:
       - "${FRONT_PORT:-3000}:3000"
 

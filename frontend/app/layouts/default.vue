@@ -14,7 +14,7 @@
           <div style="width:26px;height:26px;background:#e02020;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <span style="font-family:impact,sans-serif;font-size:15px;color:#fff;line-height:1;">C</span>
           </div>
-          <span style="font-family:impact,sans-serif;font-size:18px;letter-spacing:4px;color:#fff;text-transform:uppercase;">COMICSTER</span>
+          <span class="brand-text">COMICSTER</span>
         </NuxtLink>
 
         <!-- Nav links (desktop) -->
@@ -67,11 +67,8 @@
             </button>
           </template>
           <template v-else>
-            <NuxtLink
-              to="/auth/login"
-              style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#fff;text-decoration:none;padding:7px 14px;border:1px solid #3a3a3a;transition:border-color 0.15s,color 0.15s;"
-            >LOGIN_</NuxtLink>
-            <NuxtLink to="/auth/register" class="btn-primary" style="font-size:12px;padding:8px 16px;">
+            <NuxtLink to="/auth/login" class="auth-login">LOGIN_</NuxtLink>
+            <NuxtLink to="/auth/register" class="btn-primary auth-register">
               S'INSCRIRE
             </NuxtLink>
           </template>
@@ -203,6 +200,42 @@ onBeforeUnmount(() => {
 }
 .nav-scroll > a {
   flex-shrink: 0;
+}
+
+/* ── Logo ── */
+.brand-text {
+  font-family: impact, sans-serif;
+  font-size: 18px;
+  letter-spacing: 4px;
+  color: #fff;
+  text-transform: uppercase;
+}
+
+/* ── Actions visiteur non connecté ── */
+.auth-login {
+  font-family: 'Courier New', monospace;
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #fff;
+  text-decoration: none;
+  padding: 7px 14px;
+  border: 1px solid #3a3a3a;
+  white-space: nowrap;
+  transition: border-color 0.15s, color 0.15s;
+}
+.auth-register {
+  font-size: 12px;
+  padding: 8px 16px;
+  white-space: nowrap;
+}
+/* Logo + LOGIN_ + S'INSCRIRE réclamaient ~450px : sur un écran de 390px le
+   bouton d'inscription sortait de l'écran. On resserre plutôt que de masquer,
+   les deux actions restent la porte d'entrée du site. */
+@media (max-width: 560px) {
+  .brand-text { font-size: 15px; letter-spacing: 2px; }
+  .auth-login { font-size: 8px; letter-spacing: 2px; padding: 7px 10px; }
+  .auth-register { font-size: 11px; letter-spacing: 2px; padding: 8px 11px; }
 }
 
 /* ── Nav desktop ── */

@@ -470,7 +470,20 @@ async function main() {
   }
   console.log(`  ✓ ${likeCount} likes`);
 
-  // 7. Résumé final
+  // 7. Planche de démonstration
+  // Sans `pdfUrl`, la fiche comic n'affiche aucun bouton de lecture : le lecteur
+  // intégré était donc invisible sur les 45 comics du jeu de démo. On rattache une
+  // planche générique — servie par le frontend — pour que le parcours de lecture
+  // (ouverture, passage automatique en « en cours », marquage terminé) soit
+  // réellement exerçable. Uniquement local : en production les comics portent de
+  // vrais fichiers, on ne touche qu'à ceux qui n'en ont pas.
+  const { count: pdfCount } = await prisma.comic.updateMany({
+    where: { pdfUrl: null },
+    data: { pdfUrl: "/demo/planche-demonstration.pdf" },
+  });
+  console.log(`  ✓ planche de démonstration rattachée à ${pdfCount} comics`);
+
+  // 8. Résumé final
   const [users, comics, guides, lists, reviews, entries, follows, comments, topics] =
     await Promise.all([
       prisma.user.count(),

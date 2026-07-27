@@ -30,15 +30,29 @@ start() {
   echo "🦸  Démarrage de Comicster (build + migrations Prisma automatiques)…"
   $COMPOSE up -d --build --wait
   echo "🌱  Chargement des données de démo…"
-  $COMPOSE exec -T backend node prisma/seed-guides.js  || echo "   (seed-guides ignoré)"
-  $COMPOSE exec -T backend node prisma/seed-demo.js    || echo "   (seed-demo ignoré)"
-  $COMPOSE exec -T backend node prisma/seed-demo-2.js  || echo "   (seed-demo-2 ignoré)"
+  # Un seed qui échoue laissait l'app démarrer sur une base vide en affichant
+  # quand même « Comicster tourne ! » — on veut au contraire un échec bruyant.
+  local failed=0
+  for seed in seed-guides.js seed-demo.js seed-demo-2.js seed-authors.mjs; do
+    if ! $COMPOSE exec -T backend node "prisma/$seed"; then
+      echo "❌  Le seed $seed a échoué."
+      failed=1
+    fi
+  done
+  if [ "$failed" -eq 1 ]; then
+    echo
+    echo "⚠️   L'application tourne mais les données de démo sont incomplètes."
+    echo "    Relance depuis une base vierge :  ./start.sh reset"
+    exit 1
+  fi
   cat <<EOF
 
 ✅  Comicster tourne !
     Front  →  http://localhost:${FRONT_PORT}
     API    →  http://localhost:${BACK_PORT}/health
     Comptes démo : n'importe quel utilisateur de la liste, mot de passe  demo2026!
+    Super admin  : comicster_boss@demo.com  (le panneau /admin exige d'activer
+                   la 2FA au préalable depuis /settings/security)
     (OAuth Google/GitHub inactif en local — connexion par email / mot de passe)
 
     Arrêter         →  ./start.sh down
