@@ -200,8 +200,7 @@
 <script setup>
 definePageMeta({ middleware: 'auth' })
 
-const config = useRuntimeConfig()
-const base = config.public.apiBase
+const base = useApiBase()
 const { token } = useAuth()
 
 const { data: stats, pending } = await useFetch(`${base}/stats/me`, {
