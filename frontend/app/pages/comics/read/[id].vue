@@ -17,8 +17,9 @@
         <p class="text-sm font-medium text-white truncate">{{ comic?.title ?? '…' }}</p>
       </div>
 
-      <!-- Statut lecture -->
-      <div v-if="entry" class="flex items-center gap-3">
+      <!-- Statut lecture — masqué sur une planche générique : « J'ai terminé »
+           écrirait une lecture achevée pour un titre qu'on n'a pas pu lire. -->
+      <div v-if="entry && !isPlaceholder" class="flex items-center gap-3">
         <span v-if="entry.status === 'FINISHED'" class="text-[13px] text-green-400 flex items-center gap-1">
           ✓ Terminé
         </span>
@@ -65,10 +66,20 @@
       </div>
 
       <!-- Lecteur PDF -->
-      <div v-else class="w-full h-[calc(100vh-3.5rem)]">
+      <div v-else class="w-full h-[calc(100vh-3.5rem)] flex flex-col">
+        <!-- Le placeholder n'est pas une vraie planche : on le dit, plutôt que de
+             laisser croire que le titre est lisible. -->
+        <div
+          v-if="isPlaceholder"
+          class="flex items-center gap-2 px-4 py-2 text-[13px] shrink-0"
+          style="background:rgba(224,32,32,0.08);border-bottom:1px solid rgba(224,32,32,0.2);color:#e8a0a0;"
+        >
+          <span aria-hidden="true">ⓘ</span>
+          <span>Ce titre n'est pas encore disponible à la lecture — cet aperçu ne compte pas dans votre journal.</span>
+        </div>
         <iframe
           :src="`${comic.pdfUrl}#toolbar=1&navpanes=0`"
-          class="w-full h-full border-0"
+          class="w-full flex-1 border-0"
           title="Lecteur PDF"
         />
       </div>
@@ -85,6 +96,13 @@ const base = useApiBase()
 const { token } = useAuth()
 
 const { data: comic, pending } = await useFetch(`${base}/comics/${route.params.id}`)
+
+// Les comics sans fichier réel portent une planche générique, pour que le lecteur
+// reste accessible depuis leur fiche. Ce n'est pas une lecture : elle ne doit rien
+// écrire dans le journal, sinon parcourir le catalogue suffirait à remplir les
+// « en cours » d'un utilisateur et à fausser ses séries et ses badges.
+const PLACEHOLDER_PATH = '/placeholder/'
+const isPlaceholder = computed(() => (comic.value?.pdfUrl || '').includes(PLACEHOLDER_PATH))
 
 const entry = ref(null)
 const finishing = ref(false)
@@ -137,8 +155,9 @@ async function markFinished() {
 
 onMounted(async () => {
   await loadEntry()
-  // Passer automatiquement en "En cours" à l'ouverture du lecteur
-  if (comic.value && entry.value?.status !== 'FINISHED') {
+  // Passer automatiquement en "En cours" à l'ouverture du lecteur — sauf sur une
+  // planche générique, qui n'est pas une lecture (voir isPlaceholder).
+  if (comic.value && !isPlaceholder.value && entry.value?.status !== 'FINISHED') {
     await setStatus('IN_PROGRESS')
   }
 })
