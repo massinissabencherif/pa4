@@ -220,7 +220,10 @@ async function submit() {
     return
   }
   if (form.password !== form.passwordConfirm) {
-    error.value = 'Les mots de passe ne correspondent pas.'
+    // Pas de message ici : `passwordMismatch` en affiche déjà un sous le champ
+    // concerné, et le champ est `required` — il ne peut donc pas être vide au
+    // moment de la soumission. Le dupliquer dans le bandeau affichait deux fois
+    // la même phrase, sans désigner le champ fautif.
     return
   }
   if (usernameReserved.value) {

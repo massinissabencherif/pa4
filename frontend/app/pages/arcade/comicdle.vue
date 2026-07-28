@@ -52,10 +52,10 @@
         </div>
 
         <!-- Légende -->
-        <div class="flex flex-wrap gap-4" style="margin-bottom:12px;font-family:'Courier New',monospace;font-size:9px;letter-spacing:2px;color:#666;text-transform:uppercase;">
+        <div class="flex flex-wrap gap-4" style="margin-bottom:12px;font-family:'Courier New',monospace;font-size:9px;letter-spacing:2px;color:#9a938c;text-transform:uppercase;">
           <span><span style="color:#22c55e;">■</span> Exact</span>
           <span><span style="color:#fbbf24;">■</span> Partiel</span>
-          <span><span style="color:#444;">■</span> Aucun</span>
+          <span><span style="color:#9a938c;">■</span> Aucun</span>
           <span>↑ plus récent · ↓ plus ancien</span>
         </div>
 
@@ -70,7 +70,7 @@
             :key="i"
             style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:1px;background:#2a2a2a;"
           >
-            <div :style="cellStyle(g.correct ? 'exact' : 'none')" style="font-size:12px;">{{ g.title }}</div>
+            <div :style="titleStyle(g.correct)">{{ g.title }}</div>
             <div :style="cellStyle(g.genres)">{{ relationLabel(g.genres) }}</div>
             <div :style="cellStyle(g.publisher === 'match' ? 'exact' : g.publisher)">{{ relationLabel(g.publisher === 'match' ? 'exact' : g.publisher) }}</div>
             <div :style="cellStyle(g.year === 'match' ? 'exact' : 'none')">
@@ -111,7 +111,7 @@
             </div>
           </div>
 
-          <p style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:2px;color:#555;text-transform:uppercase;margin-top:18px;">
+          <p style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:2px;color:#9a938c;text-transform:uppercase;margin-top:18px;">
             Reviens demain pour un nouveau comic mystère.
           </p>
         </div>
@@ -213,9 +213,22 @@ function relationLabel(rel) {
   }
 }
 
+// Contrastes mesurés sur le fond #0f0f0f (minimum WCAG AA : 4,5:1).
+// L'ancien #444 tombait à 1,97:1 — le texte des essais était quasi invisible.
+// #9a938c donne 6,32:1 : lisible, tout en restant visuellement en retrait du
+// vert (8,4:1) et de l'orange (11,5:1), pour que la hiérarchie du jeu tienne.
+const CELL_COLORS = { exact: '#22c55e', partial: '#fbbf24', none: '#9a938c', unknown: '#9a938c' }
+
 function cellStyle(rel) {
-  const colors = { exact: '#22c55e', partial: '#fbbf24', none: '#444', unknown: '#444' }
-  return `background:#0f0f0f;padding:12px 10px;font-family:'Courier New',monospace;font-size:13px;text-align:center;color:${colors[rel] ?? '#444'};`
+  const color = CELL_COLORS[rel] ?? CELL_COLORS.none
+  return `background:#0f0f0f;padding:12px 10px;font-family:'Courier New',monospace;font-size:13px;text-align:center;color:${color};`
+}
+
+// Le titre proposé est du contenu, pas un indice : il reste lisible même quand
+// la proposition est fausse (10,3:1), au lieu d'être grisé comme un signal.
+function titleStyle(correct) {
+  const color = correct ? CELL_COLORS.exact : '#c4bdb6'
+  return `background:#0f0f0f;padding:12px 10px;font-family:'Courier New',monospace;font-size:12px;text-align:center;color:${color};`
 }
 
 // Partage du résultat : ouvre X avec un tweet déjà rédigé, l'utilisateur n'a
