@@ -68,11 +68,42 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }, // autorise les uploads servis à d'autres origines
 }));
 
-const authLimiter = rateLimit({
+// Le quota d'authentification était unique et partagé par les 14 routes du
+// routeur /auth — connexion, inscription, rafraîchissement, déconnexion, OAuth,
+// mot de passe oublié, 2FA. Comme il compte par IP et que plusieurs personnes
+// derrière un même wifi partagent une seule IP publique, quatre inscriptions
+// simultanées suffisaient à bloquer tout le monde pendant 15 minutes.
+//
+// On sépare donc selon ce qui est réellement attaquable par force brute.
+
+// Deviner compte ici : on garde une limite serrée.
+const strictAuthLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 20,
+  max: 30,
   skip: () => process.env.NODE_ENV === "test",
   message: { error: "Trop de tentatives, réessaie dans 15 minutes." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// L'inscription n'est pas devinable, mais reste automatisable : on borne la
+// création en masse sans gêner un groupe qui s'inscrit depuis le même réseau.
+const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 30,
+  skip: () => process.env.NODE_ENV === "test",
+  message: { error: "Trop de créations de compte depuis ce réseau, réessaie dans une heure." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Mécanique de session : rafraîchissement, déconnexion, rappels OAuth. Rien à
+// deviner, et c'est ce qui consommait le quota d'un usage parfaitement légitime.
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 300,
+  skip: () => process.env.NODE_ENV === "test",
+  message: { error: "Trop de requêtes, réessaie dans quelques minutes." },
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -125,6 +156,13 @@ app.get("/", (req, res) => {
   res.json({ name: "Comicster API", version: "1.0.0", status: "ok" });
 });
 
+// Les limiteurs ciblés sont montés avant le limiteur général : une requête vers
+// /auth/login traverse le strict puis le général, et c'est le strict qui borne.
+app.use("/auth/login", strictAuthLimiter);
+app.use("/auth/forgot-password", strictAuthLimiter);
+app.use("/auth/reset-password", strictAuthLimiter);
+app.use("/auth/2fa/verify", strictAuthLimiter);
+app.use("/auth/register", registerLimiter);
 app.use("/auth", authLimiter, authRouter);
 app.use("/comics", comicsRouter);
 app.use("/authors", authorsRouter);
