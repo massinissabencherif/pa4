@@ -68,6 +68,15 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }, // autorise les uploads servis à d'autres origines
 }));
 
+// Les plafonds sont réglables par variable d'environnement, avec les valeurs de
+// production par défaut. Cela permet de les desserrer temporairement (démo, salle
+// où tout le monde partage une IP) puis de revenir à la normale en retirant la
+// variable — sans redéployer de code.
+function limitFromEnv(name, fallback) {
+  const raw = Number.parseInt(process.env[name] ?? "", 10);
+  return Number.isFinite(raw) && raw > 0 ? raw : fallback;
+}
+
 // Le quota d'authentification était unique et partagé par les 14 routes du
 // routeur /auth — connexion, inscription, rafraîchissement, déconnexion, OAuth,
 // mot de passe oublié, 2FA. Comme il compte par IP et que plusieurs personnes
@@ -79,7 +88,7 @@ app.use(helmet({
 // Deviner compte ici : on garde une limite serrée.
 const strictAuthLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 30,
+  max: limitFromEnv("AUTH_STRICT_RATE_LIMIT", 30),
   skip: () => process.env.NODE_ENV === "test",
   message: { error: "Trop de tentatives, réessaie dans 15 minutes." },
   standardHeaders: true,
@@ -90,7 +99,7 @@ const strictAuthLimiter = rateLimit({
 // création en masse sans gêner un groupe qui s'inscrit depuis le même réseau.
 const registerLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
-  max: 30,
+  max: limitFromEnv("REGISTER_RATE_LIMIT", 30),
   skip: () => process.env.NODE_ENV === "test",
   message: { error: "Trop de créations de compte depuis ce réseau, réessaie dans une heure." },
   standardHeaders: true,
@@ -101,7 +110,7 @@ const registerLimiter = rateLimit({
 // deviner, et c'est ce qui consommait le quota d'un usage parfaitement légitime.
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 300,
+  max: limitFromEnv("AUTH_RATE_LIMIT", 300),
   skip: () => process.env.NODE_ENV === "test",
   message: { error: "Trop de requêtes, réessaie dans quelques minutes." },
   standardHeaders: true,
@@ -110,7 +119,7 @@ const authLimiter = rateLimit({
 
 const writeLimiter = rateLimit({
   windowMs: 60_000,
-  max: 20,
+  max: limitFromEnv("WRITE_RATE_LIMIT", 20),
   skip: () => process.env.NODE_ENV === "test",
   message: { error: "Trop de requêtes, réessaie dans une minute." },
   standardHeaders: true,
