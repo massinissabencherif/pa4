@@ -117,9 +117,17 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// ⚠️ ─── À REMETTRE À 20 APRÈS LA SOUTENANCE DU 29/07/2026 ─────────────────────
+// Desserré à 150/minute pour la démonstration : le jury teste depuis une même
+// salle, donc une même IP publique, et ce plafond est partagé entre /comments,
+// /reviews, /lists, /guides et /reports. À 20, quatre personnes qui publient en
+// même temps l'épuisent.
+// 150/minute par IP est trop permissif pour un usage durable — c'est un réglage
+// de démonstration, pas une valeur de production.
+// ─────────────────────────────────────────────────────────────────────────────
 const writeLimiter = rateLimit({
   windowMs: 60_000,
-  max: limitFromEnv("WRITE_RATE_LIMIT", 20),
+  max: limitFromEnv("WRITE_RATE_LIMIT", 150),
   skip: () => process.env.NODE_ENV === "test",
   message: { error: "Trop de requêtes, réessaie dans une minute." },
   standardHeaders: true,

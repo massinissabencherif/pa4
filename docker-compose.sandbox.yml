@@ -48,8 +48,8 @@ services:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       LLM_MODEL: ${LLM_MODEL:-claude-haiku-4-5}
       # Plafonds de limitation de débit — laisser vide pour les valeurs de
-      # production (30 / 30 / 300 / 20). À desserrer temporairement quand
-      # plusieurs personnes testent depuis une même IP, puis à retirer.
+      # par défaut (30 / 30 / 300 / 150). WRITE est desserré pour la soutenance —
+      # à remettre à 20 après le 29/07/2026 (voir server.js).
       AUTH_STRICT_RATE_LIMIT: ${AUTH_STRICT_RATE_LIMIT:-}
       REGISTER_RATE_LIMIT: ${REGISTER_RATE_LIMIT:-}
       AUTH_RATE_LIMIT: ${AUTH_RATE_LIMIT:-}
